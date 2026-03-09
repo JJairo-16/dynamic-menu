@@ -18,6 +18,7 @@ menu.hook
 menu.model
 menu.selector
 menu.snapshot
+menu.snapshot.context
 menu.wrappers
 ```
 

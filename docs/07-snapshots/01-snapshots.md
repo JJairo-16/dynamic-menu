@@ -3,6 +3,10 @@
 Els snapshots permeten guardar i restaurar l'estat estructural del menú.
 
 > [!WARNING] La snapshot només guarda la referència del context.
+>
+> Els snapshots de `DynamicMenu` **no restauren l'estat intern del context**, només mantenen la mateixa instància.
+>
+> Si necessites restaurar també l'estat del context, consulta **[Context Rollback](./03-context-rollback.md)**, que utilitza snapshots compostos per fer un rollback complet del menú i del context.
 
 Encara que internament existeixin `MenuSnapshot` i `MenuSnapshotManager`, l'ús habitual es fa **a través de `DynamicMenu` i els seus wrappers**.
 

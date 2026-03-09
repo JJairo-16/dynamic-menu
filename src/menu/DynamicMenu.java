@@ -4,9 +4,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
 
-import menu.action.MenuAction;
-import menu.action.MenuRuntimeAction;
-import menu.action.SimpleMenuAction;
+import menu.action.*;
 import menu.cache.MenuOptionTextCache;
 import menu.config.MenuCleanupConfig;
 import menu.hook.MenuLoopHook;

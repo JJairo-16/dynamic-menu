@@ -62,13 +62,22 @@ Component responsable de seleccionar opcions del menú.
 
 ---
 
-# 07 - Advanced Topics
+# 07 - Snapshots
+
+Permeten capturar i restaurar l'estat estructural del menú i, opcionalment, l'estat intern del context.
+
+- [01 - Snapshots](07-snapshots/01-snapshots.md)
+- [02 - Menu Navigation](07-snapshots/02-menu-navigation.md)
+- [03 - Context Rollback](07-snapshots/03-context-rollback.md)
+- [04 - Composite Snapshots](07-snapshots/04-composite-snapshots.md)
+
+---
+
+# 08 - Advanced Topics
 
 Funcionalitats avançades del sistema de menús.
 
-- [01 - Snapshots](07-advanced/01-snapshots.md)
-- [02 - Menu Navigation](07-advanced/02-menu-navigation.md)
-- [03 - Runtime and Option Management](07-advanced/03-runtime-and-option-management.md)
-- [04 - Best Practices](07-advanced/04-best-practices.md)
-- [05 - Auto Cleanup](07-advanced/05-auto-cleanup.md)
-- [06 - Policies](07-advanced/06-policies.md)
+- [01 - Runtime and Option Management](08-advanced/01-runtime-and-option-management.md)
+- [02 - Best Practices](08-advanced/02-best-practices.md)
+- [03 - Auto Cleanup](08-advanced/03-auto-cleanup.md)
+- [04 - Policies](08-advanced/04-policies.md)
