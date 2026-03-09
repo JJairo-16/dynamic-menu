@@ -21,6 +21,24 @@ Està pensada per simplificar la creació de **CLI interactius, eines de termina
 
 ---
 
+## ▌Documentació
+
+La documentació completa de la llibreria es pot consultar aquí:
+
+**[Índex de la documentació](docs/index.md)**
+
+Inclou guies detallades sobre:
+
+- creació de menús
+- accions i context
+- gestió d'opcions
+- submenús
+- snapshots
+- hooks
+- configuració avançada
+
+---
+
 ## ▌Estructura del projecte
 
 La llibreria principal es troba dins del directori [`menu`](src/menu/).
