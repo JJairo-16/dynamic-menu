@@ -23,8 +23,8 @@ import menu.model.MenuOption;
  * </p>
  *
  * <p>
- * El context es desa com a <b>referència</b>. Restaurar un snapshot no desfà les
- * mutacions internes d'un objecte de context mutable.
+ * El context es desa com a <b>referència</b>. Restaurar un snapshot no desfà
+ * les mutacions internes d'un objecte de context mutable.
  * </p>
  *
  * @param <T> tipus del valor de retorn del menú
@@ -34,17 +34,10 @@ public class MenuSnapshot<T, C> {
 
     private String title;
     private C context;
-    private final List<MenuOption<T, C>> options;
 
-    /**
-     * Índex de la primera aparició per etiqueta.
-     *
-     * <p>
-     * Important: aquest mapa continua sent compatible amb duplicats; només
-     * registra la primera posició trobada per cada label.
-     * </p>
-     */
-    private final Map<String, Integer> firstIndexByLabel;
+    private List<MenuOption<T, C>> options;
+    private Map<String, Integer> firstIndexByLabel;
+    private boolean shared;
 
     private MenuLoopHook<T, C> beforeEachDisplay;
     private MenuLoopHook<T, C> beforeEachAction;
@@ -74,6 +67,7 @@ public class MenuSnapshot<T, C> {
         this.context = context;
         this.options = new ArrayList<>();
         this.firstIndexByLabel = new HashMap<>();
+        this.shared = false;
     }
 
     /**
@@ -122,8 +116,8 @@ public class MenuSnapshot<T, C> {
     /**
      * Crea un snapshot fill copiant el context actual.
      *
-     * @param childTitle    nou títol del snapshot fill; si és {@code null}, conserva
-     *                      el títol actual
+     * @param childTitle    nou títol del snapshot fill; si és {@code null},
+     *                      conserva el títol actual
      * @param contextCopier funció que copia el context actual
      * @return nou snapshot independent derivat de l'actual
      */
@@ -154,6 +148,7 @@ public class MenuSnapshot<T, C> {
      * @throws NullPointerException si {@code title} és {@code null}
      */
     public MenuSnapshot<T, C> setTitle(String title) {
+        ensureWritable();
         this.title = Objects.requireNonNull(title, "El títol del snapshot no pot ser nul");
         return this;
     }
@@ -174,6 +169,7 @@ public class MenuSnapshot<T, C> {
      * @return aquest mateix snapshot
      */
     public MenuSnapshot<T, C> setContext(C context) {
+        ensureWritable();
         this.context = context;
         return this;
     }
@@ -376,6 +372,8 @@ public class MenuSnapshot<T, C> {
             return this;
         }
 
+        ensureWritable();
+
         MenuOption<T, C> option = options.remove(fromIndex);
         int adjustedTargetIndex = fromIndex < toIndex ? toIndex - 1 : toIndex;
         options.add(adjustedTargetIndex, option);
@@ -400,6 +398,8 @@ public class MenuSnapshot<T, C> {
             return this;
         }
 
+        ensureWritable();
+
         MenuOption<T, C> option = options.remove(movingIndex);
         int adjustedReferenceIndex = movingIndex < referenceIndex ? referenceIndex - 1 : referenceIndex;
         options.add(adjustedReferenceIndex, option);
@@ -423,6 +423,8 @@ public class MenuSnapshot<T, C> {
         if (movingIndex == referenceIndex) {
             return this;
         }
+
+        ensureWritable();
 
         MenuOption<T, C> option = options.remove(movingIndex);
         int adjustedReferenceIndex = movingIndex < referenceIndex ? referenceIndex : referenceIndex + 1;
@@ -457,6 +459,7 @@ public class MenuSnapshot<T, C> {
      */
     public MenuOption<T, C> removeOptionAt(int index) {
         validateExistingIndex(index);
+        ensureWritable();
 
         String removedLabel = options.get(index).label();
         boolean removedWasFirst = Objects.equals(firstIndexByLabel.get(removedLabel), index);
@@ -477,6 +480,12 @@ public class MenuSnapshot<T, C> {
     public int removeAllOptions(String label) {
         Objects.requireNonNull(label, "L'etiqueta de cerca no pot ser nul·la");
 
+        if (options.isEmpty()) {
+            return 0;
+        }
+
+        ensureWritable();
+
         int initialSize = options.size();
         options.removeIf(o -> label.equals(o.label()));
         int removedCount = initialSize - options.size();
@@ -496,6 +505,7 @@ public class MenuSnapshot<T, C> {
      */
     public MenuSnapshot<T, C> clearOptions() {
         if (!options.isEmpty()) {
+            ensureWritable();
             options.clear();
             firstIndexByLabel.clear();
             invalidateOptionSnapshotCache();
@@ -528,6 +538,7 @@ public class MenuSnapshot<T, C> {
      * @return aquest mateix snapshot
      */
     public MenuSnapshot<T, C> beforeEachDisplay(MenuLoopHook<T, C> hook) {
+        ensureWritable();
         this.beforeEachDisplay = hook;
         return this;
     }
@@ -539,6 +550,7 @@ public class MenuSnapshot<T, C> {
      * @return aquest mateix snapshot
      */
     public MenuSnapshot<T, C> beforeEachAction(MenuLoopHook<T, C> hook) {
+        ensureWritable();
         this.beforeEachAction = hook;
         return this;
     }
@@ -550,6 +562,7 @@ public class MenuSnapshot<T, C> {
      * @return aquest mateix snapshot
      */
     public MenuSnapshot<T, C> afterEachAction(MenuLoopHook<T, C> hook) {
+        ensureWritable();
         this.afterEachAction = hook;
         return this;
     }
@@ -582,23 +595,34 @@ public class MenuSnapshot<T, C> {
     }
 
     /**
-     * Crea una còpia independent del snapshot actual.
+     * Crea una còpia lògica del snapshot actual.
+     *
+     * <p>
+     * La còpia comparteix internament les estructures de dades fins que un dels
+     * snapshots es modifica. En aquest moment s'aplica copy-on-write.
+     * </p>
      *
      * @return còpia del snapshot
      */
     public MenuSnapshot<T, C> copy() {
         MenuSnapshot<T, C> copy = new MenuSnapshot<>(title, context);
-        copy.options.addAll(this.options);
+
+        copy.options = this.options;
+        copy.firstIndexByLabel = this.firstIndexByLabel;
         copy.beforeEachDisplay = this.beforeEachDisplay;
         copy.beforeEachAction = this.beforeEachAction;
         copy.afterEachAction = this.afterEachAction;
-        copy.rebuildLabelIndex();
+
+        copy.shared = true;
+        this.shared = true;
+
         return copy;
     }
 
     private MenuSnapshot<T, C> addOptionAt(int index, MenuOption<T, C> option) {
         Objects.requireNonNull(option, "L'opció a inserir no pot ser nul·la");
         validateInsertIndex(index);
+        ensureWritable();
 
         if (index == options.size()) {
             return addOptionToEnd(option);
@@ -613,6 +637,7 @@ public class MenuSnapshot<T, C> {
 
     private MenuSnapshot<T, C> addOptionToEnd(MenuOption<T, C> option) {
         Objects.requireNonNull(option, "L'opció a inserir no pot ser nul·la");
+        ensureWritable();
 
         int newIndex = options.size();
         options.add(option);
@@ -702,5 +727,20 @@ public class MenuSnapshot<T, C> {
             String label = options.get(i).label();
             firstIndexByLabel.putIfAbsent(label, i);
         }
+    }
+
+    /**
+     * Garanteix que aquest snapshot tingui una còpia exclusiva de les estructures
+     * internes abans de qualsevol mutació.
+     */
+    private void ensureWritable() {
+        if (!shared) {
+            return;
+        }
+
+        options = new ArrayList<>(options);
+        firstIndexByLabel = new HashMap<>(firstIndexByLabel);
+        shared = false;
+        invalidateOptionSnapshotCache();
     }
 }

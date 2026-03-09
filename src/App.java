@@ -40,5 +40,10 @@ public class App {
 
         child1.run();
         child2.run();
+
+        child1.saveCurrentAs("base");
+        child1.useSnapshot("base");
+        boolean r2 = child1.hasRegisteredSnapshot("base");
+        System.out.println(r2);
     }
 }
