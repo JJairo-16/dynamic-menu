@@ -8,13 +8,48 @@ package menu.config;
  * per evitar que el consum de memòria creixi sense control.
  * </p>
  */
-public record MenuCleanupConfig(
-        boolean clearSnapshotStackAfterRun,
-        int maxNamedSnapshots,
-        boolean removeOldestNamedSnapshotsWhenLimitExceeded,
-        boolean inheritNamedSnapshotsInChildMenus,
-        boolean copyOnlyCurrentSnapshotToChild,
-        int iterationsForCleanup) {
+public final class MenuCleanupConfig {
+
+    private boolean clearSnapshotStackAfterRun;
+    private int maxNamedSnapshots;
+    private boolean removeOldestNamedSnapshotsWhenLimitExceeded;
+    private boolean inheritNamedSnapshotsInChildMenus;
+    private boolean copyOnlyCurrentSnapshotToChild;
+    private int iterationsForCleanup;
+
+    /**
+     * Crea una nova configuració amb tots els valors indicats.
+     *
+     * @param clearSnapshotStackAfterRun indica si s'ha de netejar la pila de
+     *                                   snapshots en acabar {@code run()}
+     * @param maxNamedSnapshots nombre màxim de snapshots registrats per nom
+     * @param removeOldestNamedSnapshotsWhenLimitExceeded indica si s'han
+     *                                                    d'eliminar els snapshots
+     *                                                    més antics quan se supera
+     *                                                    el límit
+     * @param inheritNamedSnapshotsInChildMenus indica si els menús fills han
+     *                                          d'heretar snapshots registrats
+     * @param copyOnlyCurrentSnapshotToChild indica si el menú fill només ha de
+     *                                       rebre l'snapshot actual
+     * @param iterationsForCleanup nombre d'iteracions entre cada neteja
+     *                             automàtica periòdica
+     */
+    private MenuCleanupConfig(
+            boolean clearSnapshotStackAfterRun,
+            int maxNamedSnapshots,
+            boolean removeOldestNamedSnapshotsWhenLimitExceeded,
+            boolean inheritNamedSnapshotsInChildMenus,
+            boolean copyOnlyCurrentSnapshotToChild,
+            int iterationsForCleanup) {
+
+        this.clearSnapshotStackAfterRun = clearSnapshotStackAfterRun;
+        this.maxNamedSnapshots = maxNamedSnapshots;
+        this.removeOldestNamedSnapshotsWhenLimitExceeded =
+                removeOldestNamedSnapshotsWhenLimitExceeded;
+        this.inheritNamedSnapshotsInChildMenus = inheritNamedSnapshotsInChildMenus;
+        this.copyOnlyCurrentSnapshotToChild = copyOnlyCurrentSnapshotToChild;
+        this.iterationsForCleanup = iterationsForCleanup;
+    }
 
     /**
      * Retorna una configuració per defecte equilibrada.
@@ -80,111 +115,143 @@ public record MenuCleanupConfig(
     }
 
     /**
-     * Crea una còpia amb un nou valor per a {@code clearSnapshotStackAfterRun}.
+     * Actualitza el valor de {@code clearSnapshotStackAfterRun}.
      *
      * @param value nou valor
-     * @return nova configuració
+     * @return aquesta mateixa configuració
      */
     public MenuCleanupConfig withClearSnapshotStackAfterRun(boolean value) {
-        return new MenuCleanupConfig(
-                value,
-                maxNamedSnapshots,
-                removeOldestNamedSnapshotsWhenLimitExceeded,
-                inheritNamedSnapshotsInChildMenus,
-                copyOnlyCurrentSnapshotToChild,
-                iterationsForCleanup);
+        this.clearSnapshotStackAfterRun = value;
+        return this;
     }
 
     /**
-     * Crea una còpia amb un nou valor per a {@code maxNamedSnapshots}.
+     * Actualitza el valor de {@code maxNamedSnapshots}.
      *
      * @param value nou valor
-     * @return nova configuració
+     * @return aquesta mateixa configuració
      */
     public MenuCleanupConfig withMaxNamedSnapshots(int value) {
-        return new MenuCleanupConfig(
-                clearSnapshotStackAfterRun,
-                value,
-                removeOldestNamedSnapshotsWhenLimitExceeded,
-                inheritNamedSnapshotsInChildMenus,
-                copyOnlyCurrentSnapshotToChild,
-                iterationsForCleanup);
+        this.maxNamedSnapshots = value;
+        return this;
     }
 
     /**
-     * Crea una còpia amb un nou valor per a
+     * Actualitza el valor de
      * {@code removeOldestNamedSnapshotsWhenLimitExceeded}.
      *
      * @param value nou valor
-     * @return nova configuració
+     * @return aquesta mateixa configuració
      */
     public MenuCleanupConfig withRemoveOldestNamedSnapshotsWhenLimitExceeded(boolean value) {
-        return new MenuCleanupConfig(
-                clearSnapshotStackAfterRun,
-                maxNamedSnapshots,
-                value,
-                inheritNamedSnapshotsInChildMenus,
-                copyOnlyCurrentSnapshotToChild,
-                iterationsForCleanup);
+        this.removeOldestNamedSnapshotsWhenLimitExceeded = value;
+        return this;
     }
 
     /**
-     * Crea una còpia amb un nou valor per a
-     * {@code inheritNamedSnapshotsInChildMenus}.
+     * Actualitza el valor de {@code inheritNamedSnapshotsInChildMenus}.
      *
      * @param value nou valor
-     * @return nova configuració
+     * @return aquesta mateixa configuració
      */
     public MenuCleanupConfig withInheritNamedSnapshotsInChildMenus(boolean value) {
-        return new MenuCleanupConfig(
-                clearSnapshotStackAfterRun,
-                maxNamedSnapshots,
-                removeOldestNamedSnapshotsWhenLimitExceeded,
-                value,
-                copyOnlyCurrentSnapshotToChild,
-                iterationsForCleanup);
+        this.inheritNamedSnapshotsInChildMenus = value;
+        return this;
     }
 
     /**
-     * Crea una còpia amb un nou valor per a
-     * {@code copyOnlyCurrentSnapshotToChild}.
+     * Actualitza el valor de {@code copyOnlyCurrentSnapshotToChild}.
      *
      * @param value nou valor
-     * @return nova configuració
+     * @return aquesta mateixa configuració
      */
     public MenuCleanupConfig withCopyOnlyCurrentSnapshotToChild(boolean value) {
-        return new MenuCleanupConfig(
-                clearSnapshotStackAfterRun,
-                maxNamedSnapshots,
-                removeOldestNamedSnapshotsWhenLimitExceeded,
-                inheritNamedSnapshotsInChildMenus,
-                value,
-                iterationsForCleanup);
+        this.copyOnlyCurrentSnapshotToChild = value;
+        return this;
     }
 
     /**
-     * Crea una còpia amb un nou valor per a {@code iterationPerClean}.
+     * Actualitza el valor de {@code iterationsForCleanup}.
      *
      * <p>
-     * Aquest valor indica cada quantes iteracions del menú
-     * s'ha d'executar una neteja automàtica.
+     * Un valor de {@code 0} implica que la neteja periòdica queda desactivada.
+     * Un valor positiu indica cada quantes iteracions s'ha d'intentar executar.
      * </p>
      *
-     * <ul>
-     * <li>0 → neteja desactivada</li>
-     * <li>valor positiu → neteja cada N iteracions</li>
-     * </ul>
-     *
-     * @param value nombre d'iteracions entre neteges
-     * @return nova configuració
+     * @param value nou valor
+     * @return aquesta mateixa configuració
      */
     public MenuCleanupConfig withIterationsForCleanup(int value) {
-        return new MenuCleanupConfig(
-                clearSnapshotStackAfterRun,
-                maxNamedSnapshots,
-                removeOldestNamedSnapshotsWhenLimitExceeded,
-                inheritNamedSnapshotsInChildMenus,
-                copyOnlyCurrentSnapshotToChild,
-                value);
+        this.iterationsForCleanup = value;
+        return this;
+    }
+
+    /**
+     * Indica si s'ha de netejar la pila de snapshots en acabar {@code run()}.
+     *
+     * @return {@code true} si la pila s'ha de netejar automàticament
+     */
+    public boolean clearSnapshotStackAfterRun() {
+        return clearSnapshotStackAfterRun;
+    }
+
+    /**
+     * Retorna el nombre màxim de snapshots registrats per nom que es poden
+     * conservar.
+     *
+     * @return nombre màxim de snapshots registrats
+     */
+    public int maxNamedSnapshots() {
+        return maxNamedSnapshots;
+    }
+
+    /**
+     * Indica si s'han d'eliminar els snapshots registrats més antics quan
+     * se supera el límit configurat.
+     *
+     * @return {@code true} si s'han d'eliminar els més antics
+     */
+    public boolean removeOldestNamedSnapshotsWhenLimitExceeded() {
+        return removeOldestNamedSnapshotsWhenLimitExceeded;
+    }
+
+    /**
+     * Indica si els menús fills han d'heretar snapshots registrats del menú pare.
+     *
+     * @return {@code true} si els menús fills han d'heretar-los
+     */
+    public boolean inheritNamedSnapshotsInChildMenus() {
+        return inheritNamedSnapshotsInChildMenus;
+    }
+
+    /**
+     * Indica si el menú fill només ha de rebre l'snapshot actual.
+     *
+     * @return {@code true} si només s'ha de copiar l'snapshot actual
+     */
+    public boolean copyOnlyCurrentSnapshotToChild() {
+        return copyOnlyCurrentSnapshotToChild;
+    }
+
+    /**
+     * Retorna el nombre d'iteracions entre cada neteja periòdica.
+     *
+     * <p>
+     * Un valor de {@code 0} indica que la neteja periòdica està desactivada.
+     * </p>
+     *
+     * @return nombre d'iteracions entre neteges
+     */
+    public int iterationsForCleanup() {
+        return iterationsForCleanup;
+    }
+
+    /**
+     * Indica si la neteja periòdica està activada.
+     *
+     * @return {@code true} si hi ha una freqüència de neteja periòdica activa
+     */
+    public boolean isPeriodicCleanupEnabled() {
+        return iterationsForCleanup > 0;
     }
 }

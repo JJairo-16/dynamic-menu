@@ -66,6 +66,8 @@ Això activa la neteja automàtica amb una configuració personalitzada.
 - si els menús fills han d'heretar snapshots registrats
 - si el fill només ha de rebre l'snapshot actual
 - cada quantes iteracions s'ha d'executar una neteja automàtica
+  - `0` → desactiva la neteja periòdica
+  - `N > 0` → la neteja s'executa cada `N` iteracions del menú
 
 ## Presets disponibles
 

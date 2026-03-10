@@ -42,7 +42,8 @@ import menu.model.MenuOption;
  * </p>
  *
  * <p>
- * Els snapshots conserven la <b>referència</b> al context, no una còpia profunda
+ * Els snapshots conserven la <b>referència</b> al context, no una còpia
+ * profunda
  * del seu estat intern.
  * </p>
  *
@@ -607,7 +608,8 @@ public final class MenuSnapshotManager<T, C> {
     /**
      * Crea un snapshot fill copiant el context actual.
      *
-     * @param childTitle    nou títol del fill; si és {@code null}, conserva el títol
+     * @param childTitle    nou títol del fill; si és {@code null}, conserva el
+     *                      títol
      *                      actual
      * @param contextCopier funció que copia el context actual
      * @return snapshot fill independent
@@ -696,6 +698,8 @@ public final class MenuSnapshotManager<T, C> {
                 cleanupConfig);
     }
 
+    private int iterationsCounter = 0;
+
     public MenuSnapshotManager<T, C> cleanupRegisteredSnapshotsIfNeeded(
             boolean autoCleanupEnabled,
             MenuCleanupConfig cleanupConfig) {
@@ -705,6 +709,12 @@ public final class MenuSnapshotManager<T, C> {
         if (!autoCleanupEnabled) {
             return this;
         }
+
+        if (!cleanupConfig.isPeriodicCleanupEnabled())
+            return this;
+
+        if (++iterationsCounter < cleanupConfig.iterationsForCleanup())
+            return this;
 
         int max = cleanupConfig.maxNamedSnapshots();
         if (max <= 0) {
