@@ -28,7 +28,7 @@ Defineix què passa després d'executar una acció.
 
 Possibles resultats:
 
-- continuar el bucle (`MenuResult.continueLoop()`)
+- continuar el bucle (`MenuResult.repeatLoop()`)
 - retornar un valor (`MenuResult.returnValue(value)`)
 - sortir del menú (`MenuResult.exitMenu()` → `null`)
 

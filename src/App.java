@@ -16,7 +16,7 @@ public class App {
         menu.addOption("Saludar", () -> {
             System.out.println("Hola");
 
-            return MenuResult.continueLoop();
+            return MenuResult.repeatLoop();
         });
 
         menu.addOption("Sumar 2+2", () -> MenuResult.returnValue("2 + 2 = 4"));
@@ -32,8 +32,8 @@ public class App {
         DynamicMenu<String, Void> child1 = menu.createChildMenu("A");
         DynamicMenu<String, Void> child2 = menu.createChildMenu("B");
 
-        child1.addOption("carajo", MenuResult::continueLoop);
-        child2.addOption("pendejo", MenuResult::continueLoop);
+        child1.addOption("carajo", MenuResult::repeatLoop);
+        child2.addOption("pendejo", MenuResult::repeatLoop);
 
         String r = menu.run();
         System.out.println(r);

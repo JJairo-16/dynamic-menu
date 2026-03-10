@@ -19,7 +19,7 @@ menu.setTitle("Configuració");
 menu.clearOptions();
 menu.addOption("Tornar", () -> {
     menu.restoreSnapshot(snapshot);
-    return MenuResult.continueLoop();
+    return MenuResult.repeatLoop();
 });
 ```
 
@@ -83,7 +83,7 @@ menu.addOption("Configuració", (ctx, runtime) -> {
     child.addOption("Tornar", () -> MenuResult.returnValue("back"));
 
     child.run();
-    return MenuResult.continueLoop();
+    return MenuResult.repeatLoop();
 });
 ```
 

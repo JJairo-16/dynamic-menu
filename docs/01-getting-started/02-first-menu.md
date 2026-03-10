@@ -8,7 +8,7 @@ DynamicMenu<String, Void> menu =
 
 menu.addOption("Dir hola", () -> {
     System.out.println("Hola!");
-    return MenuResult.continueLoop();
+    return MenuResult.repeatLoop();
 });
 
 menu.addOption("Sortir", () -> MenuResult.exit());

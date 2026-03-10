@@ -10,18 +10,18 @@ Dit d'una altra manera: sense `MenuResult`, el motor no sap si ha de continuar, 
 
 | Mètode                          | Efecte                               |
 | ------------------------------- | ------------------------------------ |
-| `MenuResult.continueLoop()`     | continua l'execució del menú         |
+| `MenuResult.repeatLoop()`       | continua l'execució del menú         |
 | `MenuResult.returnValue(value)` | finalitza `run()` retornant un valor |
 | `MenuResult.exitMenu()`         | finalitza `run()` retornant `null`   |
 
-## `continueLoop()`
+## `repeatLoop()`
 <>
 És el resultat més habitual quan una acció només ha de fer alguna operació i permetre que el menú segueixi viu.
 
 ```java
 menu.addOption("Mostrar saldo", ctx -> {
     System.out.println(ctx.getBalance());
-    return MenuResult.continueLoop();
+    return MenuResult.repeatLoop();
 });
 ```
 

@@ -58,7 +58,7 @@ DynamicMenu<String, SessionContext> menu =
 menu.addOption("Incrementar intents", ctx -> {
     ctx.incrementAttempts();
     System.out.println("Intents: " + ctx.getAttempts());
-    return MenuResult.continueLoop();
+    return MenuResult.repeatLoop();
 });
 ```
 

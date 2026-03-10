@@ -142,14 +142,14 @@ menu.addOption("Configuració", (ctx, runtime) -> {
 
     child.addOption("Canviar idioma", innerCtx -> {
         innerCtx.setLanguage("ca");
-        return MenuResult.continueLoop();
+        return MenuResult.repeatLoop();
     });
 
     child.addOption("Tornar", () -> MenuResult.returnValue("back"));
 
     child.run();
 
-    return MenuResult.continueLoop();
+    return MenuResult.repeatLoop();
 });
 ```
 

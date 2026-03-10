@@ -37,7 +37,7 @@ MenuOption.ofRuntime("Configuració", (ctx, menu) -> {
 
     menu.pushSnapshot("settings");
 
-    return MenuResult.continueLoop();
+    return MenuResult.repeatLoop();
 
 });
 ```

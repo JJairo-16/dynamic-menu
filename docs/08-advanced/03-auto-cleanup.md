@@ -65,6 +65,7 @@ Això activa la neteja automàtica amb una configuració personalitzada.
 - si s'han d'eliminar els més antics quan se supera el límit
 - si els menús fills han d'heretar snapshots registrats
 - si el fill només ha de rebre l'snapshot actual
+- cada quantes iteracions s'ha d'executar una neteja automàtica
 
 ## Presets disponibles
 
@@ -94,6 +95,7 @@ menu.cleanupConfig(
         .withClearSnapshotStackAfterRun(true)
         .withInheritNamedSnapshotsInChildMenus(false)
         .withCopyOnlyCurrentSnapshotToChild(true)
+        .withIterationsForCleanup(15)
 );
 ```
 

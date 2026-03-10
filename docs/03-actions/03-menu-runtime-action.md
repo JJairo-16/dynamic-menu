@@ -22,7 +22,7 @@ menu.addOption("Configuració", (ctx, menu) -> {
 
     menu.pushSnapshot("settings");
 
-    return MenuResult.continueLoop();
+    return MenuResult.repeatLoop();
 
 });
 ```

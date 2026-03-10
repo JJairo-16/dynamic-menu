@@ -94,7 +94,7 @@ DynamicMenu<Void, Void> menu =
 
 menu.addOption("Hola", () -> {
     System.out.println("Hola!");
-    return MenuResult.continueLoop();
+    return MenuResult.repeatLoop();
 });
 
 menu.addOption("Sortir", () -> MenuResult.exitMenu());
@@ -110,14 +110,14 @@ Cada acció retorna un `MenuResult`, que indica què ha de fer el menú.
 
 | Resultat             | Efecte                               |
 | -------------------- | ------------------------------------ |
-| `continueLoop()`     | el menú continua                     |
+| `repeatLoop()`       | el menú continua                     |
 | `returnValue(value)` | el menú finalitza retornant un valor |
 | `exitMenu()`         | el menú finalitza retornant `null`   |
 
 Exemple:
 
 ```java
-return MenuResult.continueLoop();
+return MenuResult.repeatLoop();
 ```
 
 ---
@@ -207,7 +207,7 @@ DynamicMenu<Void, Void> menu =
 
 menu.addOption("Opció 1", () -> {
     System.out.println("Has triat l'opció 1");
-    return MenuResult.continueLoop();
+    return MenuResult.repeatLoop();
 });
 
 menu.addOption("Sortir", () -> MenuResult.exitMenu());

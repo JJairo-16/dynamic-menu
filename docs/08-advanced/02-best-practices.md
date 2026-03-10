@@ -73,7 +73,7 @@ Això evita confusions quan el menú creix.
 És millor que cada acció deixi explícitament què ha de passar després.
 
 ```java
-return MenuResult.continueLoop();
+return MenuResult.repeatLoop();
 ```
 
 és més clar que amagar la intenció dins de lògica indirecta.

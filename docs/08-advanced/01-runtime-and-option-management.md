@@ -164,9 +164,9 @@ menu.addOption("Entrar a configuració", (ctx, runtime) -> {
     runtime.clearOptions();
     runtime.addOption("Tornar", (innerCtx, innerRuntime) -> {
         innerRuntime.popSnapshot();
-        return MenuResult.continueLoop();
+        return MenuResult.repeatLoop();
     });
-    return MenuResult.continueLoop();
+    return MenuResult.repeatLoop();
 });
 ```
 

@@ -73,7 +73,7 @@ String result = menu.run();
 
 En la pràctica, això fa que `MenuResult` sigui una peça central del sistema:
 
-- `MenuResult.continueLoop()` continua el menú
+- `MenuResult.repeatLoop()` continua el menú
 - `MenuResult.returnValue(value)` finalitza el menú retornant un valor
 - `MenuResult.exitMenu()` finalitza el menú retornant `null`
 

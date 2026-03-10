@@ -71,7 +71,7 @@ public final class MenuResult<T> {
      * @param <T> tipus del valor de retorn del menú
      * @return resultat de continuació
      */
-    public static <T> MenuResult<T> continueLoop() {
+    public static <T> MenuResult<T> repeatLoop() {
         return new MenuResult<>(Type.CONTINUE, null);
     }
 

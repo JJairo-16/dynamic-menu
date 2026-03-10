@@ -20,7 +20,7 @@ public interface MenuAction<T, C> {
 ```java
 menu.addOption("Guardar", ctx -> {
     guardarDades(ctx);
-    return MenuResult.continueLoop();
+    return MenuResult.repeatLoop();
 });
 ```
 
