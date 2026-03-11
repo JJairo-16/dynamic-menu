@@ -42,8 +42,10 @@ public class App {
         child2.run();
 
         child1.saveCurrentAs("base");
+        child1.addOption("carajo2", MenuResult::repeatLoop);
+        child1.run();
+        
         child1.useSnapshot("base");
-        boolean r2 = child1.hasRegisteredSnapshot("base");
-        System.out.println(r2);
+        child1.run();
     }
 }

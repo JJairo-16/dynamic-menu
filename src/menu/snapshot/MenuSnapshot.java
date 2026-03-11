@@ -27,17 +27,68 @@ import menu.model.MenuOption;
  * les mutacions internes d'un objecte de context mutable.
  * </p>
  *
+ * <p>
+ * Aquesta implementació separa el <i>state</i> pesat (opcions + índex auxiliar)
+ * de la resta de metadades. Això permet que canvis com el títol, el context o
+ * els hooks no forcin còpies de les estructures de dades de les opcions.
+ * </p>
+ *
  * @param <T> tipus del valor de retorn del menú
  * @param <C> tipus del context del menú
  */
 public class MenuSnapshot<T, C> {
 
+    /**
+     * Estat estructural compartible del snapshot.
+     *
+     * <p>
+     * Es comparteix entre snapshots fins que una mutació sobre les opcions exigeix
+     * materialitzar una còpia exclusiva.
+     * </p>
+     */
+    private static final class SharedState<T, C> {
+        private List<MenuOption<T, C>> options;
+        private Map<String, Integer> firstIndexByLabel;
+
+        /**
+         * Crea un estat buit.
+         */
+        private SharedState() {
+            this.options = new ArrayList<>();
+            this.firstIndexByLabel = new HashMap<>();
+        }
+
+        /**
+         * Crea un estat amb les estructures indicades.
+         *
+         * @param options            llista d'opcions
+         * @param firstIndexByLabel  índex de primera aparició per etiqueta
+         */
+        private SharedState(
+                List<MenuOption<T, C>> options,
+                Map<String, Integer> firstIndexByLabel) {
+
+            this.options = options;
+            this.firstIndexByLabel = firstIndexByLabel;
+        }
+
+        /**
+         * Retorna una còpia mutable independent d'aquest estat.
+         *
+         * @return còpia mutable de l'estat
+         */
+        private SharedState<T, C> copyMutable() {
+            return new SharedState<>(
+                    new ArrayList<>(options),
+                    new HashMap<>(firstIndexByLabel));
+        }
+    }
+
     private String title;
     private C context;
 
-    private List<MenuOption<T, C>> options;
-    private Map<String, Integer> firstIndexByLabel;
-    private boolean shared;
+    private SharedState<T, C> state;
+    private boolean sharedState;
 
     private MenuLoopHook<T, C> beforeEachDisplay;
     private MenuLoopHook<T, C> beforeEachAction;
@@ -65,9 +116,8 @@ public class MenuSnapshot<T, C> {
     public MenuSnapshot(String title, C context) {
         this.title = Objects.requireNonNull(title, "El títol del snapshot no pot ser nul");
         this.context = context;
-        this.options = new ArrayList<>();
-        this.firstIndexByLabel = new HashMap<>();
-        this.shared = false;
+        this.state = new SharedState<>();
+        this.sharedState = false;
     }
 
     /**
@@ -148,7 +198,6 @@ public class MenuSnapshot<T, C> {
      * @throws NullPointerException si {@code title} és {@code null}
      */
     public MenuSnapshot<T, C> setTitle(String title) {
-        ensureWritable();
         this.title = Objects.requireNonNull(title, "El títol del snapshot no pot ser nul");
         return this;
     }
@@ -169,7 +218,6 @@ public class MenuSnapshot<T, C> {
      * @return aquest mateix snapshot
      */
     public MenuSnapshot<T, C> setContext(C context) {
-        ensureWritable();
         this.context = context;
         return this;
     }
@@ -323,7 +371,7 @@ public class MenuSnapshot<T, C> {
      */
     public boolean hasOption(String label) {
         Objects.requireNonNull(label, "L'etiqueta de cerca no pot ser nul·la");
-        return firstIndexByLabel.containsKey(label);
+        return state.firstIndexByLabel.containsKey(label);
     }
 
     /**
@@ -334,7 +382,7 @@ public class MenuSnapshot<T, C> {
      */
     public int indexOfOption(String label) {
         Objects.requireNonNull(label, "L'etiqueta de cerca no pot ser nul·la");
-        return firstIndexByLabel.getOrDefault(label, -1);
+        return state.firstIndexByLabel.getOrDefault(label, -1);
     }
 
     /**
@@ -354,7 +402,7 @@ public class MenuSnapshot<T, C> {
      * @return aquest mateix snapshot
      */
     public MenuSnapshot<T, C> moveOptionToEnd(int index) {
-        return moveOptionToIndex(index, options.size() - 1);
+        return moveOptionToIndex(index, state.options.size() - 1);
     }
 
     /**
@@ -372,11 +420,11 @@ public class MenuSnapshot<T, C> {
             return this;
         }
 
-        ensureWritable();
+        ensureWritableState();
 
-        MenuOption<T, C> option = options.remove(fromIndex);
+        MenuOption<T, C> option = state.options.remove(fromIndex);
         int adjustedTargetIndex = fromIndex < toIndex ? toIndex - 1 : toIndex;
-        options.add(adjustedTargetIndex, option);
+        state.options.add(adjustedTargetIndex, option);
 
         rebuildLabelIndex();
         invalidateOptionSnapshotCache();
@@ -398,11 +446,11 @@ public class MenuSnapshot<T, C> {
             return this;
         }
 
-        ensureWritable();
+        ensureWritableState();
 
-        MenuOption<T, C> option = options.remove(movingIndex);
+        MenuOption<T, C> option = state.options.remove(movingIndex);
         int adjustedReferenceIndex = movingIndex < referenceIndex ? referenceIndex - 1 : referenceIndex;
-        options.add(adjustedReferenceIndex, option);
+        state.options.add(adjustedReferenceIndex, option);
 
         rebuildLabelIndex();
         invalidateOptionSnapshotCache();
@@ -424,11 +472,11 @@ public class MenuSnapshot<T, C> {
             return this;
         }
 
-        ensureWritable();
+        ensureWritableState();
 
-        MenuOption<T, C> option = options.remove(movingIndex);
+        MenuOption<T, C> option = state.options.remove(movingIndex);
         int adjustedReferenceIndex = movingIndex < referenceIndex ? referenceIndex : referenceIndex + 1;
-        options.add(adjustedReferenceIndex, option);
+        state.options.add(adjustedReferenceIndex, option);
 
         rebuildLabelIndex();
         invalidateOptionSnapshotCache();
@@ -459,12 +507,12 @@ public class MenuSnapshot<T, C> {
      */
     public MenuOption<T, C> removeOptionAt(int index) {
         validateExistingIndex(index);
-        ensureWritable();
+        ensureWritableState();
 
-        String removedLabel = options.get(index).label();
-        boolean removedWasFirst = Objects.equals(firstIndexByLabel.get(removedLabel), index);
+        String removedLabel = state.options.get(index).label();
+        boolean removedWasFirst = Objects.equals(state.firstIndexByLabel.get(removedLabel), index);
 
-        MenuOption<T, C> removed = options.remove(index);
+        MenuOption<T, C> removed = state.options.remove(index);
         onRemove(index, removedWasFirst);
 
         invalidateOptionSnapshotCache();
@@ -480,15 +528,15 @@ public class MenuSnapshot<T, C> {
     public int removeAllOptions(String label) {
         Objects.requireNonNull(label, "L'etiqueta de cerca no pot ser nul·la");
 
-        if (options.isEmpty()) {
+        if (state.options.isEmpty()) {
             return 0;
         }
 
-        ensureWritable();
+        ensureWritableState();
 
-        int initialSize = options.size();
-        options.removeIf(o -> label.equals(o.label()));
-        int removedCount = initialSize - options.size();
+        int initialSize = state.options.size();
+        state.options.removeIf(o -> label.equals(o.label()));
+        int removedCount = initialSize - state.options.size();
 
         if (removedCount > 0) {
             rebuildLabelIndex();
@@ -504,10 +552,10 @@ public class MenuSnapshot<T, C> {
      * @return aquest mateix snapshot
      */
     public MenuSnapshot<T, C> clearOptions() {
-        if (!options.isEmpty()) {
-            ensureWritable();
-            options.clear();
-            firstIndexByLabel.clear();
+        if (!state.options.isEmpty()) {
+            ensureWritableState();
+            state.options.clear();
+            state.firstIndexByLabel.clear();
             invalidateOptionSnapshotCache();
         }
         return this;
@@ -519,7 +567,7 @@ public class MenuSnapshot<T, C> {
      * @return nombre d'opcions
      */
     public int optionCount() {
-        return options.size();
+        return state.options.size();
     }
 
     /**
@@ -528,7 +576,7 @@ public class MenuSnapshot<T, C> {
      * @return còpia immutable de les opcions
      */
     public List<MenuOption<T, C>> getOptionSnapshot() {
-        return optionSnapshotCache.get(options);
+        return optionSnapshotCache.get(state.options);
     }
 
     /**
@@ -538,7 +586,6 @@ public class MenuSnapshot<T, C> {
      * @return aquest mateix snapshot
      */
     public MenuSnapshot<T, C> beforeEachDisplay(MenuLoopHook<T, C> hook) {
-        ensureWritable();
         this.beforeEachDisplay = hook;
         return this;
     }
@@ -550,7 +597,6 @@ public class MenuSnapshot<T, C> {
      * @return aquest mateix snapshot
      */
     public MenuSnapshot<T, C> beforeEachAction(MenuLoopHook<T, C> hook) {
-        ensureWritable();
         this.beforeEachAction = hook;
         return this;
     }
@@ -562,7 +608,6 @@ public class MenuSnapshot<T, C> {
      * @return aquest mateix snapshot
      */
     public MenuSnapshot<T, C> afterEachAction(MenuLoopHook<T, C> hook) {
-        ensureWritable();
         this.afterEachAction = hook;
         return this;
     }
@@ -598,8 +643,14 @@ public class MenuSnapshot<T, C> {
      * Crea una còpia lògica del snapshot actual.
      *
      * <p>
-     * La còpia comparteix internament les estructures de dades fins que un dels
-     * snapshots es modifica. En aquest moment s'aplica copy-on-write.
+     * La còpia comparteix internament l'estat estructural de les opcions fins que
+     * un dels snapshots el modifica. En aquell moment s'aplica copy-on-write només
+     * sobre aquest estat.
+     * </p>
+     *
+     * <p>
+     * El títol, el context i els hooks es copien al nou wrapper, però no formen
+     * part del bloc estructural compartit.
      * </p>
      *
      * @return còpia del snapshot
@@ -607,46 +658,58 @@ public class MenuSnapshot<T, C> {
     public MenuSnapshot<T, C> copy() {
         MenuSnapshot<T, C> copy = new MenuSnapshot<>(title, context);
 
-        copy.options = this.options;
-        copy.firstIndexByLabel = this.firstIndexByLabel;
+        copy.state = this.state;
         copy.beforeEachDisplay = this.beforeEachDisplay;
         copy.beforeEachAction = this.beforeEachAction;
         copy.afterEachAction = this.afterEachAction;
 
-        copy.shared = true;
-        this.shared = true;
+        copy.sharedState = true;
+        this.sharedState = true;
 
         return copy;
     }
 
+    /**
+     * Insereix una opció en una posició concreta.
+     *
+     * @param index  índex d'inserció
+     * @param option opció a inserir
+     * @return aquest mateix snapshot
+     */
     private MenuSnapshot<T, C> addOptionAt(int index, MenuOption<T, C> option) {
         Objects.requireNonNull(option, "L'opció a inserir no pot ser nul·la");
         validateInsertIndex(index);
-        ensureWritable();
+        ensureWritableState();
 
-        if (index == options.size()) {
+        if (index == state.options.size()) {
             return addOptionToEnd(option);
         }
 
-        options.add(index, option);
+        state.options.add(index, option);
         onInsert(index, option.label());
 
         invalidateOptionSnapshotCache();
         return this;
     }
 
+    /**
+     * Afegeix una opció al final.
+     *
+     * @param option opció a afegir
+     * @return aquest mateix snapshot
+     */
     private MenuSnapshot<T, C> addOptionToEnd(MenuOption<T, C> option) {
         Objects.requireNonNull(option, "L'opció a inserir no pot ser nul·la");
-        ensureWritable();
+        ensureWritableState();
 
-        int newIndex = options.size();
-        options.add(option);
+        int newIndex = state.options.size();
+        state.options.add(option);
 
         /*
          * Si la label no existia, aquesta nova posició és la primera.
          * Si ja existia, el mapa no canvia perquè només guarda la primera aparició.
          */
-        firstIndexByLabel.putIfAbsent(option.label(), newIndex);
+        state.firstIndexByLabel.putIfAbsent(option.label(), newIndex);
 
         invalidateOptionSnapshotCache();
         return this;
@@ -658,17 +721,20 @@ public class MenuSnapshot<T, C> {
      * <p>
      * Compatible amb duplicats: només es manté la primera aparició per label.
      * </p>
+     *
+     * @param index         índex on s'ha inserit
+     * @param insertedLabel etiqueta inserida
      */
     private void onInsert(int index, String insertedLabel) {
-        for (Map.Entry<String, Integer> entry : firstIndexByLabel.entrySet()) {
+        for (Map.Entry<String, Integer> entry : state.firstIndexByLabel.entrySet()) {
             if (entry.getValue() >= index) {
                 entry.setValue(entry.getValue() + 1);
             }
         }
 
-        Integer currentFirst = firstIndexByLabel.get(insertedLabel);
+        Integer currentFirst = state.firstIndexByLabel.get(insertedLabel);
         if (currentFirst == null || index < currentFirst) {
-            firstIndexByLabel.put(insertedLabel, index);
+            state.firstIndexByLabel.put(insertedLabel, index);
         }
     }
 
@@ -679,6 +745,9 @@ public class MenuSnapshot<T, C> {
      * Si s'elimina la primera aparició d'una label, es reconstrueix completament
      * per garantir coherència amb duplicats.
      * </p>
+     *
+     * @param removedIndex    índex eliminat
+     * @param removedWasFirst indica si era la primera aparició de l'etiqueta
      */
     private void onRemove(int removedIndex, boolean removedWasFirst) {
         if (removedWasFirst) {
@@ -686,27 +755,46 @@ public class MenuSnapshot<T, C> {
             return;
         }
 
-        for (Map.Entry<String, Integer> entry : firstIndexByLabel.entrySet()) {
+        for (Map.Entry<String, Integer> entry : state.firstIndexByLabel.entrySet()) {
             if (entry.getValue() > removedIndex) {
                 entry.setValue(entry.getValue() - 1);
             }
         }
     }
 
+    /**
+     * Valida un índex d'inserció.
+     *
+     * @param index índex a validar
+     * @throws IndexOutOfBoundsException si l'índex no és vàlid
+     */
     private void validateInsertIndex(int index) {
-        if (index < 0 || index > options.size()) {
+        if (index < 0 || index > state.options.size()) {
             throw new IndexOutOfBoundsException(
-                    "L'índex d'inserció " + index + " no és vàlid; ha d'estar entre 0 i " + options.size());
+                    "L'índex d'inserció " + index + " no és vàlid; ha d'estar entre 0 i " + state.options.size());
         }
     }
 
+    /**
+     * Valida un índex existent.
+     *
+     * @param index índex a validar
+     * @throws IndexOutOfBoundsException si l'índex no és vàlid
+     */
     private void validateExistingIndex(int index) {
-        if (index < 0 || index >= options.size()) {
+        if (index < 0 || index >= state.options.size()) {
             throw new IndexOutOfBoundsException(
-                    "L'índex " + index + " no és vàlid; ha d'estar entre 0 i " + (options.size() - 1));
+                    "L'índex " + index + " no és vàlid; ha d'estar entre 0 i " + (state.options.size() - 1));
         }
     }
 
+    /**
+     * Retorna l'índex d'una etiqueta existent.
+     *
+     * @param label etiqueta a cercar
+     * @return índex de la primera coincidència
+     * @throws IllegalArgumentException si no existeix cap opció amb aquesta etiqueta
+     */
     private int requireExistingOptionIndex(String label) {
         int index = indexOfOption(label);
         if (index < 0) {
@@ -716,31 +804,36 @@ public class MenuSnapshot<T, C> {
         return index;
     }
 
+    /**
+     * Invalida la memòria cau de la instantània d'opcions.
+     */
     private void invalidateOptionSnapshotCache() {
         optionSnapshotCache.invalidate();
     }
 
+    /**
+     * Reconstrueix l'índex de primera aparició per etiqueta.
+     */
     private void rebuildLabelIndex() {
-        firstIndexByLabel.clear();
+        state.firstIndexByLabel.clear();
 
-        for (int i = 0; i < options.size(); i++) {
-            String label = options.get(i).label();
-            firstIndexByLabel.putIfAbsent(label, i);
+        for (int i = 0; i < state.options.size(); i++) {
+            String label = state.options.get(i).label();
+            state.firstIndexByLabel.putIfAbsent(label, i);
         }
     }
 
     /**
-     * Garanteix que aquest snapshot tingui una còpia exclusiva de les estructures
-     * internes abans de qualsevol mutació.
+     * Garanteix que aquest snapshot tingui una còpia exclusiva de l'estat
+     * estructural abans de qualsevol mutació sobre les opcions.
      */
-    private void ensureWritable() {
-        if (!shared) {
+    private void ensureWritableState() {
+        if (!sharedState) {
             return;
         }
 
-        options = new ArrayList<>(options);
-        firstIndexByLabel = new HashMap<>(firstIndexByLabel);
-        shared = false;
+        state = state.copyMutable();
+        sharedState = false;
         invalidateOptionSnapshotCache();
     }
 }

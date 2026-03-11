@@ -161,21 +161,23 @@ public final class CompositeMenuSnapshotSupport {
      * @return aquest mateix suport
      */
     public CompositeMenuSnapshotSupport setSnapshotStackLimitEnabled(boolean enabled) {
-        if (enabled) {
-            if (!isSnapshotStackLimitEnabled()) {
-                this.snapshotStackLimit = DEFAULT_SNAPSHOT_STACK_LIMIT;
-                trimAllStacksToCurrentLimit();
-            }
-        } else {
+        if (!enabled) {
             this.snapshotStackLimit = UNLIMITED_SNAPSHOT_STACK_LIMIT;
+            return this;
         }
+
+        if (!isSnapshotStackLimitEnabled()) {
+            this.snapshotStackLimit = DEFAULT_SNAPSHOT_STACK_LIMIT;
+            trimAllStacksToCurrentLimit();
+        }
+
         return this;
     }
 
     /**
      * Crea un snapshot compost del menú indicat.
      *
-     * @param menu menú a capturar
+     * @param menu                   menú a capturar
      * @param contextSnapshotFactory funció que crea el snapshot intern del context
      * @return snapshot compost
      */
@@ -213,8 +215,8 @@ public final class CompositeMenuSnapshotSupport {
     /**
      * Restaura un snapshot compost sobre el menú indicat.
      *
-     * @param menu menú a restaurar
-     * @param snapshot snapshot compost a restaurar
+     * @param menu            menú a restaurar
+     * @param snapshot        snapshot compost a restaurar
      * @param contextRestorer funció que restaura l'estat intern del context
      */
     public <T, C, S> void restoreSnapshot(
@@ -236,7 +238,7 @@ public final class CompositeMenuSnapshotSupport {
      * Restaura un snapshot compost sobre el menú indicat utilitzant el mateix
      * context.
      *
-     * @param menu menú a restaurar
+     * @param menu     menú a restaurar
      * @param snapshot snapshot compost a restaurar
      */
     public <T, C extends ContextStateSnapshotSupport<S>, S> void restoreSnapshot(
@@ -253,8 +255,8 @@ public final class CompositeMenuSnapshotSupport {
     /**
      * Desa l'estat compost actual del menú sota un nom.
      *
-     * @param menu menú a capturar
-     * @param name nom de registre
+     * @param menu                   menú a capturar
+     * @param name                   nom de registre
      * @param contextSnapshotFactory funció que crea el snapshot intern del context
      * @return aquest mateix suport
      */
@@ -284,8 +286,8 @@ public final class CompositeMenuSnapshotSupport {
     /**
      * Registra un snapshot compost sota un nom per al menú indicat.
      *
-     * @param menu menú propietari del registre
-     * @param name nom de registre
+     * @param menu     menú propietari del registre
+     * @param name     nom de registre
      * @param snapshot snapshot a registrar
      * @return aquest mateix suport
      */
@@ -377,8 +379,8 @@ public final class CompositeMenuSnapshotSupport {
     /**
      * Restaura un snapshot compost registrat pel seu nom.
      *
-     * @param menu menú a restaurar
-     * @param name nom de registre
+     * @param menu            menú a restaurar
+     * @param name            nom de registre
      * @param contextRestorer funció que restaura l'estat intern del context
      */
     public <T, C, S> void useSnapshot(
@@ -411,7 +413,7 @@ public final class CompositeMenuSnapshotSupport {
      * snapshot més antic.
      * </p>
      *
-     * @param menu menú a capturar
+     * @param menu                   menú a capturar
      * @param contextSnapshotFactory funció que crea el snapshot intern del context
      * @return aquest mateix suport
      */
@@ -452,10 +454,10 @@ public final class CompositeMenuSnapshotSupport {
      * snapshot més antic.
      * </p>
      *
-     * @param menu menú a modificar
-     * @param name nom del snapshot registrat
+     * @param menu                   menú a modificar
+     * @param name                   nom del snapshot registrat
      * @param contextSnapshotFactory funció que crea el snapshot intern del context
-     * @param contextRestorer funció que restaura l'estat intern del context
+     * @param contextRestorer        funció que restaura l'estat intern del context
      * @return aquest mateix suport
      */
     public <T, C, S> CompositeMenuSnapshotSupport pushSnapshot(
@@ -506,7 +508,7 @@ public final class CompositeMenuSnapshotSupport {
     /**
      * Restaura l'últim snapshot compost desat a la pila del menú.
      *
-     * @param menu menú a restaurar
+     * @param menu            menú a restaurar
      * @param contextRestorer funció que restaura l'estat intern del context
      */
     public <T, C, S> void popSnapshot(
@@ -590,8 +592,7 @@ public final class CompositeMenuSnapshotSupport {
         validateSnapshotName(name);
 
         Map<String, CompositeMenuSnapshot<?, ?, ?>> registered = registeredSnapshotsForRead(menu);
-        CompositeMenuSnapshot<?, ?, ?> snapshot =
-                registered == null ? null : registered.get(name);
+        CompositeMenuSnapshot<?, ?, ?> snapshot = registered == null ? null : registered.get(name);
 
         if (snapshot == null) {
             throw new IllegalStateException(
@@ -624,14 +625,12 @@ public final class CompositeMenuSnapshotSupport {
     /**
      * Elimina el contenidor del menú si ha quedat buit.
      *
-     * @param menu menú propietari del contenidor
+     * @param menu  menú propietari del contenidor
      * @param store contenidor a comprovar
      */
     private void removeStoreIfEmpty(DynamicMenu<?, ?> menu, MenuSnapshotStore store) {
-        boolean noRegisteredSnapshots =
-                store.registeredSnapshots == null || store.registeredSnapshots.isEmpty();
-        boolean noSnapshotStack =
-                store.snapshotStack == null || store.snapshotStack.isEmpty();
+        boolean noRegisteredSnapshots = store.registeredSnapshots == null || store.registeredSnapshots.isEmpty();
+        boolean noSnapshotStack = store.snapshotStack == null || store.snapshotStack.isEmpty();
 
         if (noRegisteredSnapshots && noSnapshotStack) {
             storesByMenu.remove(menu);
@@ -683,8 +682,7 @@ public final class CompositeMenuSnapshotSupport {
      * @param menu menú a preparar
      * @return pila de snapshots del menú
      */
-    private Deque<CompositeMenuSnapshot<?, ?, ?>> snapshotStackForWrite(
-            DynamicMenu<?, ?> menu) {
+    private Deque<CompositeMenuSnapshot<?, ?, ?>> snapshotStackForWrite(DynamicMenu<?, ?> menu) {
         MenuSnapshotStore store = storeForWrite(menu);
         if (store.snapshotStack == null) {
             store.snapshotStack = new ArrayDeque<>();
@@ -701,7 +699,7 @@ public final class CompositeMenuSnapshotSupport {
      * snapshots més antics necessaris abans d'afegir el nou snapshot.
      * </p>
      *
-     * @param menu menú propietari de la pila
+     * @param menu     menú propietari de la pila
      * @param snapshot snapshot compost a desar
      */
     private void pushSnapshotWithConfiguredLimit(
@@ -783,7 +781,7 @@ public final class CompositeMenuSnapshotSupport {
     /**
      * Elimina el registre del menú si ha quedat buit.
      *
-     * @param menu menú propietari del registre
+     * @param menu       menú propietari del registre
      * @param registered mapa de snapshots registrats
      */
     private void removeRegisteredSnapshotsIfEmpty(
@@ -801,7 +799,7 @@ public final class CompositeMenuSnapshotSupport {
     /**
      * Elimina la pila del menú si ha quedat buida.
      *
-     * @param menu menú propietari de la pila
+     * @param menu  menú propietari de la pila
      * @param stack pila de snapshots compostos
      */
     private void removeSnapshotStackIfEmpty(
