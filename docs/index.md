@@ -2,7 +2,7 @@
 
 Una llibreria lleugera per crear **menús interactius dinàmics en Java**.
 
-Aquesta documentació explica com construir menús, definir accions, gestionar snapshots a través de `DynamicMenu`, treballar amb context, crear menús jeràrquics i configurar polítiques avançades.
+Aquesta documentació explica com construir menús, definir accions, gestionar snapshots a través de `DynamicMenu`, treballar amb context, crear menús jeràrquics, aplicar configuracions avançades i editar opcions amb `MenuEditor`.
 
 ---
 
@@ -50,7 +50,7 @@ Estructures de dades del sistema.
 Permeten executar lògica abans i després de cada iteració del menú.
 
 - [01 - MenuLoopHook](05-hooks/01-menu-loop-hook.md)
-- [02 - MenuLoopState](05-hooks/01-menu-loop-state.md)
+- [02 - MenuLoopState](05-hooks/02-menu-loop-state.md)
 
 ---
 
@@ -81,3 +81,15 @@ Funcionalitats avançades del sistema de menús.
 - [02 - Best Practices](08-advanced/02-best-practices.md)
 - [03 - Auto Cleanup](08-advanced/03-auto-cleanup.md)
 - [04 - Policies](08-advanced/04-policies.md)
+
+---
+
+# 09 - Editor
+
+Utilitats avançades per **buscar, reemplaçar, eliminar i ordenar opcions** d’un `DynamicMenu` utilitzant selectors, mappers i configuracions d’edició.
+
+- [01 - Menu Editor Overview](09-editor/01-menu-editor-overview.md)
+- [02 - Range](09-editor/02-range.md)
+- [03 - Edit Config](09-editor/03-edit-config.md)
+- [04 - Selectors and Mappers](09-editor/04-selectors-and-mappers.md)
+- [05 - Menu Editor](09-editor/05-menu-editor.md)

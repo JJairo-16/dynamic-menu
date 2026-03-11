@@ -14,6 +14,7 @@ Estructura de paquets recomanada:
 menu
 menu.action
 menu.config
+menu.editor
 menu.hook
 menu.model
 menu.selector
