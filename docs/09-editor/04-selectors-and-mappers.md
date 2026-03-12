@@ -125,11 +125,64 @@ MenuEditor.replaceIf(
 
 ## Selectors de conveniència
 
-`MenuEditor` també ofereix dos selectors preparats:
+`MenuEditor` ofereix dos selectors preparats per als casos més simples:
 
 ```java
 MenuEditor.alwaysTrueSelector();
 MenuEditor.alwaysFalseSelector();
 ```
 
-Són útils per a proves o per expressar casos globals de manera explícita.
+### `alwaysTrueSelector()`
+
+Retorna un `OptionSelector` que selecciona **totes** les opcions del menú.
+
+És útil quan vols aplicar una operació global de manera explícita.
+
+```java
+MenuEditor.remove(menu)
+    .where(MenuEditor.alwaysTrueSelector())
+    .limit(1)
+    .execute();
+```
+
+A nivell conceptual, és equivalent a fer:
+
+```java
+(index, option) -> true
+```
+
+### `alwaysFalseSelector()`
+
+Retorna un `OptionSelector` que **no selecciona cap** opció.
+
+És útil en proves, en composicions o quan vols desactivar temporalment una condició sense canviar l’estructura del codi.
+
+```java
+MenuEditor.remove(menu)
+    .where(MenuEditor.alwaysFalseSelector())
+    .execute();
+```
+
+A nivell conceptual, és equivalent a fer:
+
+```java
+(index, option) -> false
+```
+
+### Relació amb els builders
+
+Aquests selectors són especialment útils amb `RemoveBuilder` i `ReplaceBuilder`, perquè es poden passar directament a `where(...)`.
+
+En el cas concret de `RemoveBuilder`, `whereAny()` representa la mateixa idea que usar un selector que sempre retorna `true`.
+
+```java
+MenuEditor.remove(menu)
+    .whereAny()
+    .limit(1)
+    .execute();
+```
+
+Per això, `alwaysTrueSelector()` i `whereAny()` cobreixen casos semblants, però en nivells diferents:
+
+- `alwaysTrueSelector()` és un selector reutilitzable
+- `whereAny()` és una drecera específica del builder

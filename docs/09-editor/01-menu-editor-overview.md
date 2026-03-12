@@ -1,20 +1,19 @@
 # Menu Editor Overview
 
-`menu.editor` agrupa utilitats per **modificar opcions d’un `DynamicMenu` de manera declarativa**.
+El paquet `menu.editor` agrupa les eines per **inspeccionar, eliminar, transformar i ordenar opcions** d’un `DynamicMenu` sense haver de reconstruir-lo manualment.
 
-A diferència de l’API bàsica del menú, que exposa operacions com `addOption(...)`, `removeOption(...)` o `moveOptionToIndex(...)`, l’editor està pensat per treballar amb criteris més expressius:
+Aquest paquet està pensat per treballar a un nivell més declaratiu que l’API bàsica del menú. En lloc d’operar només per índex, permet expressar intencions com:
 
-- buscar opcions per condició
-- reemplaçar labels
-- reemplaçar accions
-- reemplaçar opcions completes
-- eliminar coincidències
-- ordenar per label
-- limitar l’operació a un rang o a un nombre màxim de coincidències
+- “elimina totes les opcions que compleixen una condició”
+- “substitueix només l’última coincidència”
+- “ordena el menú, però mantén certes opcions fixades”
+- “canvia només el label”
+- “canvia només l’acció”
+- “transforma l’opció completa”
 
-## Components del paquet
+## Peces principals del paquet
 
-El paquet es divideix en aquestes peces:
+Els conceptes centrals d’aquesta secció són:
 
 - `MenuEditor`
 - `Range`
@@ -23,48 +22,120 @@ El paquet es divideix en aquestes peces:
 - `LabelMapper`
 - `ActionMapper`
 - `OptionMapper`
+- `RemoveBuilder`
+- `ReplaceBuilder`
 
-## Idea general
+## Què exposa realment `MenuEditor`
 
-`MenuEditor` no és un editor interactiu ni una classe instanciable.
+La classe `MenuEditor` és la façana pública principal del paquet.
 
-És una **utilitat estàtica** amb operacions sobre `DynamicMenu`.
+La seva API pública es pot agrupar en cinc blocs:
 
-Exemple simple:
+1. selectors de conveniència
+2. entrada a l’API fluïda de reemplaç
+3. entrada a l’API fluïda d’eliminació
+4. helpers estàtics d’eliminació
+5. utilitats d’ordenació i consulta
+
+Això vol dir que `MenuEditor` no és només una col·lecció de mètodes d’edició destructiva, sinó també una capa de consulta i composició.
+
+## Dos estils d’ús
+
+La llibreria permet treballar de dues maneres complementàries.
+
+### 1. Mètodes estàtics
+
+Són útils per als casos directes i habituals.
 
 ```java
-MenuEditor.replaceFirstLabel(menu, "Configuracio", "Configuració");
+MenuEditor.removeFirstIf(
+    menu,
+    (index, option) -> option.label().equals("Duplicada")
+);
 ```
 
-També es poden fer operacions condicionals:
+### 2. API fluïda amb builders
+
+És útil quan la lògica necessita més expressivitat.
 
 ```java
-MenuEditor.removeIf(menu, (index, option) -> option.label().startsWith("[DEBUG]"));
+MenuEditor.remove(menu)
+    .where((index, option) -> option.label().startsWith("[TEMP]"))
+    .range(0, 10)
+    .limit(2)
+    .reverse()
+    .execute();
 ```
 
-## Quan convé utilitzar-lo
+I també:
 
-Aquest paquet és útil quan:
+```java
+MenuEditor.replace(menu)
+    .where((index, option) -> option.label().contains("config"))
+    .label("Configuració")
+    .execute();
+```
 
-- vols modificar opcions sense reconstruir manualment tot el menú
-- necessites treballar sobre la primera, l’última o totes les coincidències
-- vols limitar els canvis a una part del menú
-- necessites ordenar opcions mantenint algunes fixades
-- vols expressar la lògica d’edició amb selectors i mappers
+## Què pots fer amb `menu.editor`
 
-## Relació amb snapshots
+Les operacions públiques del paquet permeten:
 
-Internament, moltes operacions de `MenuEditor` treballen a partir d’un snapshot del menú actual, reconstrueixen la llista d’opcions i després restauren l’estat.
+- seleccionar opcions per condició
+- eliminar la primera, l’última o totes les coincidències
+- limitar una operació a un `Range`
+- limitar el nombre màxim d’elements afectats
+- recórrer el menú en sentit normal o invers
+- substituir labels
+- substituir accions
+- substituir opcions completes
+- ordenar per label
+- fixar opcions al principi o al final durant una ordenació
+- consultar índexs, opcions i coincidències
 
-Això fa que sigui especialment coherent amb la manera com `DynamicMenu` ja gestiona l’estat estructural.
+## Filosofia de disseny
 
-## Corba d’aprenentatge recomanada
+L’edició es descriu com una combinació de:
 
-Per entendre bé aquesta secció, és recomanable haver llegit abans:
+- **què** s’ha de seleccionar
+- **com** s’ha de transformar
+- **on** s’ha d’aplicar
+- **quantes** coincidències es poden afectar
+- **en quin sentit** s’ha de recórrer el menú
 
-- `DynamicMenu`
-- `MenuOption`
-- `Snapshots`
-- `Runtime and Option Management`
+Per això existeixen:
 
-Això és important perquè `MenuEditor` no substitueix l’API principal del menú, sinó que la complementa.
+- `OptionSelector` per decidir quines opcions coincideixen
+- `Range` per limitar la zona afectada
+- `EditConfig` per agrupar `range`, `limit` i `reverse`
+- `LabelMapper`, `ActionMapper` i `OptionMapper` per descriure la transformació
+
+## Relació amb `DynamicMenu`
+
+`MenuEditor` **complementa** `DynamicMenu`, no el substitueix.
+
+En general:
+
+- usa `DynamicMenu` per crear i gestionar l’estructura del menú
+- usa `MenuEditor` quan vulguis aplicar canvis declaratius sobre opcions ja existents
+
+## Quan convé utilitzar aquesta part de la llibreria
+
+Aquest paquet és especialment útil quan:
+
+- vols modificar un menú ja construït
+- necessites treballar amb la primera o l’última coincidència
+- vols expressar criteris complexos amb lambdes
+- vols mantenir el codi més llegible que no pas encadenant operacions manuals
+- necessites combinar selecció, rang, límit i sentit de recorregut
+
+## Ruta de lectura recomanada
+
+Per aprendre bé aquesta part de la llibreria, l’ordre recomanat és:
+
+1. `Range`
+2. `EditConfig`
+3. `Selectors and Mappers`
+4. `MenuEditor`
+5. `Fluent Builders`
+
+Aquesta progressió ajuda a entendre primer els conceptes bàsics i després la façana pública completa.

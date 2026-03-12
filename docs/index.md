@@ -86,10 +86,11 @@ Funcionalitats avançades del sistema de menús.
 
 # 09 - Editor
 
-Utilitats avançades per **buscar, reemplaçar, eliminar i ordenar opcions** d’un `DynamicMenu` utilitzant selectors, mappers i configuracions d’edició.
+Utilitats avançades per inspeccionar, eliminar, reemplaçar i ordenar opcions d’un `DynamicMenu` utilitzant selectors, mappers i configuracions d’edició.
 
 - [01 - Menu Editor Overview](09-editor/01-menu-editor-overview.md)
 - [02 - Range](09-editor/02-range.md)
 - [03 - Edit Config](09-editor/03-edit-config.md)
 - [04 - Selectors and Mappers](09-editor/04-selectors-and-mappers.md)
 - [05 - Menu Editor](09-editor/05-menu-editor.md)
+- [06 - Fuent Builders](09-editor/06-fluent-builders.md)

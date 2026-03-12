@@ -6,7 +6,6 @@ import java.util.Map;
 import java.util.Objects;
 
 import menu.DynamicMenu;
-import menu.editor.helpers.ActionMapper;
 import menu.action.*;
 import menu.editor.EditConfig;
 import menu.editor.Range;
@@ -102,6 +101,28 @@ public final class ReplaceFamily {
     }
 
     // -------------------------------------------------------------------------
+    // Fluent entry points interns
+    // -------------------------------------------------------------------------
+
+    public static <T, C> ReplaceOperation<T, C> replace(DynamicMenu<T, C> menu) {
+        return new ReplaceOperation<>(menu);
+    }
+
+    public static <T, C> ReplaceOperation<T, C> replace(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector) {
+
+        return replace(menu).where(selector);
+    }
+
+    public static <T, C> ReplaceOperation<T, C> replaceLabel(
+            DynamicMenu<T, C> menu,
+            String targetLabel) {
+
+        return replace(menu).where(exactLabelSelector(targetLabel));
+    }
+
+    // -------------------------------------------------------------------------
     // Replace by exact label
     // -------------------------------------------------------------------------
 
@@ -110,10 +131,10 @@ public final class ReplaceFamily {
             String targetLabel,
             String newLabel) {
 
-        return replaceFirstLabelIf(
-                menu,
-                exactLabelSelector(targetLabel),
-                newLabel);
+        return replaceLabel(menu, targetLabel)
+                .label(newLabel)
+                .first()
+                .executeAny();
     }
 
     public static <T, C> boolean replaceLastLabel(
@@ -121,10 +142,10 @@ public final class ReplaceFamily {
             String targetLabel,
             String newLabel) {
 
-        return replaceLastLabelIf(
-                menu,
-                exactLabelSelector(targetLabel),
-                newLabel);
+        return replaceLabel(menu, targetLabel)
+                .label(newLabel)
+                .last()
+                .executeAny();
     }
 
     public static <T, C> int replaceAllLabels(
@@ -132,10 +153,9 @@ public final class ReplaceFamily {
             String targetLabel,
             String newLabel) {
 
-        return replaceLabelIf(
-                menu,
-                exactLabelSelector(targetLabel),
-                newLabel);
+        return replaceLabel(menu, targetLabel)
+                .label(newLabel)
+                .execute();
     }
 
     public static <T, C> boolean replaceFirstAction(
@@ -143,10 +163,10 @@ public final class ReplaceFamily {
             String targetLabel,
             MenuRuntimeAction<T, C> newAction) {
 
-        return replaceFirstActionIf(
-                menu,
-                exactLabelSelector(targetLabel),
-                newAction);
+        return replaceLabel(menu, targetLabel)
+                .action(newAction)
+                .first()
+                .executeAny();
     }
 
     public static <T, C> boolean replaceFirstAction(
@@ -170,10 +190,10 @@ public final class ReplaceFamily {
             String targetLabel,
             MenuRuntimeAction<T, C> newAction) {
 
-        return replaceLastActionIf(
-                menu,
-                exactLabelSelector(targetLabel),
-                newAction);
+        return replaceLabel(menu, targetLabel)
+                .action(newAction)
+                .last()
+                .executeAny();
     }
 
     public static <T, C> boolean replaceLastAction(
@@ -197,10 +217,9 @@ public final class ReplaceFamily {
             String targetLabel,
             MenuRuntimeAction<T, C> newAction) {
 
-        return replaceActionIf(
-                menu,
-                exactLabelSelector(targetLabel),
-                newAction);
+        return replaceLabel(menu, targetLabel)
+                .action(newAction)
+                .execute();
     }
 
     public static <T, C> int replaceAllActions(
@@ -225,10 +244,10 @@ public final class ReplaceFamily {
             String newLabel,
             MenuRuntimeAction<T, C> newAction) {
 
-        return replaceFirstIf(
-                menu,
-                exactLabelSelector(targetLabel),
-                (index, option) -> newOption(newLabel, newAction));
+        return replaceLabel(menu, targetLabel)
+                .option(newLabel, newAction)
+                .first()
+                .executeAny();
     }
 
     public static <T, C> boolean replaceFirst(
@@ -264,10 +283,10 @@ public final class ReplaceFamily {
             String newLabel,
             MenuRuntimeAction<T, C> newAction) {
 
-        return replaceLastIf(
-                menu,
-                exactLabelSelector(targetLabel),
-                (index, option) -> newOption(newLabel, newAction));
+        return replaceLabel(menu, targetLabel)
+                .option(newLabel, newAction)
+                .last()
+                .executeAny();
     }
 
     public static <T, C> boolean replaceLast(
@@ -303,10 +322,9 @@ public final class ReplaceFamily {
             String newLabel,
             MenuRuntimeAction<T, C> newAction) {
 
-        return replaceIf(
-                menu,
-                exactLabelSelector(targetLabel),
-                (index, option) -> newOption(newLabel, newAction));
+        return replaceLabel(menu, targetLabel)
+                .option(newLabel, newAction)
+                .execute();
     }
 
     public static <T, C> int replaceAll(
@@ -345,7 +363,9 @@ public final class ReplaceFamily {
             OptionSelector<T, C> selector,
             OptionMapper<T, C> mapper) {
 
-        return replaceIf(menu, selector, mapper, EditConfig.defaults());
+        return replace(menu, selector)
+                .map(mapper)
+                .execute();
     }
 
     public static <T, C> int replaceIf(
@@ -354,7 +374,10 @@ public final class ReplaceFamily {
             OptionMapper<T, C> mapper,
             Range range) {
 
-        return replaceIf(menu, selector, mapper, EditConfig.of(range));
+        return replace(menu, selector)
+                .map(mapper)
+                .range(range)
+                .execute();
     }
 
     public static <T, C> int replaceIf(
@@ -364,11 +387,11 @@ public final class ReplaceFamily {
             Range range,
             int limit) {
 
-        return replaceIf(
-                menu,
-                selector,
-                mapper,
-                EditConfig.builder().range(range).limit(limit).build());
+        return replace(menu, selector)
+                .map(mapper)
+                .range(range)
+                .limit(limit)
+                .execute();
     }
 
     public static <T, C> int replaceIf(
@@ -381,6 +404,811 @@ public final class ReplaceFamily {
         Objects.requireNonNull(selector, "La condició no pot ser nul·la");
         Objects.requireNonNull(mapper, "El transformador no pot ser nul");
         Objects.requireNonNull(config, "La configuració no pot ser nul·la");
+
+        return executeReplace(menu, selector, mapper, config);
+    }
+
+    // -------------------------------------------------------------------------
+    // Replace if reverse
+    // -------------------------------------------------------------------------
+
+    public static <T, C> int replaceIfReverse(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            OptionMapper<T, C> mapper) {
+
+        return replace(menu, selector)
+                .map(mapper)
+                .reverse()
+                .execute();
+    }
+
+    public static <T, C> int replaceIfReverse(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            OptionMapper<T, C> mapper,
+            Range range) {
+
+        return replace(menu, selector)
+                .map(mapper)
+                .range(range)
+                .reverse()
+                .execute();
+    }
+
+    public static <T, C> int replaceIfReverse(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            OptionMapper<T, C> mapper,
+            Range range,
+            int limit) {
+
+        return replace(menu, selector)
+                .map(mapper)
+                .range(range)
+                .limit(limit)
+                .reverse()
+                .execute();
+    }
+
+    public static <T, C> int replaceIfReverse(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            OptionMapper<T, C> mapper,
+            EditConfig config) {
+
+        Objects.requireNonNull(config, "La configuració no pot ser nul·la");
+
+        return replace(menu, selector)
+                .map(mapper)
+                .config(config)
+                .reverse()
+                .execute();
+    }
+
+    // -------------------------------------------------------------------------
+    // Replace label if
+    // -------------------------------------------------------------------------
+
+    public static <T, C> int replaceLabelIf(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            String newLabel) {
+
+        return replace(menu, selector)
+                .label(newLabel)
+                .execute();
+    }
+
+    public static <T, C> int replaceLabelIf(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            String newLabel,
+            Range range) {
+
+        return replace(menu, selector)
+                .label(newLabel)
+                .range(range)
+                .execute();
+    }
+
+    public static <T, C> int replaceLabelIf(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            String newLabel,
+            Range range,
+            int limit) {
+
+        return replace(menu, selector)
+                .label(newLabel)
+                .range(range)
+                .limit(limit)
+                .execute();
+    }
+
+    public static <T, C> int replaceLabelIf(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            String newLabel,
+            EditConfig config) {
+
+        return replace(menu, selector)
+                .label(newLabel)
+                .config(config)
+                .execute();
+    }
+
+    public static <T, C> int replaceLabelIf(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            LabelMapper<T, C> mapper) {
+
+        return replace(menu, selector)
+                .label(mapper)
+                .execute();
+    }
+
+    public static <T, C> int replaceLabelIf(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            LabelMapper<T, C> mapper,
+            Range range) {
+
+        return replace(menu, selector)
+                .label(mapper)
+                .range(range)
+                .execute();
+    }
+
+    public static <T, C> int replaceLabelIf(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            LabelMapper<T, C> mapper,
+            Range range,
+            int limit) {
+
+        return replace(menu, selector)
+                .label(mapper)
+                .range(range)
+                .limit(limit)
+                .execute();
+    }
+
+    public static <T, C> int replaceLabelIf(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            LabelMapper<T, C> mapper,
+            EditConfig config) {
+
+        return replace(menu, selector)
+                .label(mapper)
+                .config(config)
+                .execute();
+    }
+
+    // -------------------------------------------------------------------------
+    // Replace label if reverse
+    // -------------------------------------------------------------------------
+
+    public static <T, C> int replaceLabelIfReverse(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            String newLabel) {
+
+        return replace(menu, selector)
+                .label(newLabel)
+                .reverse()
+                .execute();
+    }
+
+    public static <T, C> int replaceLabelIfReverse(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            String newLabel,
+            Range range) {
+
+        return replace(menu, selector)
+                .label(newLabel)
+                .range(range)
+                .reverse()
+                .execute();
+    }
+
+    public static <T, C> int replaceLabelIfReverse(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            String newLabel,
+            Range range,
+            int limit) {
+
+        return replace(menu, selector)
+                .label(newLabel)
+                .range(range)
+                .limit(limit)
+                .reverse()
+                .execute();
+    }
+
+    public static <T, C> int replaceLabelIfReverse(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            String newLabel,
+            EditConfig config) {
+
+        return replace(menu, selector)
+                .label(newLabel)
+                .config(config)
+                .reverse()
+                .execute();
+    }
+
+    public static <T, C> int replaceLabelIfReverse(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            LabelMapper<T, C> mapper) {
+
+        return replace(menu, selector)
+                .label(mapper)
+                .reverse()
+                .execute();
+    }
+
+    public static <T, C> int replaceLabelIfReverse(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            LabelMapper<T, C> mapper,
+            Range range) {
+
+        return replace(menu, selector)
+                .label(mapper)
+                .range(range)
+                .reverse()
+                .execute();
+    }
+
+    public static <T, C> int replaceLabelIfReverse(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            LabelMapper<T, C> mapper,
+            Range range,
+            int limit) {
+
+        return replace(menu, selector)
+                .label(mapper)
+                .range(range)
+                .limit(limit)
+                .reverse()
+                .execute();
+    }
+
+    public static <T, C> int replaceLabelIfReverse(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            LabelMapper<T, C> mapper,
+            EditConfig config) {
+
+        return replace(menu, selector)
+                .label(mapper)
+                .config(config)
+                .reverse()
+                .execute();
+    }
+
+    public static <T, C> boolean replaceFirstLabelIf(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            String newLabel) {
+
+        return replace(menu, selector)
+                .label(newLabel)
+                .first()
+                .executeAny();
+    }
+
+    public static <T, C> boolean replaceFirstLabelIf(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            LabelMapper<T, C> mapper) {
+
+        return replace(menu, selector)
+                .label(mapper)
+                .first()
+                .executeAny();
+    }
+
+    public static <T, C> boolean replaceLastLabelIf(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            String newLabel) {
+
+        return replace(menu, selector)
+                .label(newLabel)
+                .last()
+                .executeAny();
+    }
+
+    public static <T, C> boolean replaceLastLabelIf(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            LabelMapper<T, C> mapper) {
+
+        return replace(menu, selector)
+                .label(mapper)
+                .last()
+                .executeAny();
+    }
+
+    // -------------------------------------------------------------------------
+    // Replace action if
+    // -------------------------------------------------------------------------
+
+    public static <T, C> int replaceActionIf(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            MenuRuntimeAction<T, C> newAction) {
+
+        return replace(menu, selector)
+                .action(newAction)
+                .execute();
+    }
+
+    public static <T, C> int replaceActionIf(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            MenuAction<T, C> newAction) {
+
+        return replaceActionIf(menu, selector, runtimeOf(newAction));
+    }
+
+    public static <T, C> int replaceActionIf(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            SimpleMenuAction<T> newAction) {
+
+        return replaceActionIf(menu, selector, runtimeOf(newAction));
+    }
+
+    public static <T, C> int replaceActionIf(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            MenuRuntimeAction<T, C> newAction,
+            Range range) {
+
+        return replace(menu, selector)
+                .action(newAction)
+                .range(range)
+                .execute();
+    }
+
+    public static <T, C> int replaceActionIf(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            MenuAction<T, C> newAction,
+            Range range) {
+
+        return replaceActionIf(menu, selector, runtimeOf(newAction), range);
+    }
+
+    public static <T, C> int replaceActionIf(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            SimpleMenuAction<T> newAction,
+            Range range) {
+
+        return replaceActionIf(menu, selector, runtimeOf(newAction), range);
+    }
+
+    public static <T, C> int replaceActionIf(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            MenuRuntimeAction<T, C> newAction,
+            Range range,
+            int limit) {
+
+        return replace(menu, selector)
+                .action(newAction)
+                .range(range)
+                .limit(limit)
+                .execute();
+    }
+
+    public static <T, C> int replaceActionIf(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            MenuAction<T, C> newAction,
+            Range range,
+            int limit) {
+
+        return replaceActionIf(menu, selector, runtimeOf(newAction), range, limit);
+    }
+
+    public static <T, C> int replaceActionIf(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            SimpleMenuAction<T> newAction,
+            Range range,
+            int limit) {
+
+        return replaceActionIf(menu, selector, runtimeOf(newAction), range, limit);
+    }
+
+    public static <T, C> int replaceActionIf(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            MenuRuntimeAction<T, C> newAction,
+            EditConfig config) {
+
+        return replace(menu, selector)
+                .action(newAction)
+                .config(config)
+                .execute();
+    }
+
+    public static <T, C> int replaceActionIf(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            MenuAction<T, C> newAction,
+            EditConfig config) {
+
+        return replaceActionIf(menu, selector, runtimeOf(newAction), config);
+    }
+
+    public static <T, C> int replaceActionIf(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            SimpleMenuAction<T> newAction,
+            EditConfig config) {
+
+        return replaceActionIf(menu, selector, runtimeOf(newAction), config);
+    }
+
+    public static <T, C> int replaceActionIf(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            ActionMapper<T, C> mapper) {
+
+        return replace(menu, selector)
+                .action(mapper)
+                .execute();
+    }
+
+    public static <T, C> int replaceActionIf(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            ActionMapper<T, C> mapper,
+            Range range) {
+
+        return replace(menu, selector)
+                .action(mapper)
+                .range(range)
+                .execute();
+    }
+
+    public static <T, C> int replaceActionIf(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            ActionMapper<T, C> mapper,
+            Range range,
+            int limit) {
+
+        return replace(menu, selector)
+                .action(mapper)
+                .range(range)
+                .limit(limit)
+                .execute();
+    }
+
+    public static <T, C> int replaceActionIf(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            ActionMapper<T, C> mapper,
+            EditConfig config) {
+
+        return replace(menu, selector)
+                .action(mapper)
+                .config(config)
+                .execute();
+    }
+
+    // -------------------------------------------------------------------------
+    // Replace action if reverse
+    // -------------------------------------------------------------------------
+
+    public static <T, C> int replaceActionIfReverse(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            MenuRuntimeAction<T, C> newAction) {
+
+        return replace(menu, selector)
+                .action(newAction)
+                .reverse()
+                .execute();
+    }
+
+    public static <T, C> int replaceActionIfReverse(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            MenuAction<T, C> newAction) {
+
+        return replaceActionIfReverse(menu, selector, runtimeOf(newAction));
+    }
+
+    public static <T, C> int replaceActionIfReverse(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            SimpleMenuAction<T> newAction) {
+
+        return replaceActionIfReverse(menu, selector, runtimeOf(newAction));
+    }
+
+    public static <T, C> int replaceActionIfReverse(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            MenuRuntimeAction<T, C> newAction,
+            Range range) {
+
+        return replace(menu, selector)
+                .action(newAction)
+                .range(range)
+                .reverse()
+                .execute();
+    }
+
+    public static <T, C> int replaceActionIfReverse(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            MenuAction<T, C> newAction,
+            Range range) {
+
+        return replaceActionIfReverse(menu, selector, runtimeOf(newAction), range);
+    }
+
+    public static <T, C> int replaceActionIfReverse(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            SimpleMenuAction<T> newAction,
+            Range range) {
+
+        return replaceActionIfReverse(menu, selector, runtimeOf(newAction), range);
+    }
+
+    public static <T, C> int replaceActionIfReverse(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            MenuRuntimeAction<T, C> newAction,
+            Range range,
+            int limit) {
+
+        return replace(menu, selector)
+                .action(newAction)
+                .range(range)
+                .limit(limit)
+                .reverse()
+                .execute();
+    }
+
+    public static <T, C> int replaceActionIfReverse(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            MenuAction<T, C> newAction,
+            Range range,
+            int limit) {
+
+        return replaceActionIfReverse(menu, selector, runtimeOf(newAction), range, limit);
+    }
+
+    public static <T, C> int replaceActionIfReverse(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            SimpleMenuAction<T> newAction,
+            Range range,
+            int limit) {
+
+        return replaceActionIfReverse(menu, selector, runtimeOf(newAction), range, limit);
+    }
+
+    public static <T, C> int replaceActionIfReverse(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            MenuRuntimeAction<T, C> newAction,
+            EditConfig config) {
+
+        return replace(menu, selector)
+                .action(newAction)
+                .config(config)
+                .reverse()
+                .execute();
+    }
+
+    public static <T, C> int replaceActionIfReverse(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            MenuAction<T, C> newAction,
+            EditConfig config) {
+
+        return replaceActionIfReverse(menu, selector, runtimeOf(newAction), config);
+    }
+
+    public static <T, C> int replaceActionIfReverse(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            SimpleMenuAction<T> newAction,
+            EditConfig config) {
+
+        return replaceActionIfReverse(menu, selector, runtimeOf(newAction), config);
+    }
+
+    public static <T, C> int replaceActionIfReverse(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            ActionMapper<T, C> mapper) {
+
+        return replace(menu, selector)
+                .action(mapper)
+                .reverse()
+                .execute();
+    }
+
+    public static <T, C> int replaceActionIfReverse(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            ActionMapper<T, C> mapper,
+            Range range) {
+
+        return replace(menu, selector)
+                .action(mapper)
+                .range(range)
+                .reverse()
+                .execute();
+    }
+
+    public static <T, C> int replaceActionIfReverse(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            ActionMapper<T, C> mapper,
+            Range range,
+            int limit) {
+
+        return replace(menu, selector)
+                .action(mapper)
+                .range(range)
+                .limit(limit)
+                .reverse()
+                .execute();
+    }
+
+    public static <T, C> int replaceActionIfReverse(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            ActionMapper<T, C> mapper,
+            EditConfig config) {
+
+        return replace(menu, selector)
+                .action(mapper)
+                .config(config)
+                .reverse()
+                .execute();
+    }
+
+    public static <T, C> boolean replaceFirstActionIf(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            MenuRuntimeAction<T, C> newAction) {
+
+        return replace(menu, selector)
+                .action(newAction)
+                .first()
+                .executeAny();
+    }
+
+    public static <T, C> boolean replaceFirstActionIf(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            MenuAction<T, C> newAction) {
+
+        return replaceFirstActionIf(menu, selector, runtimeOf(newAction));
+    }
+
+    public static <T, C> boolean replaceFirstActionIf(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            SimpleMenuAction<T> newAction) {
+
+        return replaceFirstActionIf(menu, selector, runtimeOf(newAction));
+    }
+
+    public static <T, C> boolean replaceFirstActionIf(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            ActionMapper<T, C> mapper) {
+
+        return replace(menu, selector)
+                .action(mapper)
+                .first()
+                .executeAny();
+    }
+
+    public static <T, C> boolean replaceLastActionIf(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            MenuRuntimeAction<T, C> newAction) {
+
+        return replace(menu, selector)
+                .action(newAction)
+                .last()
+                .executeAny();
+    }
+
+    public static <T, C> boolean replaceLastActionIf(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            MenuAction<T, C> newAction) {
+
+        return replaceLastActionIf(menu, selector, runtimeOf(newAction));
+    }
+
+    public static <T, C> boolean replaceLastActionIf(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            SimpleMenuAction<T> newAction) {
+
+        return replaceLastActionIf(menu, selector, runtimeOf(newAction));
+    }
+
+    public static <T, C> boolean replaceLastActionIf(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            ActionMapper<T, C> mapper) {
+
+        return replace(menu, selector)
+                .action(mapper)
+                .last()
+                .executeAny();
+    }
+
+    // -------------------------------------------------------------------------
+    // First / last generic replace
+    // -------------------------------------------------------------------------
+
+    public static <T, C> boolean replaceFirstIf(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            OptionMapper<T, C> mapper) {
+
+        return replace(menu, selector)
+                .map(mapper)
+                .first()
+                .executeAny();
+    }
+
+    public static <T, C> boolean replaceLastIf(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            OptionMapper<T, C> mapper) {
+
+        return replace(menu, selector)
+                .map(mapper)
+                .last()
+                .executeAny();
+    }
+
+    // -------------------------------------------------------------------------
+    // Batch replacements
+    // -------------------------------------------------------------------------
+
+    public static <T, C> DynamicMenu<T, C> replaceLabelsAt(
+            DynamicMenu<T, C> menu,
+            Map<Integer, String> replacements) {
+
+        Objects.requireNonNull(replacements, "El mapa de reemplaços no pot ser nul");
+        return replaceBatch(menu, replacements, null, null);
+    }
+
+    public static <T, C> DynamicMenu<T, C> replaceActionsAt(
+            DynamicMenu<T, C> menu,
+            Map<Integer, MenuRuntimeAction<T, C>> replacements) {
+
+        Objects.requireNonNull(replacements, "El mapa de reemplaços no pot ser nul");
+        return replaceBatch(menu, null, replacements, null);
+    }
+
+    public static <T, C> DynamicMenu<T, C> replaceAt(
+            DynamicMenu<T, C> menu,
+            Map<Integer, MenuOption<T, C>> replacements) {
+
+        Objects.requireNonNull(replacements, "El mapa de reemplaços no pot ser nul");
+        return replaceBatch(menu, null, null, replacements);
+    }
+
+    // -------------------------------------------------------------------------
+    // Nucli intern únic
+    // -------------------------------------------------------------------------
+
+    private static <T, C> int executeReplace(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            OptionMapper<T, C> mapper,
+            EditConfig config) {
 
         MenuSnapshot<T, C> snapshot = menu.createSnapshot();
         List<MenuOption<T, C>> options = new ArrayList<>(snapshot.getOptionSnapshot());
@@ -418,851 +1246,162 @@ public final class ReplaceFamily {
     }
 
     // -------------------------------------------------------------------------
-    // Replace if reverse
+    // Fluent operation interna
     // -------------------------------------------------------------------------
 
-    public static <T, C> int replaceIfReverse(
-            DynamicMenu<T, C> menu,
-            OptionSelector<T, C> selector,
-            OptionMapper<T, C> mapper) {
+    public static final class ReplaceOperation<T, C> {
+        private final DynamicMenu<T, C> menu;
+        private OptionSelector<T, C> selector;
+        private OptionMapper<T, C> mapper;
+        private Range range = Range.all();
+        private int limit = Integer.MAX_VALUE;
+        private boolean reverse = false;
 
-        return replaceIf(
-                menu,
-                selector,
-                mapper,
-                EditConfig.builder()
-                        .reverse(true)
-                        .build());
-    }
+        private ReplaceOperation(DynamicMenu<T, C> menu) {
+            this.menu = Objects.requireNonNull(menu, "El menú no pot ser nul");
+        }
 
-    public static <T, C> int replaceIfReverse(
-            DynamicMenu<T, C> menu,
-            OptionSelector<T, C> selector,
-            OptionMapper<T, C> mapper,
-            Range range) {
+        public ReplaceOperation<T, C> where(OptionSelector<T, C> selector) {
+            this.selector = Objects.requireNonNull(selector, "La condició no pot ser nul·la");
+            return this;
+        }
 
-        return replaceIf(
-                menu,
-                selector,
-                mapper,
-                EditConfig.builder()
-                        .range(range)
-                        .reverse(true)
-                        .build());
-    }
+        public ReplaceOperation<T, C> map(OptionMapper<T, C> mapper) {
+            this.mapper = Objects.requireNonNull(mapper, "El transformador no pot ser nul");
+            return this;
+        }
 
-    public static <T, C> int replaceIfReverse(
-            DynamicMenu<T, C> menu,
-            OptionSelector<T, C> selector,
-            OptionMapper<T, C> mapper,
-            Range range,
-            int limit) {
+        public ReplaceOperation<T, C> label(String newLabel) {
+            Objects.requireNonNull(newLabel, "El nou label no pot ser nul");
+            return map((index, option) -> newOption(newLabel, option.action()));
+        }
 
-        return replaceIf(
-                menu,
-                selector,
-                mapper,
-                EditConfig.builder()
-                        .range(range)
-                        .limit(limit)
-                        .reverse(true)
-                        .build());
-    }
+        public ReplaceOperation<T, C> label(LabelMapper<T, C> mapper) {
+            Objects.requireNonNull(mapper, "El transformador de labels no pot ser nul");
+            return map((index, option) -> newOption(
+                    Objects.requireNonNull(
+                            mapper.map(index, option),
+                            "El transformador de labels no pot retornar nul"),
+                    option.action()));
+        }
 
-    public static <T, C> int replaceIfReverse(
-            DynamicMenu<T, C> menu,
-            OptionSelector<T, C> selector,
-            OptionMapper<T, C> mapper,
-            EditConfig config) {
+        public ReplaceOperation<T, C> action(MenuRuntimeAction<T, C> newAction) {
+            Objects.requireNonNull(newAction, "El nou comportament no pot ser nul");
+            return map((index, option) -> newOption(option.label(), newAction));
+        }
 
-        Objects.requireNonNull(config, "La configuració no pot ser nul·la");
+        public ReplaceOperation<T, C> action(MenuAction<T, C> newAction) {
+            Objects.requireNonNull(newAction, "El nou comportament no pot ser nul");
+            return action(runtimeOf(newAction));
+        }
 
-        return replaceIf(
-                menu,
-                selector,
-                mapper,
-                EditConfig.builder()
-                        .range(config.range())
-                        .limit(config.limit())
-                        .reverse(true)
-                        .build());
-    }
+        public ReplaceOperation<T, C> action(SimpleMenuAction<T> newAction) {
+            Objects.requireNonNull(newAction, "El nou comportament no pot ser nul");
+            return action(runtimeOf(newAction));
+        }
 
-    // -------------------------------------------------------------------------
-    // Replace label if
-    // -------------------------------------------------------------------------
+        public ReplaceOperation<T, C> action(ActionMapper<T, C> mapper) {
+            Objects.requireNonNull(mapper, "El transformador de comportaments no pot ser nul");
+            return map((index, option) -> newOption(
+                    option.label(),
+                    Objects.requireNonNull(
+                            mapper.map(index, option),
+                            "El transformador de comportaments no pot retornar nul")));
+        }
 
-    public static <T, C> int replaceLabelIf(
-            DynamicMenu<T, C> menu,
-            OptionSelector<T, C> selector,
-            String newLabel) {
+        public ReplaceOperation<T, C> option(String newLabel, MenuRuntimeAction<T, C> newAction) {
+            Objects.requireNonNull(newLabel, "El nou label no pot ser nul");
+            Objects.requireNonNull(newAction, "El nou comportament no pot ser nul");
+            return map((index, option) -> newOption(newLabel, newAction));
+        }
 
-        Objects.requireNonNull(newLabel, "El nou label no pot ser nul");
-        return replaceLabelIf(menu, selector, (index, option) -> newLabel, EditConfig.defaults());
-    }
+        public ReplaceOperation<T, C> option(String newLabel, MenuAction<T, C> newAction) {
+            Objects.requireNonNull(newAction, "El nou comportament no pot ser nul");
+            return option(newLabel, runtimeOf(newAction));
+        }
 
-    public static <T, C> int replaceLabelIf(
-            DynamicMenu<T, C> menu,
-            OptionSelector<T, C> selector,
-            String newLabel,
-            Range range) {
+        public ReplaceOperation<T, C> option(String newLabel, SimpleMenuAction<T> newAction) {
+            Objects.requireNonNull(newAction, "El nou comportament no pot ser nul");
+            return option(newLabel, runtimeOf(newAction));
+        }
 
-        Objects.requireNonNull(newLabel, "El nou label no pot ser nul");
-        return replaceLabelIf(menu, selector, newLabel, EditConfig.of(range));
-    }
+        public ReplaceOperation<T, C> option(MenuOption<T, C> newOption) {
+            Objects.requireNonNull(newOption, "La nova opció no pot ser nul·la");
+            return map((index, option) -> newOption);
+        }
 
-    public static <T, C> int replaceLabelIf(
-            DynamicMenu<T, C> menu,
-            OptionSelector<T, C> selector,
-            String newLabel,
-            Range range,
-            int limit) {
+        public ReplaceOperation<T, C> range(Range range) {
+            this.range = Objects.requireNonNull(range, "El rang no pot ser nul");
+            return this;
+        }
 
-        Objects.requireNonNull(newLabel, "El nou label no pot ser nul");
-        return replaceLabelIf(
-                menu,
-                selector,
-                newLabel,
-                EditConfig.builder().range(range).limit(limit).build());
-    }
+        public ReplaceOperation<T, C> range(int fromInclusive, int toExclusive) {
+            return range(Range.of(fromInclusive, toExclusive));
+        }
 
-    public static <T, C> int replaceLabelIf(
-            DynamicMenu<T, C> menu,
-            OptionSelector<T, C> selector,
-            String newLabel,
-            EditConfig config) {
+        public ReplaceOperation<T, C> limit(int limit) {
+            this.limit = limit;
+            return this;
+        }
 
-        Objects.requireNonNull(newLabel, "El nou label no pot ser nul");
-        return replaceLabelIf(menu, selector, (index, option) -> newLabel, config);
-    }
+        public ReplaceOperation<T, C> reverse() {
+            this.reverse = true;
+            return this;
+        }
 
-    public static <T, C> int replaceLabelIf(
-            DynamicMenu<T, C> menu,
-            OptionSelector<T, C> selector,
-            LabelMapper<T, C> mapper) {
+        public ReplaceOperation<T, C> reverse(boolean reverse) {
+            this.reverse = reverse;
+            return this;
+        }
 
-        return replaceLabelIf(menu, selector, mapper, EditConfig.defaults());
-    }
+        public ReplaceOperation<T, C> first() {
+            this.limit = 1;
+            this.reverse = false;
+            return this;
+        }
 
-    public static <T, C> int replaceLabelIf(
-            DynamicMenu<T, C> menu,
-            OptionSelector<T, C> selector,
-            LabelMapper<T, C> mapper,
-            Range range) {
+        public ReplaceOperation<T, C> last() {
+            this.limit = 1;
+            this.reverse = true;
+            return this;
+        }
 
-        return replaceLabelIf(menu, selector, mapper, EditConfig.of(range));
-    }
+        public ReplaceOperation<T, C> all() {
+            this.limit = Integer.MAX_VALUE;
+            return this;
+        }
 
-    public static <T, C> int replaceLabelIf(
-            DynamicMenu<T, C> menu,
-            OptionSelector<T, C> selector,
-            LabelMapper<T, C> mapper,
-            Range range,
-            int limit) {
+        public ReplaceOperation<T, C> config(EditConfig config) {
+            Objects.requireNonNull(config, "La configuració no pot ser nul·la");
+            this.range = config.range();
+            this.limit = config.limit();
+            this.reverse = config.reverse();
+            return this;
+        }
 
-        return replaceLabelIf(
-                menu,
-                selector,
-                mapper,
-                EditConfig.builder().range(range).limit(limit).build());
-    }
+        public EditConfig buildConfig() {
+            return EditConfig.builder()
+                    .range(range)
+                    .limit(limit)
+                    .reverse(reverse)
+                    .build();
+        }
 
-    public static <T, C> int replaceLabelIf(
-            DynamicMenu<T, C> menu,
-            OptionSelector<T, C> selector,
-            LabelMapper<T, C> mapper,
-            EditConfig config) {
+        public int execute() {
+            return ReplaceFamily.replaceIf(
+                    menu,
+                    Objects.requireNonNull(selector, "La condició no pot ser nul·la"),
+                    Objects.requireNonNull(mapper, "El transformador no pot ser nul"),
+                    buildConfig());
+        }
 
-        Objects.requireNonNull(mapper, "El transformador de labels no pot ser nul");
-        Objects.requireNonNull(config, "La configuració no pot ser nul·la");
-
-        return replaceIf(
-                menu,
-                selector,
-                (index, option) -> newOption(
-                        Objects.requireNonNull(
-                                mapper.map(index, option),
-                                "El transformador de labels no pot retornar nul"),
-                        option.action()),
-                config);
+        public boolean executeAny() {
+            return execute() > 0;
+        }
     }
 
     // -------------------------------------------------------------------------
-    // Replace label if reverse
-    // -------------------------------------------------------------------------
-
-    public static <T, C> int replaceLabelIfReverse(
-            DynamicMenu<T, C> menu,
-            OptionSelector<T, C> selector,
-            String newLabel) {
-
-        Objects.requireNonNull(newLabel, "El nou label no pot ser nul");
-        return replaceLabelIfReverse(menu, selector, (index, option) -> newLabel);
-    }
-
-    public static <T, C> int replaceLabelIfReverse(
-            DynamicMenu<T, C> menu,
-            OptionSelector<T, C> selector,
-            String newLabel,
-            Range range) {
-
-        Objects.requireNonNull(newLabel, "El nou label no pot ser nul");
-        return replaceLabelIfReverse(menu, selector, (index, option) -> newLabel, range);
-    }
-
-    public static <T, C> int replaceLabelIfReverse(
-            DynamicMenu<T, C> menu,
-            OptionSelector<T, C> selector,
-            String newLabel,
-            Range range,
-            int limit) {
-
-        Objects.requireNonNull(newLabel, "El nou label no pot ser nul");
-        return replaceLabelIfReverse(
-                menu,
-                selector,
-                (index, option) -> newLabel,
-                EditConfig.builder()
-                        .range(range)
-                        .limit(limit)
-                        .reverse(true)
-                        .build());
-    }
-
-    public static <T, C> int replaceLabelIfReverse(
-            DynamicMenu<T, C> menu,
-            OptionSelector<T, C> selector,
-            String newLabel,
-            EditConfig config) {
-
-        Objects.requireNonNull(newLabel, "El nou label no pot ser nul");
-        return replaceLabelIfReverse(menu, selector, (index, option) -> newLabel, config);
-    }
-
-    public static <T, C> int replaceLabelIfReverse(
-            DynamicMenu<T, C> menu,
-            OptionSelector<T, C> selector,
-            LabelMapper<T, C> mapper) {
-
-        return replaceLabelIfReverse(
-                menu,
-                selector,
-                mapper,
-                EditConfig.builder().reverse(true).build());
-    }
-
-    public static <T, C> int replaceLabelIfReverse(
-            DynamicMenu<T, C> menu,
-            OptionSelector<T, C> selector,
-            LabelMapper<T, C> mapper,
-            Range range) {
-
-        return replaceLabelIfReverse(
-                menu,
-                selector,
-                mapper,
-                EditConfig.builder().range(range).reverse(true).build());
-    }
-
-    public static <T, C> int replaceLabelIfReverse(
-            DynamicMenu<T, C> menu,
-            OptionSelector<T, C> selector,
-            LabelMapper<T, C> mapper,
-            Range range,
-            int limit) {
-
-        return replaceLabelIfReverse(
-                menu,
-                selector,
-                mapper,
-                EditConfig.builder().range(range).limit(limit).reverse(true).build());
-    }
-
-    public static <T, C> int replaceLabelIfReverse(
-            DynamicMenu<T, C> menu,
-            OptionSelector<T, C> selector,
-            LabelMapper<T, C> mapper,
-            EditConfig config) {
-
-        Objects.requireNonNull(mapper, "El transformador de labels no pot ser nul");
-        Objects.requireNonNull(config, "La configuració no pot ser nul·la");
-
-        return replaceLabelIf(
-                menu,
-                selector,
-                mapper,
-                EditConfig.builder()
-                        .range(config.range())
-                        .limit(config.limit())
-                        .reverse(true)
-                        .build());
-    }
-
-    public static <T, C> boolean replaceFirstLabelIf(
-            DynamicMenu<T, C> menu,
-            OptionSelector<T, C> selector,
-            String newLabel) {
-
-        Objects.requireNonNull(newLabel, "El nou label no pot ser nul");
-        return replaceFirstIf(
-                menu,
-                selector,
-                (index, option) -> newOption(newLabel, option.action()));
-    }
-
-    public static <T, C> boolean replaceFirstLabelIf(
-            DynamicMenu<T, C> menu,
-            OptionSelector<T, C> selector,
-            LabelMapper<T, C> mapper) {
-
-        Objects.requireNonNull(mapper, "El transformador de labels no pot ser nul");
-        return replaceFirstIf(
-                menu,
-                selector,
-                (index, option) -> newOption(
-                        Objects.requireNonNull(
-                                mapper.map(index, option),
-                                "El transformador de labels no pot retornar nul"),
-                        option.action()));
-    }
-
-    public static <T, C> boolean replaceLastLabelIf(
-            DynamicMenu<T, C> menu,
-            OptionSelector<T, C> selector,
-            String newLabel) {
-
-        Objects.requireNonNull(newLabel, "El nou label no pot ser nul");
-        return replaceLastIf(
-                menu,
-                selector,
-                (index, option) -> newOption(newLabel, option.action()));
-    }
-
-    public static <T, C> boolean replaceLastLabelIf(
-            DynamicMenu<T, C> menu,
-            OptionSelector<T, C> selector,
-            LabelMapper<T, C> mapper) {
-
-        Objects.requireNonNull(mapper, "El transformador de labels no pot ser nul");
-        return replaceLastIf(
-                menu,
-                selector,
-                (index, option) -> newOption(
-                        Objects.requireNonNull(
-                                mapper.map(index, option),
-                                "El transformador de labels no pot retornar nul"),
-                        option.action()));
-    }
-
-    // -------------------------------------------------------------------------
-    // Replace action if
-    // -------------------------------------------------------------------------
-
-    public static <T, C> int replaceActionIf(
-            DynamicMenu<T, C> menu,
-            OptionSelector<T, C> selector,
-            MenuRuntimeAction<T, C> newAction) {
-
-        return replaceActionIf(menu, selector, newAction, EditConfig.defaults());
-    }
-
-    public static <T, C> int replaceActionIf(
-            DynamicMenu<T, C> menu,
-            OptionSelector<T, C> selector,
-            MenuAction<T, C> newAction) {
-
-        return replaceActionIf(menu, selector, runtimeOf(newAction));
-    }
-
-    public static <T, C> int replaceActionIf(
-            DynamicMenu<T, C> menu,
-            OptionSelector<T, C> selector,
-            SimpleMenuAction<T> newAction) {
-
-        return replaceActionIf(menu, selector, runtimeOf(newAction));
-    }
-
-    public static <T, C> int replaceActionIf(
-            DynamicMenu<T, C> menu,
-            OptionSelector<T, C> selector,
-            MenuRuntimeAction<T, C> newAction,
-            Range range) {
-
-        return replaceActionIf(menu, selector, newAction, EditConfig.of(range));
-    }
-
-    public static <T, C> int replaceActionIf(
-            DynamicMenu<T, C> menu,
-            OptionSelector<T, C> selector,
-            MenuAction<T, C> newAction,
-            Range range) {
-
-        return replaceActionIf(menu, selector, runtimeOf(newAction), range);
-    }
-
-    public static <T, C> int replaceActionIf(
-            DynamicMenu<T, C> menu,
-            OptionSelector<T, C> selector,
-            SimpleMenuAction<T> newAction,
-            Range range) {
-
-        return replaceActionIf(menu, selector, runtimeOf(newAction), range);
-    }
-
-    public static <T, C> int replaceActionIf(
-            DynamicMenu<T, C> menu,
-            OptionSelector<T, C> selector,
-            MenuRuntimeAction<T, C> newAction,
-            Range range,
-            int limit) {
-
-        return replaceActionIf(
-                menu,
-                selector,
-                newAction,
-                EditConfig.builder().range(range).limit(limit).build());
-    }
-
-    public static <T, C> int replaceActionIf(
-            DynamicMenu<T, C> menu,
-            OptionSelector<T, C> selector,
-            MenuAction<T, C> newAction,
-            Range range,
-            int limit) {
-
-        return replaceActionIf(menu, selector, runtimeOf(newAction), range, limit);
-    }
-
-    public static <T, C> int replaceActionIf(
-            DynamicMenu<T, C> menu,
-            OptionSelector<T, C> selector,
-            SimpleMenuAction<T> newAction,
-            Range range,
-            int limit) {
-
-        return replaceActionIf(menu, selector, runtimeOf(newAction), range, limit);
-    }
-
-    public static <T, C> int replaceActionIf(
-            DynamicMenu<T, C> menu,
-            OptionSelector<T, C> selector,
-            MenuRuntimeAction<T, C> newAction,
-            EditConfig config) {
-
-        Objects.requireNonNull(newAction, "El nou comportament no pot ser nul");
-        return replaceActionIf(
-                menu,
-                selector,
-                newAction,
-                config);
-    }
-
-    public static <T, C> int replaceActionIf(
-            DynamicMenu<T, C> menu,
-            OptionSelector<T, C> selector,
-            MenuAction<T, C> newAction,
-            EditConfig config) {
-
-        return replaceActionIf(menu, selector, runtimeOf(newAction), config);
-    }
-
-    public static <T, C> int replaceActionIf(
-            DynamicMenu<T, C> menu,
-            OptionSelector<T, C> selector,
-            SimpleMenuAction<T> newAction,
-            EditConfig config) {
-
-        return replaceActionIf(menu, selector, runtimeOf(newAction), config);
-    }
-
-    public static <T, C> int replaceActionIf(
-            DynamicMenu<T, C> menu,
-            OptionSelector<T, C> selector,
-            ActionMapper<T, C> mapper) {
-
-        return replaceActionIf(menu, selector, mapper, EditConfig.defaults());
-    }
-
-    public static <T, C> int replaceActionIf(
-            DynamicMenu<T, C> menu,
-            OptionSelector<T, C> selector,
-            ActionMapper<T, C> mapper,
-            Range range) {
-
-        return replaceActionIf(menu, selector, mapper, EditConfig.of(range));
-    }
-
-    public static <T, C> int replaceActionIf(
-            DynamicMenu<T, C> menu,
-            OptionSelector<T, C> selector,
-            ActionMapper<T, C> mapper,
-            Range range,
-            int limit) {
-
-        return replaceActionIf(
-                menu,
-                selector,
-                mapper,
-                EditConfig.builder().range(range).limit(limit).build());
-    }
-
-    public static <T, C> int replaceActionIf(
-            DynamicMenu<T, C> menu,
-            OptionSelector<T, C> selector,
-            ActionMapper<T, C> mapper,
-            EditConfig config) {
-
-        Objects.requireNonNull(mapper, "El transformador de comportaments no pot ser nul");
-        Objects.requireNonNull(config, "La configuració no pot ser nul·la");
-
-        return replaceIf(
-                menu,
-                selector,
-                (index, option) -> newOption(
-                        option.label(),
-                        Objects.requireNonNull(
-                                mapper.map(index, option),
-                                "El transformador de comportaments no pot retornar nul")),
-                config);
-    }
-
-    // -------------------------------------------------------------------------
-    // Replace action if reverse
-    // -------------------------------------------------------------------------
-
-    public static <T, C> int replaceActionIfReverse(
-            DynamicMenu<T, C> menu,
-            OptionSelector<T, C> selector,
-            MenuRuntimeAction<T, C> newAction) {
-
-        Objects.requireNonNull(newAction, "El nou comportament no pot ser nul");
-        return replaceActionIfReverse(
-                menu,
-                selector,
-                newAction,
-                EditConfig.builder().reverse(true).build());
-    }
-
-    public static <T, C> int replaceActionIfReverse(
-            DynamicMenu<T, C> menu,
-            OptionSelector<T, C> selector,
-            MenuAction<T, C> newAction) {
-
-        return replaceActionIfReverse(menu, selector, runtimeOf(newAction));
-    }
-
-    public static <T, C> int replaceActionIfReverse(
-            DynamicMenu<T, C> menu,
-            OptionSelector<T, C> selector,
-            SimpleMenuAction<T> newAction) {
-
-        return replaceActionIfReverse(menu, selector, runtimeOf(newAction));
-    }
-
-    public static <T, C> int replaceActionIfReverse(
-            DynamicMenu<T, C> menu,
-            OptionSelector<T, C> selector,
-            MenuRuntimeAction<T, C> newAction,
-            Range range) {
-
-        Objects.requireNonNull(newAction, "El nou comportament no pot ser nul");
-        return replaceActionIfReverse(
-                menu,
-                selector,
-                newAction,
-                EditConfig.builder().range(range).reverse(true).build());
-    }
-
-    public static <T, C> int replaceActionIfReverse(
-            DynamicMenu<T, C> menu,
-            OptionSelector<T, C> selector,
-            MenuAction<T, C> newAction,
-            Range range) {
-
-        return replaceActionIfReverse(menu, selector, runtimeOf(newAction), range);
-    }
-
-    public static <T, C> int replaceActionIfReverse(
-            DynamicMenu<T, C> menu,
-            OptionSelector<T, C> selector,
-            SimpleMenuAction<T> newAction,
-            Range range) {
-
-        return replaceActionIfReverse(menu, selector, runtimeOf(newAction), range);
-    }
-
-    public static <T, C> int replaceActionIfReverse(
-            DynamicMenu<T, C> menu,
-            OptionSelector<T, C> selector,
-            MenuRuntimeAction<T, C> newAction,
-            Range range,
-            int limit) {
-
-        Objects.requireNonNull(newAction, "El nou comportament no pot ser nul");
-        return replaceActionIfReverse(
-                menu,
-                selector,
-                newAction,
-                EditConfig.builder().range(range).limit(limit).reverse(true).build());
-    }
-
-    public static <T, C> int replaceActionIfReverse(
-            DynamicMenu<T, C> menu,
-            OptionSelector<T, C> selector,
-            MenuAction<T, C> newAction,
-            Range range,
-            int limit) {
-
-        return replaceActionIfReverse(menu, selector, runtimeOf(newAction), range, limit);
-    }
-
-    public static <T, C> int replaceActionIfReverse(
-            DynamicMenu<T, C> menu,
-            OptionSelector<T, C> selector,
-            SimpleMenuAction<T> newAction,
-            Range range,
-            int limit) {
-
-        return replaceActionIfReverse(menu, selector, runtimeOf(newAction), range, limit);
-    }
-
-    public static <T, C> int replaceActionIfReverse(
-            DynamicMenu<T, C> menu,
-            OptionSelector<T, C> selector,
-            MenuRuntimeAction<T, C> newAction,
-            EditConfig config) {
-
-        Objects.requireNonNull(newAction, "El nou comportament no pot ser nul");
-        return replaceActionIfReverse(
-                menu,
-                selector,
-                newAction,
-                config);
-    }
-
-    public static <T, C> int replaceActionIfReverse(
-            DynamicMenu<T, C> menu,
-            OptionSelector<T, C> selector,
-            MenuAction<T, C> newAction,
-            EditConfig config) {
-
-        return replaceActionIfReverse(menu, selector, runtimeOf(newAction), config);
-    }
-
-    public static <T, C> int replaceActionIfReverse(
-            DynamicMenu<T, C> menu,
-            OptionSelector<T, C> selector,
-            SimpleMenuAction<T> newAction,
-            EditConfig config) {
-
-        return replaceActionIfReverse(menu, selector, runtimeOf(newAction), config);
-    }
-
-    public static <T, C> int replaceActionIfReverse(
-            DynamicMenu<T, C> menu,
-            OptionSelector<T, C> selector,
-            ActionMapper<T, C> mapper) {
-
-        return replaceActionIfReverse(
-                menu,
-                selector,
-                mapper,
-                EditConfig.builder().reverse(true).build());
-    }
-
-    public static <T, C> int replaceActionIfReverse(
-            DynamicMenu<T, C> menu,
-            OptionSelector<T, C> selector,
-            ActionMapper<T, C> mapper,
-            Range range) {
-
-        return replaceActionIfReverse(
-                menu,
-                selector,
-                mapper,
-                EditConfig.builder().range(range).reverse(true).build());
-    }
-
-    public static <T, C> int replaceActionIfReverse(
-            DynamicMenu<T, C> menu,
-            OptionSelector<T, C> selector,
-            ActionMapper<T, C> mapper,
-            Range range,
-            int limit) {
-
-        return replaceActionIfReverse(
-                menu,
-                selector,
-                mapper,
-                EditConfig.builder().range(range).limit(limit).reverse(true).build());
-    }
-
-    public static <T, C> int replaceActionIfReverse(
-            DynamicMenu<T, C> menu,
-            OptionSelector<T, C> selector,
-            ActionMapper<T, C> mapper,
-            EditConfig config) {
-
-        Objects.requireNonNull(mapper, "El transformador de comportaments no pot ser nul");
-        Objects.requireNonNull(config, "La configuració no pot ser nul·la");
-
-        return replaceActionIf(
-                menu,
-                selector,
-                mapper,
-                EditConfig.builder()
-                        .range(config.range())
-                        .limit(config.limit())
-                        .reverse(true)
-                        .build());
-    }
-
-    public static <T, C> boolean replaceFirstActionIf(
-            DynamicMenu<T, C> menu,
-            OptionSelector<T, C> selector,
-            MenuRuntimeAction<T, C> newAction) {
-
-        Objects.requireNonNull(newAction, "El nou comportament no pot ser nul");
-        return replaceFirstIf(
-                menu,
-                selector,
-                (index, option) -> newOption(option.label(), newAction));
-    }
-
-    public static <T, C> boolean replaceFirstActionIf(
-            DynamicMenu<T, C> menu,
-            OptionSelector<T, C> selector,
-            MenuAction<T, C> newAction) {
-
-        return replaceFirstActionIf(menu, selector, runtimeOf(newAction));
-    }
-
-    public static <T, C> boolean replaceFirstActionIf(
-            DynamicMenu<T, C> menu,
-            OptionSelector<T, C> selector,
-            SimpleMenuAction<T> newAction) {
-
-        return replaceFirstActionIf(menu, selector, runtimeOf(newAction));
-    }
-
-    public static <T, C> boolean replaceFirstActionIf(
-            DynamicMenu<T, C> menu,
-            OptionSelector<T, C> selector,
-            ActionMapper<T, C> mapper) {
-
-        Objects.requireNonNull(mapper, "El transformador de comportaments no pot ser nul");
-        return replaceFirstIf(
-                menu,
-                selector,
-                (index, option) -> newOption(
-                        option.label(),
-                        Objects.requireNonNull(
-                                mapper.map(index, option),
-                                "El transformador de comportaments no pot retornar nul")));
-    }
-
-    public static <T, C> boolean replaceLastActionIf(
-            DynamicMenu<T, C> menu,
-            OptionSelector<T, C> selector,
-            MenuRuntimeAction<T, C> newAction) {
-
-        Objects.requireNonNull(newAction, "El nou comportament no pot ser nul");
-        return replaceLastIf(
-                menu,
-                selector,
-                (index, option) -> newOption(option.label(), newAction));
-    }
-
-    public static <T, C> boolean replaceLastActionIf(
-            DynamicMenu<T, C> menu,
-            OptionSelector<T, C> selector,
-            MenuAction<T, C> newAction) {
-
-        return replaceLastActionIf(menu, selector, runtimeOf(newAction));
-    }
-
-    public static <T, C> boolean replaceLastActionIf(
-            DynamicMenu<T, C> menu,
-            OptionSelector<T, C> selector,
-            SimpleMenuAction<T> newAction) {
-
-        return replaceLastActionIf(menu, selector, runtimeOf(newAction));
-    }
-
-    public static <T, C> boolean replaceLastActionIf(
-            DynamicMenu<T, C> menu,
-            OptionSelector<T, C> selector,
-            ActionMapper<T, C> mapper) {
-
-        Objects.requireNonNull(mapper, "El transformador de comportaments no pot ser nul");
-        return replaceLastIf(
-                menu,
-                selector,
-                (index, option) -> newOption(
-                        option.label(),
-                        Objects.requireNonNull(
-                                mapper.map(index, option),
-                                "El transformador de comportaments no pot retornar nul")));
-    }
-
-    // -------------------------------------------------------------------------
-    // First / last generic replace
-    // -------------------------------------------------------------------------
-
-    public static <T, C> boolean replaceFirstIf(
-            DynamicMenu<T, C> menu,
-            OptionSelector<T, C> selector,
-            OptionMapper<T, C> mapper) {
-
-        return replaceIf(
-                menu,
-                selector,
-                mapper,
-                EditConfig.builder().limit(1).build()) > 0;
-    }
-
-    public static <T, C> boolean replaceLastIf(
-            DynamicMenu<T, C> menu,
-            OptionSelector<T, C> selector,
-            OptionMapper<T, C> mapper) {
-
-        return replaceIf(
-                menu,
-                selector,
-                mapper,
-                EditConfig.builder().limit(1).reverse(true).build()) > 0;
-    }
-
-    // -------------------------------------------------------------------------
-    // Batch replacements
-    // -------------------------------------------------------------------------
-
-    public static <T, C> DynamicMenu<T, C> replaceLabelsAt(
-            DynamicMenu<T, C> menu,
-            Map<Integer, String> replacements) {
-
-        Objects.requireNonNull(replacements, "El mapa de reemplaços no pot ser nul");
-        return replaceBatch(menu, replacements, null, null);
-    }
-
-    public static <T, C> DynamicMenu<T, C> replaceActionsAt(
-            DynamicMenu<T, C> menu,
-            Map<Integer, MenuRuntimeAction<T, C>> replacements) {
-
-        Objects.requireNonNull(replacements, "El mapa de reemplaços no pot ser nul");
-        return replaceBatch(menu, null, replacements, null);
-    }
-
-    public static <T, C> DynamicMenu<T, C> replaceAt(
-            DynamicMenu<T, C> menu,
-            Map<Integer, MenuOption<T, C>> replacements) {
-
-        Objects.requireNonNull(replacements, "El mapa de reemplaços no pot ser nul");
-        return replaceBatch(menu, null, null, replacements);
-    }
-
-    // -------------------------------------------------------------------------
-    // Internals
+    // Internals by index / batch
     // -------------------------------------------------------------------------
 
     private static <T, C> DynamicMenu<T, C> replaceAtInternal(

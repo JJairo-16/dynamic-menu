@@ -1,98 +1,209 @@
 # Menu Editor
 
-`MenuEditor` és la classe central del paquet `menu.editor`.
+`MenuEditor` és la façana pública central del paquet `menu.editor`.
 
-És una utilitat estàtica i **no es pot instanciar**.
+És una utilitat estàtica i no es pot instanciar.
 
-## Tipus d’operacions
+```java
+private MenuEditor() {
+    throw new AssertionError("No es pot instanciar MenuEditor");
+}
+```
 
-La seva API es pot entendre en sis blocs principals:
+La seva API pública real es divideix en aquests blocs:
 
-- reemplaç per índex
-- reemplaç per label exacte
-- operacions condicionals
-- cerca i inspecció
+- selectors de conveniència
+- entrada al builder de reemplaç
+- helpers estàtics d’eliminació
+- entrada al builder d’eliminació
 - ordenació
-- reemplaços en lot
+- consulta i cerca
 
 ---
 
-## Reemplaç per índex
+# 1. Selectors de conveniència
 
-Quan ja coneixes la posició exacta d’una opció, pots modificar-la directament.
+`MenuEditor` ofereix dos selectors preparats.
 
-### Reemplaçar només el label
+## `alwaysFalseSelector()`
+
+Retorna un selector que no selecciona mai cap opció.
 
 ```java
-MenuEditor.replaceLabelAt(menu, 0, "Inici");
+OptionSelector<String, Void> selector = MenuEditor.alwaysFalseSelector();
 ```
 
-### Reemplaçar només l’acció
+Això és útil per:
+
+- proves
+- casos on vols desactivar temporalment una operació
+- composicions on necessites un selector neutre que no coincideixi amb res
+
+## `alwaysTrueSelector()`
+
+Retorna un selector que selecciona totes les opcions.
 
 ```java
-MenuEditor.replaceActionAt(menu, 1, (ctx, runtime) -> MenuResult.repeatLoop());
+OptionSelector<String, Void> selector = MenuEditor.alwaysTrueSelector();
 ```
 
-### Reemplaçar label i acció
+És útil quan vols aplicar una operació global.
+
+Exemple:
 
 ```java
-MenuEditor.replaceAt(
+int removed = MenuEditor.removeIf(menu, MenuEditor.alwaysTrueSelector());
+```
+
+---
+
+# 2. Entrada al builder de reemplaç
+
+`MenuEditor` no exposa helpers estàtics públics de replace del tipus “replaceFirstLabel” o “replaceAt”.
+
+La seva API pública de reemplaç entra mitjançant `ReplaceBuilder`.
+
+## `replace(menu)`
+
+Inicia una operació fluïda de reemplaç.
+
+```java
+MenuEditor.replace(menu)
+    .where((index, option) -> option.label().contains("config"))
+    .label("Configuració")
+    .execute();
+```
+
+## `replace(menu, selector)`
+
+Igual que l’anterior, però ja amb una condició inicial.
+
+```java
+MenuEditor.replace(
     menu,
-    2,
-    "Configuració",
-    (ctx, runtime) -> MenuResult.repeatLoop()
-);
+    (index, option) -> option.label().startsWith("Temp")
+).label("Temporal").execute();
 ```
 
-### Reemplaçar una opció completa
-
-```java
-MenuEditor.replaceAt(menu, 3, new MenuOption<>("Sortir", (ctx, runtime) -> MenuResult.exitMenu()));
-```
+A partir d’aquí, tota la configuració es fa amb `ReplaceBuilder`.
 
 ---
 
-## Reemplaç per label exacte
+# 3. Eliminació estàtica pública
 
-Quan no vols treballar per índex, pots actuar sobre coincidències exactes de label.
+A diferència del replace, `MenuEditor` sí que exposa una API estàtica pública completa per eliminar opcions.
 
-### Primera coincidència
+## `removeIf(menu, selector)`
 
-```java
-MenuEditor.replaceFirstLabel(menu, "Config", "Configuració");
-MenuEditor.replaceFirstAction(menu, "Sortir", (ctx, runtime) -> MenuResult.exitMenu());
-```
-
-### Última coincidència
-
-```java
-MenuEditor.replaceLastLabel(menu, "Config", "Configuració");
-```
-
-### Totes les coincidències
-
-```java
-MenuEditor.replaceAllLabels(menu, "Config", "Configuració");
-```
-
-També hi ha variants per reemplaçar l’acció o l’opció completa.
-
----
-
-## Eliminació condicional
-
-Pots eliminar opcions segons una condició.
-
-### Eliminar totes les coincidències
+Elimina totes les opcions que compleixen la condició.
 
 ```java
 int removed = MenuEditor.removeIf(
     menu,
-    (index, option) -> option.label().startsWith("[TEMP]")
+    (index, option) -> option.label().startsWith("[DEBUG]")
 );
 ```
 
-### Eliminar només la primera
+## `removeIf(menu, selector, range)`
+
+Elimina totes les coincidències dins d’un rang.
+
+```java
+int removed = MenuEditor.removeIf(
+    menu,
+    (index, option) -> option.label().startsWith("[DEBUG]"),
+    Range.of(0, 5)
+);
+```
+
+## `removeIf(menu, selector, range, limit)`
+
+Elimina coincidències dins d’un rang i amb un límit màxim.
+
+```java
+int removed = MenuEditor.removeIf(
+    menu,
+    (index, option) -> option.label().startsWith("[DEBUG]"),
+    Range.of(0, 10),
+    2
+);
+```
+
+## `removeIf(menu, selector, config)`
+
+Elimina coincidències segons una configuració completa.
+
+```java
+int removed = MenuEditor.removeIf(
+    menu,
+    (index, option) -> option.label().startsWith("[DEBUG]"),
+    EditConfig.builder()
+        .range(Range.of(0, 10))
+        .limit(2)
+        .reverse(false)
+        .build()
+);
+```
+
+---
+
+# 4. Eliminació en sentit invers
+
+Aquests mètodes recorren el menú en sentit invers abans d’eliminar.
+
+## `removeAllIfReverse(menu, selector)`
+
+```java
+int removed = MenuEditor.removeAllIfReverse(
+    menu,
+    (index, option) -> option.label().equals("Duplicada")
+);
+```
+
+## `removeAllIfReverse(menu, selector, range)`
+
+```java
+int removed = MenuEditor.removeAllIfReverse(
+    menu,
+    (index, option) -> option.label().equals("Duplicada"),
+    Range.of(0, 8)
+);
+```
+
+## `removeAllIfReverse(menu, selector, range, limit)`
+
+```java
+int removed = MenuEditor.removeAllIfReverse(
+    menu,
+    (index, option) -> option.label().equals("Duplicada"),
+    Range.of(0, 8),
+    1
+);
+```
+
+## `removeAllIfReverse(menu, selector, config)`
+
+```java
+int removed = MenuEditor.removeAllIfReverse(
+    menu,
+    (index, option) -> option.label().equals("Duplicada"),
+    EditConfig.builder()
+        .range(Range.of(0, 8))
+        .limit(1)
+        .reverse(true)
+        .build()
+);
+```
+
+Aquesta família és útil quan el concepte important és “recórrer des del final”.
+
+---
+
+# 5. Helpers estàtics d’eliminació específica
+
+## `removeFirstIf(menu, selector)`
+
+Elimina només la primera coincidència.
 
 ```java
 boolean removed = MenuEditor.removeFirstIf(
@@ -101,7 +212,9 @@ boolean removed = MenuEditor.removeFirstIf(
 );
 ```
 
-### Eliminar només l’última
+## `removeLastIf(menu, selector)`
+
+Elimina només l’última coincidència.
 
 ```java
 boolean removed = MenuEditor.removeLastIf(
@@ -110,174 +223,115 @@ boolean removed = MenuEditor.removeLastIf(
 );
 ```
 
-### Eliminar per label exacte
+## `removeFirstLabel(menu, label)`
+
+Elimina la primera opció amb un label exacte.
 
 ```java
-MenuEditor.removeFirstLabel(menu, "Sortir");
-MenuEditor.removeLastLabel(menu, "Sortir");
-MenuEditor.removeAllLabels(menu, "Sortir");
+boolean removed = MenuEditor.removeFirstLabel(menu, "Sortir");
 ```
+
+## `removeLastLabel(menu, label)`
+
+Elimina l’última opció amb un label exacte.
+
+```java
+boolean removed = MenuEditor.removeLastLabel(menu, "Sortir");
+```
+
+## `removeAllLabels(menu, label)`
+
+Elimina totes les opcions amb un label exacte.
+
+```java
+int removed = MenuEditor.removeAllLabels(menu, "Sortir");
+```
+
+Aquests helpers són especialment útils quan no necessites definir manualment `Range`, `EditConfig` o un builder.
 
 ---
 
-## Reemplaç condicional
+# 6. Entrada al builder d’eliminació
 
-Aquesta és la part més flexible de `MenuEditor`.
+A més dels helpers estàtics, `MenuEditor` també exposa una API fluïda d’eliminació.
 
-### Reemplaç complet amb `OptionMapper`
+## `remove(menu)`
+
+Inicia un `RemoveBuilder`.
 
 ```java
-int changed = MenuEditor.replaceIf(
+MenuEditor.remove(menu)
+    .where((index, option) -> option.label().startsWith("[TEMP]"))
+    .execute();
+```
+
+## `remove(menu, selector)`
+
+Inicia el builder amb una condició inicial.
+
+```java
+MenuEditor.remove(
     menu,
-    (index, option) -> option.label().contains("config"),
-    (index, option) -> new MenuOption<>(
-        "Configuració",
-        option.action()
-    )
-);
+    (index, option) -> option.label().startsWith("[TEMP]")
+).first().execute();
 ```
 
-### Reemplaç només de labels
-
-```java
-MenuEditor.replaceLabelIf(
-    menu,
-    (index, option) -> index < 3,
-    (index, option) -> "[" + index + "] " + option.label()
-);
-```
-
-### Reemplaç només d’accions
-
-```java
-MenuEditor.replaceActionIf(
-    menu,
-    (index, option) -> option.label().equals("Tornar"),
-    (index, option) -> (ctx, runtime) -> MenuResult.repeatLoop()
-);
-```
-
-### Primera i última coincidència
-
-```java
-MenuEditor.replaceFirstIf(menu, selector, mapper);
-MenuEditor.replaceLastIf(menu, selector, mapper);
-```
-
-També existeixen les variants:
-
-- `replaceFirstLabelIf(...)`
-- `replaceLastLabelIf(...)`
-- `replaceFirstActionIf(...)`
-- `replaceLastActionIf(...)`
+La documentació completa d’aquesta API està a `Fluent Builders`.
 
 ---
 
-## Ús amb `Range` i `EditConfig`
+# 7. Ordenació
 
-Moltes operacions condicionals tenen sobrecàrregues amb `Range` o amb `EditConfig`.
+`MenuEditor` exposa diverses variants públiques de `sortByLabel(...)`.
 
-### Amb rang
+Totes elles retornen el mateix `DynamicMenu` per facilitar un estil d’ús encadenable.
 
-```java
-MenuEditor.replaceLabelIf(
-    menu,
-    (index, option) -> option.label().equals("Item"),
-    "Element",
-    Range.of(2, 8)
-);
-```
+## `sortByLabel(menu)`
 
-### Amb rang i límit
-
-```java
-MenuEditor.removeIf(
-    menu,
-    (index, option) -> option.label().startsWith("Tmp"),
-    Range.of(0, 10),
-    2
-);
-```
-
-### Amb configuració completa
-
-```java
-MenuEditor.replaceActionIf(
-    menu,
-    (index, option) -> option.label().equals("Sortir"),
-    (index, option) -> (ctx, runtime) -> MenuResult.exitMenu(),
-    EditConfig.builder()
-        .range(Range.of(0, 10))
-        .limit(1)
-        .reverse(true)
-        .build()
-);
-```
-
----
-
-## Cerca i inspecció
-
-`MenuEditor` també inclou utilitats per consultar l’estat del menú.
-
-### Índexs
-
-```java
-int first = MenuEditor.indexOfFirst(menu, selector);
-int last = MenuEditor.indexOfLast(menu, selector);
-```
-
-### Presència i recompte
-
-```java
-boolean exists = MenuEditor.containsMatch(menu, selector);
-int total = MenuEditor.countMatches(menu, selector);
-```
-
-### Llistes de coincidències
-
-```java
-List<Integer> indexes = MenuEditor.indexesOf(menu, selector);
-List<MenuOption<String, Void>> matches = MenuEditor.matchingOptions(menu, selector);
-```
-
-### Helpers per label exacte
-
-```java
-int first = MenuEditor.indexOfFirstLabel(menu, "Sortir");
-int last = MenuEditor.indexOfLastLabel(menu, "Sortir");
-boolean exists = MenuEditor.containsLabel(menu, "Sortir");
-int total = MenuEditor.countLabelMatches(menu, "Sortir");
-MenuOption<String, Void> option = MenuEditor.findFirstLabel(menu, "Sortir");
-```
-
-Aquestes utilitats són especialment útils abans d’aplicar una edició.
-
----
-
-## Ordenació
-
-`MenuEditor` pot ordenar opcions per label.
-
-### Ordenació bàsica
+Ordena totes les opcions per label.
 
 ```java
 MenuEditor.sortByLabel(menu);
 ```
 
-### Ordenació dins d’un rang
+## `sortByLabel(menu, comparator)`
+
+Permet definir un comparador personalitzat.
+
+```java
+MenuEditor.sortByLabel(
+    menu,
+    (a, b) -> a.label().compareToIgnoreCase(b.label())
+);
+```
+
+## `sortByLabel(menu, range)`
+
+Ordena només una zona del menú.
 
 ```java
 MenuEditor.sortByLabel(menu, Range.of(1, 6));
 ```
 
-### Ordenació amb comparador
+## `sortByLabel(menu, comparator, range)`
+
+Combina comparador i rang.
 
 ```java
-MenuEditor.sortByLabel(menu, comparator);
+MenuEditor.sortByLabel(
+    menu,
+    (a, b) -> a.label().compareToIgnoreCase(b.label()),
+    Range.of(1, 6)
+);
 ```
 
-### Ordenació mantenint algunes opcions al principi o al final
+---
+
+# 8. Ordenació amb opcions fixades mitjançant selectors
+
+Aquestes variants permeten marcar opcions que han de quedar al principi o al final.
+
+## `sortByLabel(menu, firstSelector, lastSelector)`
 
 ```java
 MenuEditor.sortByLabel(
@@ -287,60 +341,296 @@ MenuEditor.sortByLabel(
 );
 ```
 
-En aquest cas:
-
-- les opcions marcades pel primer selector queden al principi
-- les opcions marcades pel segon selector queden al final
-- la resta s’ordena pel comparador indicat o pel comparador per defecte
-
-També hi ha una variant amb índexs fixats:
+## `sortByLabel(menu, firstSelector, lastSelector, range)`
 
 ```java
-MenuEditor.sortByLabelPinnedIndexes(menu, List.of(0), List.of(5));
+MenuEditor.sortByLabel(
+    menu,
+    (index, option) -> option.label().equals("Inici"),
+    (index, option) -> option.label().equals("Sortir"),
+    Range.of(0, 8)
+);
+```
+
+## `sortByLabel(menu, comparator, firstSelector, lastSelector)`
+
+```java
+MenuEditor.sortByLabel(
+    menu,
+    (a, b) -> a.label().compareToIgnoreCase(b.label()),
+    (index, option) -> option.label().equals("Inici"),
+    (index, option) -> option.label().equals("Sortir")
+);
+```
+
+## `sortByLabel(menu, comparator, firstSelector, lastSelector, range)`
+
+```java
+MenuEditor.sortByLabel(
+    menu,
+    (a, b) -> a.label().compareToIgnoreCase(b.label()),
+    (index, option) -> option.label().equals("Inici"),
+    (index, option) -> option.label().equals("Sortir"),
+    Range.of(0, 8)
+);
+```
+
+Aquesta família és útil quan vols ordenar, però mantenint opcions especials ancorades.
+
+---
+
+# 9. Ordenació amb índexs fixats
+
+En lloc de seleccionar opcions per condició, aquestes variants fixen posicions concretes.
+
+## `sortByLabelPinnedIndexes(menu, firstIndexes, lastIndexes)`
+
+```java
+MenuEditor.sortByLabelPinnedIndexes(
+    menu,
+    List.of(0),
+    List.of(5)
+);
+```
+
+## `sortByLabelPinnedIndexes(menu, firstIndexes, lastIndexes, range)`
+
+```java
+MenuEditor.sortByLabelPinnedIndexes(
+    menu,
+    List.of(0),
+    List.of(5),
+    Range.of(0, 8)
+);
+```
+
+## `sortByLabelPinnedIndexes(menu, comparator, firstIndexes, lastIndexes)`
+
+```java
+MenuEditor.sortByLabelPinnedIndexes(
+    menu,
+    (a, b) -> a.label().compareToIgnoreCase(b.label()),
+    List.of(0),
+    List.of(5)
+);
+```
+
+## `sortByLabelPinnedIndexes(menu, comparator, firstIndexes, lastIndexes, range)`
+
+```java
+MenuEditor.sortByLabelPinnedIndexes(
+    menu,
+    (a, b) -> a.label().compareToIgnoreCase(b.label()),
+    List.of(0),
+    List.of(5),
+    Range.of(0, 8)
+);
+```
+
+Aquestes variants són útils quan ja coneixes exactament quines posicions no s’han de moure.
+
+---
+
+# 10. Helpers de consulta per selector
+
+A més d’editar, `MenuEditor` també permet consultar el menú.
+
+## `indexOfFirst(menu, selector)`
+
+Retorna l’índex de la primera coincidència.
+
+```java
+int index = MenuEditor.indexOfFirst(
+    menu,
+    (index, option) -> option.label().startsWith("Admin")
+);
+```
+
+## `indexOfFirst(menu, selector, range)`
+
+```java
+int index = MenuEditor.indexOfFirst(
+    menu,
+    (index, option) -> option.label().startsWith("Admin"),
+    Range.of(0, 5)
+);
+```
+
+## `indexOfLast(menu, selector)`
+
+```java
+int index = MenuEditor.indexOfLast(
+    menu,
+    (index, option) -> option.label().startsWith("Admin")
+);
+```
+
+## `indexOfLast(menu, selector, range)`
+
+```java
+int index = MenuEditor.indexOfLast(
+    menu,
+    (index, option) -> option.label().startsWith("Admin"),
+    Range.of(0, 5)
+);
+```
+
+## `containsMatch(menu, selector)`
+
+```java
+boolean exists = MenuEditor.containsMatch(
+    menu,
+    (index, option) -> option.label().startsWith("Admin")
+);
+```
+
+## `countMatches(menu, selector)`
+
+```java
+int total = MenuEditor.countMatches(
+    menu,
+    (index, option) -> option.label().startsWith("Admin")
+);
+```
+
+## `countMatches(menu, selector, range)`
+
+```java
+int total = MenuEditor.countMatches(
+    menu,
+    (index, option) -> option.label().startsWith("Admin"),
+    Range.of(0, 5)
+);
+```
+
+## `indexesOf(menu, selector)`
+
+```java
+List<Integer> indexes = MenuEditor.indexesOf(
+    menu,
+    (index, option) -> option.label().startsWith("Admin")
+);
+```
+
+## `indexesOf(menu, selector, range)`
+
+```java
+List<Integer> indexes = MenuEditor.indexesOf(
+    menu,
+    (index, option) -> option.label().startsWith("Admin"),
+    Range.of(0, 5)
+);
+```
+
+## `matchingOptions(menu, selector)`
+
+Retorna totes les opcions coincidents.
+
+```java
+List<MenuOption<String, Void>> matches = MenuEditor.matchingOptions(
+    menu,
+    (index, option) -> option.label().startsWith("Admin")
+);
+```
+
+## `matchingOptions(menu, selector, range)`
+
+```java
+List<MenuOption<String, Void>> matches = MenuEditor.matchingOptions(
+    menu,
+    (index, option) -> option.label().startsWith("Admin"),
+    Range.of(0, 5)
+);
 ```
 
 ---
 
-## Reemplaços en lot
+# 11. Helpers de consulta per label exacte
 
-Quan ja tens un conjunt de canvis calculats, pots aplicar-los en bloc.
+Quan la cerca és per text exacte del label, hi ha dreceres específiques.
 
-### Diversos labels per índex
+## `indexOfFirstLabel(menu, label)`
 
 ```java
-MenuEditor.replaceLabelsAt(menu, Map.of(
-    0, "Inici",
-    2, "Configuració"
-));
+int index = MenuEditor.indexOfFirstLabel(menu, "Sortir");
 ```
 
-### Diverses accions per índex
+## `indexOfLastLabel(menu, label)`
 
 ```java
-MenuEditor.replaceActionsAt(menu, replacements);
+int index = MenuEditor.indexOfLastLabel(menu, "Sortir");
 ```
 
-### Diverses opcions completes per índex
+## `containsLabel(menu, label)`
 
 ```java
-MenuEditor.replaceAt(menu, optionReplacements);
+boolean exists = MenuEditor.containsLabel(menu, "Sortir");
+```
+
+## `countLabelMatches(menu, label)`
+
+```java
+int total = MenuEditor.countLabelMatches(menu, "Sortir");
+```
+
+## `findFirst(menu, selector)`
+
+Retorna la primera opció coincident o `null`.
+
+```java
+MenuOption<String, Void> option = MenuEditor.findFirst(
+    menu,
+    (index, current) -> current.label().startsWith("Admin")
+);
+```
+
+## `findLast(menu, selector)`
+
+Retorna l’última opció coincident o `null`.
+
+```java
+MenuOption<String, Void> option = MenuEditor.findLast(
+    menu,
+    (index, current) -> current.label().startsWith("Admin")
+);
+```
+
+## `findFirstLabel(menu, label)`
+
+Retorna la primera coincidència exacta o `null`.
+
+```java
+MenuOption<String, Void> option = MenuEditor.findFirstLabel(menu, "Sortir");
+```
+
+## `findLastLabel(menu, label)`
+
+Retorna l’última coincidència exacta o `null`.
+
+```java
+MenuOption<String, Void> option = MenuEditor.findLastLabel(menu, "Sortir");
 ```
 
 ---
 
-## Consideracions pràctiques
+# 12. Com aprendre a usar `MenuEditor`
 
-`MenuEditor` és molt útil quan:
+La manera més pràctica d’aprendre aquesta API és:
 
-- el menú ja existeix i només vols editar-ne parts
-- necessites criteris més expressius que els wrappers bàsics de `DynamicMenu`
-- vols escriure transformacions reutilitzables
+1. començar amb `removeIf(...)`, `removeFirstIf(...)` i `removeLastIf(...)`
+2. aprendre `Range` i `EditConfig`
+3. passar a `remove(menu)` i `replace(menu)` amb builders
+4. utilitzar els helpers de consulta abans d’editar
+5. acabar amb les variants avançades d’ordenació
 
-En canvi, si el que vols és simplement afegir o treure una opció concreta, sovint continua sent més directe utilitzar l’API base de `DynamicMenu`.
+## Patró mental recomanat
 
-## Recomanació
+Quan facis servir `MenuEditor`, pensa sempre en aquest esquema:
 
-Fes servir:
+- **què** selecciones
+- **on** ho apliques
+- **quantes** coincidències afectes
+- **en quin sentit** recorres el menú
+- **què** vols retornar o transformar
 
-- l’API bàsica del menú per a canvis simples i puntuals
-- `MenuEditor` per a operacions declaratives, condicionals o en lot
+Això et permet entendre tant els helpers estàtics com els builders com una mateixa família coherent.
