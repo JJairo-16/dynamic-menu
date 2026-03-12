@@ -418,6 +418,77 @@ public final class ReplaceFamily {
     }
 
     // -------------------------------------------------------------------------
+    // Replace if reverse
+    // -------------------------------------------------------------------------
+
+    public static <T, C> int replaceIfReverse(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            OptionMapper<T, C> mapper) {
+
+        return replaceIf(
+                menu,
+                selector,
+                mapper,
+                EditConfig.builder()
+                        .reverse(true)
+                        .build());
+    }
+
+    public static <T, C> int replaceIfReverse(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            OptionMapper<T, C> mapper,
+            Range range) {
+
+        return replaceIf(
+                menu,
+                selector,
+                mapper,
+                EditConfig.builder()
+                        .range(range)
+                        .reverse(true)
+                        .build());
+    }
+
+    public static <T, C> int replaceIfReverse(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            OptionMapper<T, C> mapper,
+            Range range,
+            int limit) {
+
+        return replaceIf(
+                menu,
+                selector,
+                mapper,
+                EditConfig.builder()
+                        .range(range)
+                        .limit(limit)
+                        .reverse(true)
+                        .build());
+    }
+
+    public static <T, C> int replaceIfReverse(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            OptionMapper<T, C> mapper,
+            EditConfig config) {
+
+        Objects.requireNonNull(config, "La configuració no pot ser nul·la");
+
+        return replaceIf(
+                menu,
+                selector,
+                mapper,
+                EditConfig.builder()
+                        .range(config.range())
+                        .limit(config.limit())
+                        .reverse(true)
+                        .build());
+    }
+
+    // -------------------------------------------------------------------------
     // Replace label if
     // -------------------------------------------------------------------------
 
@@ -514,6 +585,117 @@ public final class ReplaceFamily {
                                 "El transformador de labels no pot retornar nul"),
                         option.action()),
                 config);
+    }
+
+    // -------------------------------------------------------------------------
+    // Replace label if reverse
+    // -------------------------------------------------------------------------
+
+    public static <T, C> int replaceLabelIfReverse(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            String newLabel) {
+
+        Objects.requireNonNull(newLabel, "El nou label no pot ser nul");
+        return replaceLabelIfReverse(menu, selector, (index, option) -> newLabel);
+    }
+
+    public static <T, C> int replaceLabelIfReverse(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            String newLabel,
+            Range range) {
+
+        Objects.requireNonNull(newLabel, "El nou label no pot ser nul");
+        return replaceLabelIfReverse(menu, selector, (index, option) -> newLabel, range);
+    }
+
+    public static <T, C> int replaceLabelIfReverse(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            String newLabel,
+            Range range,
+            int limit) {
+
+        Objects.requireNonNull(newLabel, "El nou label no pot ser nul");
+        return replaceLabelIfReverse(
+                menu,
+                selector,
+                (index, option) -> newLabel,
+                EditConfig.builder()
+                        .range(range)
+                        .limit(limit)
+                        .reverse(true)
+                        .build());
+    }
+
+    public static <T, C> int replaceLabelIfReverse(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            String newLabel,
+            EditConfig config) {
+
+        Objects.requireNonNull(newLabel, "El nou label no pot ser nul");
+        return replaceLabelIfReverse(menu, selector, (index, option) -> newLabel, config);
+    }
+
+    public static <T, C> int replaceLabelIfReverse(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            LabelMapper<T, C> mapper) {
+
+        return replaceLabelIfReverse(
+                menu,
+                selector,
+                mapper,
+                EditConfig.builder().reverse(true).build());
+    }
+
+    public static <T, C> int replaceLabelIfReverse(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            LabelMapper<T, C> mapper,
+            Range range) {
+
+        return replaceLabelIfReverse(
+                menu,
+                selector,
+                mapper,
+                EditConfig.builder().range(range).reverse(true).build());
+    }
+
+    public static <T, C> int replaceLabelIfReverse(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            LabelMapper<T, C> mapper,
+            Range range,
+            int limit) {
+
+        return replaceLabelIfReverse(
+                menu,
+                selector,
+                mapper,
+                EditConfig.builder().range(range).limit(limit).reverse(true).build());
+    }
+
+    public static <T, C> int replaceLabelIfReverse(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            LabelMapper<T, C> mapper,
+            EditConfig config) {
+
+        Objects.requireNonNull(mapper, "El transformador de labels no pot ser nul");
+        Objects.requireNonNull(config, "La configuració no pot ser nul·la");
+
+        return replaceLabelIf(
+                menu,
+                selector,
+                mapper,
+                EditConfig.builder()
+                        .range(config.range())
+                        .limit(config.limit())
+                        .reverse(true)
+                        .build());
     }
 
     public static <T, C> boolean replaceFirstLabelIf(
@@ -742,6 +924,197 @@ public final class ReplaceFamily {
                                 mapper.map(index, option),
                                 "El transformador de comportaments no pot retornar nul")),
                 config);
+    }
+
+    // -------------------------------------------------------------------------
+    // Replace action if reverse
+    // -------------------------------------------------------------------------
+
+    public static <T, C> int replaceActionIfReverse(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            MenuRuntimeAction<T, C> newAction) {
+
+        Objects.requireNonNull(newAction, "El nou comportament no pot ser nul");
+        return replaceActionIfReverse(
+                menu,
+                selector,
+                newAction,
+                EditConfig.builder().reverse(true).build());
+    }
+
+    public static <T, C> int replaceActionIfReverse(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            MenuAction<T, C> newAction) {
+
+        return replaceActionIfReverse(menu, selector, runtimeOf(newAction));
+    }
+
+    public static <T, C> int replaceActionIfReverse(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            SimpleMenuAction<T> newAction) {
+
+        return replaceActionIfReverse(menu, selector, runtimeOf(newAction));
+    }
+
+    public static <T, C> int replaceActionIfReverse(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            MenuRuntimeAction<T, C> newAction,
+            Range range) {
+
+        Objects.requireNonNull(newAction, "El nou comportament no pot ser nul");
+        return replaceActionIfReverse(
+                menu,
+                selector,
+                newAction,
+                EditConfig.builder().range(range).reverse(true).build());
+    }
+
+    public static <T, C> int replaceActionIfReverse(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            MenuAction<T, C> newAction,
+            Range range) {
+
+        return replaceActionIfReverse(menu, selector, runtimeOf(newAction), range);
+    }
+
+    public static <T, C> int replaceActionIfReverse(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            SimpleMenuAction<T> newAction,
+            Range range) {
+
+        return replaceActionIfReverse(menu, selector, runtimeOf(newAction), range);
+    }
+
+    public static <T, C> int replaceActionIfReverse(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            MenuRuntimeAction<T, C> newAction,
+            Range range,
+            int limit) {
+
+        Objects.requireNonNull(newAction, "El nou comportament no pot ser nul");
+        return replaceActionIfReverse(
+                menu,
+                selector,
+                newAction,
+                EditConfig.builder().range(range).limit(limit).reverse(true).build());
+    }
+
+    public static <T, C> int replaceActionIfReverse(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            MenuAction<T, C> newAction,
+            Range range,
+            int limit) {
+
+        return replaceActionIfReverse(menu, selector, runtimeOf(newAction), range, limit);
+    }
+
+    public static <T, C> int replaceActionIfReverse(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            SimpleMenuAction<T> newAction,
+            Range range,
+            int limit) {
+
+        return replaceActionIfReverse(menu, selector, runtimeOf(newAction), range, limit);
+    }
+
+    public static <T, C> int replaceActionIfReverse(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            MenuRuntimeAction<T, C> newAction,
+            EditConfig config) {
+
+        Objects.requireNonNull(newAction, "El nou comportament no pot ser nul");
+        return replaceActionIfReverse(
+                menu,
+                selector,
+                newAction,
+                config);
+    }
+
+    public static <T, C> int replaceActionIfReverse(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            MenuAction<T, C> newAction,
+            EditConfig config) {
+
+        return replaceActionIfReverse(menu, selector, runtimeOf(newAction), config);
+    }
+
+    public static <T, C> int replaceActionIfReverse(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            SimpleMenuAction<T> newAction,
+            EditConfig config) {
+
+        return replaceActionIfReverse(menu, selector, runtimeOf(newAction), config);
+    }
+
+    public static <T, C> int replaceActionIfReverse(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            ActionMapper<T, C> mapper) {
+
+        return replaceActionIfReverse(
+                menu,
+                selector,
+                mapper,
+                EditConfig.builder().reverse(true).build());
+    }
+
+    public static <T, C> int replaceActionIfReverse(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            ActionMapper<T, C> mapper,
+            Range range) {
+
+        return replaceActionIfReverse(
+                menu,
+                selector,
+                mapper,
+                EditConfig.builder().range(range).reverse(true).build());
+    }
+
+    public static <T, C> int replaceActionIfReverse(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            ActionMapper<T, C> mapper,
+            Range range,
+            int limit) {
+
+        return replaceActionIfReverse(
+                menu,
+                selector,
+                mapper,
+                EditConfig.builder().range(range).limit(limit).reverse(true).build());
+    }
+
+    public static <T, C> int replaceActionIfReverse(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            ActionMapper<T, C> mapper,
+            EditConfig config) {
+
+        Objects.requireNonNull(mapper, "El transformador de comportaments no pot ser nul");
+        Objects.requireNonNull(config, "La configuració no pot ser nul·la");
+
+        return replaceActionIf(
+                menu,
+                selector,
+                mapper,
+                EditConfig.builder()
+                        .range(config.range())
+                        .limit(config.limit())
+                        .reverse(true)
+                        .build());
     }
 
     public static <T, C> boolean replaceFirstActionIf(

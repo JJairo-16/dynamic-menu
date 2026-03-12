@@ -786,6 +786,298 @@ public final class MenuEditor {
     }
 
     // -------------------------------------------------------------------------
+    // Replace if reverse
+    // -------------------------------------------------------------------------
+
+    /** Reemplaça totes les opcions que compleixen una condició, recorrent en reversa. */
+    public static <T, C> int replaceIfReverse(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            OptionMapper<T, C> mapper) {
+
+        return ReplaceFamily.replaceIfReverse(menu, selector, mapper);
+    }
+
+    /** Reemplaça opcions dins d'un rang, recorrent en reversa. */
+    public static <T, C> int replaceIfReverse(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            OptionMapper<T, C> mapper,
+            Range range) {
+
+        return ReplaceFamily.replaceIfReverse(menu, selector, mapper, range);
+    }
+
+    /** Reemplaça opcions dins d'un rang i amb límit, recorrent en reversa. */
+    public static <T, C> int replaceIfReverse(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            OptionMapper<T, C> mapper,
+            Range range,
+            int limit) {
+
+        return ReplaceFamily.replaceIfReverse(menu, selector, mapper, range, limit);
+    }
+
+    /** Reemplaça opcions segons una configuració, recorrent en reversa. */
+    public static <T, C> int replaceIfReverse(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            OptionMapper<T, C> mapper,
+            EditConfig config) {
+
+        return ReplaceFamily.replaceIfReverse(menu, selector, mapper, config);
+    }
+
+    // -------------------------------------------------------------------------
+    // Replace label if reverse
+    // -------------------------------------------------------------------------
+
+    /** Reemplaça només labels, recorrent en reversa. */
+    public static <T, C> int replaceLabelIfReverse(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            String newLabel) {
+
+        return ReplaceFamily.replaceLabelIfReverse(menu, selector, newLabel);
+    }
+
+    /** Reemplaça només labels dins d'un rang, recorrent en reversa. */
+    public static <T, C> int replaceLabelIfReverse(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            String newLabel,
+            Range range) {
+
+        return ReplaceFamily.replaceLabelIfReverse(menu, selector, newLabel, range);
+    }
+
+    /** Reemplaça només labels dins d'un rang i amb límit, recorrent en reversa. */
+    public static <T, C> int replaceLabelIfReverse(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            String newLabel,
+            Range range,
+            int limit) {
+
+        return ReplaceFamily.replaceLabelIfReverse(menu, selector, newLabel, range, limit);
+    }
+
+    /** Reemplaça només labels segons una configuració, recorrent en reversa. */
+    public static <T, C> int replaceLabelIfReverse(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            String newLabel,
+            EditConfig config) {
+
+        return ReplaceFamily.replaceLabelIfReverse(menu, selector, newLabel, config);
+    }
+
+    /** Reemplaça només labels, recorrent en reversa. */
+    public static <T, C> int replaceLabelIfReverse(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            LabelMapper<T, C> mapper) {
+
+        return ReplaceFamily.replaceLabelIfReverse(menu, selector, mapper);
+    }
+
+    /** Reemplaça només labels dins d'un rang, recorrent en reversa. */
+    public static <T, C> int replaceLabelIfReverse(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            LabelMapper<T, C> mapper,
+            Range range) {
+
+        return ReplaceFamily.replaceLabelIfReverse(menu, selector, mapper, range);
+    }
+
+    /** Reemplaça només labels dins d'un rang i amb límit, recorrent en reversa. */
+    public static <T, C> int replaceLabelIfReverse(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            LabelMapper<T, C> mapper,
+            Range range,
+            int limit) {
+
+        return ReplaceFamily.replaceLabelIfReverse(menu, selector, mapper, range, limit);
+    }
+
+    /** Reemplaça només labels segons una configuració, recorrent en reversa. */
+    public static <T, C> int replaceLabelIfReverse(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            LabelMapper<T, C> mapper,
+            EditConfig config) {
+
+        return ReplaceFamily.replaceLabelIfReverse(menu, selector, mapper, config);
+    }
+
+    // -------------------------------------------------------------------------
+    // Replace action if reverse
+    // -------------------------------------------------------------------------
+
+    /** Reemplaça només comportaments, recorrent en reversa. */
+    public static <T, C> int replaceActionIfReverse(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            MenuRuntimeAction<T, C> newAction) {
+
+        return ReplaceFamily.replaceActionIfReverse(menu, selector, newAction);
+    }
+
+    /** Reemplaça només comportaments, recorrent en reversa. */
+    public static <T, C> int replaceActionIfReverse(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            MenuAction<T, C> newAction) {
+
+        return ReplaceFamily.replaceActionIfReverse(menu, selector, newAction);
+    }
+
+    /** Reemplaça només comportaments, recorrent en reversa. */
+    public static <T, C> int replaceActionIfReverse(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            SimpleMenuAction<T> newAction) {
+
+        return ReplaceFamily.replaceActionIfReverse(menu, selector, newAction);
+    }
+
+    /** Reemplaça només comportaments dins d'un rang, recorrent en reversa. */
+    public static <T, C> int replaceActionIfReverse(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            MenuRuntimeAction<T, C> newAction,
+            Range range) {
+
+        return ReplaceFamily.replaceActionIfReverse(menu, selector, newAction, range);
+    }
+
+    /** Reemplaça només comportaments dins d'un rang, recorrent en reversa. */
+    public static <T, C> int replaceActionIfReverse(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            MenuAction<T, C> newAction,
+            Range range) {
+
+        return ReplaceFamily.replaceActionIfReverse(menu, selector, newAction, range);
+    }
+
+    /** Reemplaça només comportaments dins d'un rang, recorrent en reversa. */
+    public static <T, C> int replaceActionIfReverse(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            SimpleMenuAction<T> newAction,
+            Range range) {
+
+        return ReplaceFamily.replaceActionIfReverse(menu, selector, newAction, range);
+    }
+
+    /** Reemplaça només comportaments dins d'un rang i amb límit, recorrent en reversa. */
+    public static <T, C> int replaceActionIfReverse(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            MenuRuntimeAction<T, C> newAction,
+            Range range,
+            int limit) {
+
+        return ReplaceFamily.replaceActionIfReverse(menu, selector, newAction, range, limit);
+    }
+
+    /** Reemplaça només comportaments dins d'un rang i amb límit, recorrent en reversa. */
+    public static <T, C> int replaceActionIfReverse(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            MenuAction<T, C> newAction,
+            Range range,
+            int limit) {
+
+        return ReplaceFamily.replaceActionIfReverse(menu, selector, newAction, range, limit);
+    }
+
+    /** Reemplaça només comportaments dins d'un rang i amb límit, recorrent en reversa. */
+    public static <T, C> int replaceActionIfReverse(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            SimpleMenuAction<T> newAction,
+            Range range,
+            int limit) {
+
+        return ReplaceFamily.replaceActionIfReverse(menu, selector, newAction, range, limit);
+    }
+
+    /** Reemplaça només comportaments segons una configuració, recorrent en reversa. */
+    public static <T, C> int replaceActionIfReverse(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            MenuRuntimeAction<T, C> newAction,
+            EditConfig config) {
+
+        return ReplaceFamily.replaceActionIfReverse(menu, selector, newAction, config);
+    }
+
+    /** Reemplaça només comportaments segons una configuració, recorrent en reversa. */
+    public static <T, C> int replaceActionIfReverse(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            MenuAction<T, C> newAction,
+            EditConfig config) {
+
+        return ReplaceFamily.replaceActionIfReverse(menu, selector, newAction, config);
+    }
+
+    /** Reemplaça només comportaments segons una configuració, recorrent en reversa. */
+    public static <T, C> int replaceActionIfReverse(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            SimpleMenuAction<T> newAction,
+            EditConfig config) {
+
+        return ReplaceFamily.replaceActionIfReverse(menu, selector, newAction, config);
+    }
+
+    /** Reemplaça només comportaments, recorrent en reversa. */
+    public static <T, C> int replaceActionIfReverse(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            ActionMapper<T, C> mapper) {
+
+        return ReplaceFamily.replaceActionIfReverse(menu, selector, mapper);
+    }
+
+    /** Reemplaça només comportaments dins d'un rang, recorrent en reversa. */
+    public static <T, C> int replaceActionIfReverse(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            ActionMapper<T, C> mapper,
+            Range range) {
+
+        return ReplaceFamily.replaceActionIfReverse(menu, selector, mapper, range);
+    }
+
+    /** Reemplaça només comportaments dins d'un rang i amb límit, recorrent en reversa. */
+    public static <T, C> int replaceActionIfReverse(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            ActionMapper<T, C> mapper,
+            Range range,
+            int limit) {
+
+        return ReplaceFamily.replaceActionIfReverse(menu, selector, mapper, range, limit);
+    }
+
+    /** Reemplaça només comportaments segons una configuració, recorrent en reversa. */
+    public static <T, C> int replaceActionIfReverse(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            ActionMapper<T, C> mapper,
+            EditConfig config) {
+
+        return ReplaceFamily.replaceActionIfReverse(menu, selector, mapper, config);
+    }
+
+    // -------------------------------------------------------------------------
     // Remove if
     // -------------------------------------------------------------------------
 
@@ -823,6 +1115,42 @@ public final class MenuEditor {
             EditConfig config) {
 
         return RemoveFamily.removeIf(menu, selector, config);
+    }
+
+    /** Elimina totes les opcions que compleixen una condició, recorrent en reversa. */
+    public static <T, C> int removeAllIfReverse(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector) {
+
+        return RemoveFamily.removeAllIfReverse(menu, selector);
+    }
+
+    /** Elimina totes les opcions que compleixen una condició dins d'un rang, recorrent en reversa. */
+    public static <T, C> int removeAllIfReverse(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            Range range) {
+
+        return RemoveFamily.removeAllIfReverse(menu, selector, range);
+    }
+
+    /** Elimina opcions que compleixen una condició dins d'un rang i amb límit, recorrent en reversa. */
+    public static <T, C> int removeAllIfReverse(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            Range range,
+            int limit) {
+
+        return RemoveFamily.removeAllIfReverse(menu, selector, range, limit);
+    }
+
+    /** Elimina opcions que compleixen una condició segons una configuració, recorrent en reversa. */
+    public static <T, C> int removeAllIfReverse(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            EditConfig config) {
+
+        return RemoveFamily.removeAllIfReverse(menu, selector, config);
     }
 
     /** Elimina la primera opció que compleix una condició. */

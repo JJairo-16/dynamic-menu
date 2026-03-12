@@ -46,7 +46,10 @@ public final class RemoveFamily {
         return removeIf(
                 menu,
                 selector,
-                EditConfig.builder().range(range).limit(limit).build());
+                EditConfig.builder()
+                        .range(range)
+                        .limit(limit)
+                        .build());
     }
 
     public static <T, C> int removeIf(
@@ -89,6 +92,69 @@ public final class RemoveFamily {
         rebuildSnapshot(snapshot, rebuilt);
         menu.restoreSnapshot(snapshot);
         return toRemove.size();
+    }
+
+    // -------------------------------------------------------------------------
+    // Remove all if reverse
+    // -------------------------------------------------------------------------
+
+    public static <T, C> int removeAllIfReverse(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector) {
+
+        return removeIf(
+                menu,
+                selector,
+                EditConfig.builder()
+                        .reverse(true)
+                        .build());
+    }
+
+    public static <T, C> int removeAllIfReverse(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            Range range) {
+
+        return removeIf(
+                menu,
+                selector,
+                EditConfig.builder()
+                        .range(range)
+                        .reverse(true)
+                        .build());
+    }
+
+    public static <T, C> int removeAllIfReverse(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            Range range,
+            int limit) {
+
+        return removeIf(
+                menu,
+                selector,
+                EditConfig.builder()
+                        .range(range)
+                        .limit(limit)
+                        .reverse(true)
+                        .build());
+    }
+
+    public static <T, C> int removeAllIfReverse(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            EditConfig config) {
+
+        Objects.requireNonNull(config, "La configuració no pot ser nul·la");
+
+        return removeIf(
+                menu,
+                selector,
+                EditConfig.builder()
+                        .range(config.range())
+                        .limit(config.limit())
+                        .reverse(true)
+                        .build());
     }
 
     public static <T, C> boolean removeFirstIf(
