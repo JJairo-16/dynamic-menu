@@ -4,10 +4,25 @@ import {
   ROOT_SUBSECTION,
   HOME_SECTION,
   PATH_COLLATOR,
-  escapeHtml
+  escapeHtml,
+  buildContentUrl
 } from './state.js';
+import { navigateToCurrentHeading } from './content.js';
 
 let searchDebounceTimer = null;
+let searchUiReady = false;
+let headingWarmupStarted = false;
+
+const SEARCH_RESULT_LIMIT = 3;
+const SEARCH_UI_BLUR_DELAY = 120;
+
+function getActiveSearchQuery() {
+  return normalizeSearchText(dom.searchInput?.value.trim() || '');
+}
+
+function isSearchActive() {
+  return !!getActiveSearchQuery();
+}
 
 export function sectionLabel(section) {
   return section === HOME_SECTION
@@ -25,16 +40,144 @@ export function sortDocsByPath(docs) {
   return docs;
 }
 
+function normalizeSearchText(value) {
+  return String(value || '').toLowerCase().normalize('NFD').replaceAll(/[\u0300-\u036f]/g, '');
+}
+
+function slugifyHeading(value) {
+  return String(value || '')
+    .toLowerCase()
+    .normalize('NFD')
+    .replaceAll(/[\u0300-\u036f]/g, '')
+    .replaceAll(/[^\w\s-]/g, '')
+    .trim()
+    .replaceAll(/\s+/g, '-')
+    .replaceAll(/-+/g, '-');
+}
+
+function extractHeadings(markdown) {
+  const headings = [];
+  const seenSlugs = new Map();
+  const regex = /^(#{1,6})\s+(.+)$/gm;
+  let match;
+
+  while ((match = regex.exec(markdown))) {
+    const rawText = match[2]
+      .replaceAll(/`([^`]+)`/g, '$1')
+      .replaceAll(/\[(.*?)\]\((.*?)\)/g, '$1')
+      .replaceAll(/[*_~]/g, '')
+      .trim();
+
+    if (!rawText) continue;
+
+    const baseSlug = slugifyHeading(rawText);
+    if (!baseSlug) continue;
+
+    const count = seenSlugs.get(baseSlug) || 0;
+    seenSlugs.set(baseSlug, count + 1);
+
+    headings.push({
+      text: rawText,
+      slug: count ? `${baseSlug}-${count}` : baseSlug,
+      level: match[1].length,
+      _searchText: normalizeSearchText(rawText)
+    });
+  }
+
+  return headings;
+}
+
+export function setCurrentPageHeadingsFromDom() {
+  const headings = [];
+  const seenSlugs = new Set();
+
+  for (const element of dom.content.querySelectorAll('h1, h2, h3, h4, h5, h6')) {
+    const text = element.textContent?.trim();
+    if (!text) continue;
+
+    let slug = element.id || slugifyHeading(text);
+    if (!slug) continue;
+
+    if (seenSlugs.has(slug)) {
+      let index = 1;
+      while (seenSlugs.has(`${slug}-${index}`)) index += 1;
+      slug = `${slug}-${index}`;
+    }
+
+    seenSlugs.add(slug);
+    if (!element.id || element.id !== slug) {
+      element.id = slug;
+    }
+
+    headings.push({
+      text,
+      slug,
+      level: Number(element.tagName.slice(1)),
+      _searchText: normalizeSearchText(text)
+    });
+  }
+
+  state.headingIndex.set(state.currentPath, headings);
+}
+
+async function ensureDocHeadingIndex(doc) {
+  if (!doc || state.headingIndex.has(doc.path)) return state.headingIndex.get(doc.path) || [];
+
+  try {
+    const response = await fetch(buildContentUrl(doc.path));
+    if (!response.ok) throw new Error(`No s'ha pogut carregar ${doc.path}`);
+    const markdown = await response.text();
+    const headings = extractHeadings(markdown);
+    state.headingIndex.set(doc.path, headings);
+    return headings;
+  } catch {
+    state.headingIndex.set(doc.path, []);
+    return [];
+  }
+}
+
 export function ensureDocSearchIndex() {
   if (state.lowerIndexReady) return;
 
   for (const doc of state.docs) {
-    doc._searchTitle ??= String(doc.title).toLowerCase();
-    doc._searchPath ??= String(doc.path).toLowerCase();
-    doc._searchSection ??= String(doc.section).toLowerCase();
+    doc._searchTitle ??= normalizeSearchText(doc.title);
+    doc._searchPath ??= normalizeSearchText(doc.path);
+    doc._searchSection ??= normalizeSearchText(doc.section);
   }
 
   state.lowerIndexReady = true;
+}
+
+export function warmHeadingIndexInBackground() {
+  if (headingWarmupStarted) return;
+  headingWarmupStarted = true;
+
+  const queue = [...state.docs];
+
+  const runNext = async deadline => {
+    while (queue.length) {
+      if (deadline && typeof deadline.timeRemaining === 'function' && deadline.timeRemaining() < 8) {
+        break;
+      }
+
+      const doc = queue.shift();
+      await ensureDocHeadingIndex(doc);
+    }
+
+    if (!queue.length) return;
+
+    if ('requestIdleCallback' in globalThis) {
+      globalThis.requestIdleCallback(runNext, { timeout: 500 });
+    } else {
+      setTimeout(() => runNext(), 120);
+    }
+  };
+
+  if ('requestIdleCallback' in globalThis) {
+    globalThis.requestIdleCallback(runNext, { timeout: 500 });
+  } else {
+    setTimeout(() => runNext(), 120);
+  }
 }
 
 export function getGroups(docs) {
@@ -90,18 +233,45 @@ export function renderNavLink(doc, extraClass = 'px-3') {
   `;
 }
 
+function renderSearchContextualLink(doc, subsection) {
+  return `
+    <a
+      class="nav-link nav-link--search-context block rounded-xl px-3 py-2 text-sm font-medium text-slate-700"
+      href="#/${encodeURI(doc.path)}"
+      data-doc-path="${escapeHtml(doc.path)}"
+      data-search-subsection="${escapeHtml(subsection)}"
+    >
+      <span class="nav-link__eyebrow">${escapeHtml(sectionLabel(subsection))}</span>
+      <span class="nav-link__text">${escapeHtml(doc.title)}</span>
+    </a>
+  `;
+}
+
 export function renderSubsectionBlock(subsection, subsectionDocs, currentPath) {
   const hasActiveDoc = subsectionDocs.some(doc => doc.path === currentPath);
-  let docsHtml = '';
+  const searching = isSearchActive();
 
+  if (searching && subsectionDocs.length === 1 && !hasActiveDoc) {
+    return renderSearchContextualLink(subsectionDocs[0], subsection);
+  }
+
+  let docsHtml = '';
   for (const subDoc of subsectionDocs) {
     docsHtml += renderNavLink(subDoc, 'px-4');
   }
 
+  const shouldOpen = hasActiveDoc || searching;
+  const resultsBadge = searching
+    ? `<span class="subsection-match-count">${subsectionDocs.length}</span>`
+    : '';
+
   return `
-    <details class="subsection group space-y-1" ${hasActiveDoc ? 'open' : ''}>
+    <details class="subsection group space-y-1" ${shouldOpen ? 'open' : ''} data-search-open="${searching ? 'true' : 'false'}">
       <summary class="flex cursor-pointer list-none items-center justify-between rounded-xl px-3 py-2 text-[11px] font-bold uppercase tracking-[0.16em] text-slate-400 transition hover:bg-slate-50 hover:text-slate-600">
-        <span>${escapeHtml(sectionLabel(subsection))}</span>
+        <span class="subsection-summary-label">
+          <span>${escapeHtml(sectionLabel(subsection))}</span>
+          ${resultsBadge}
+        </span>
         <svg
           xmlns="http://www.w3.org/2000/svg"
           class="h-4 w-4 shrink-0 transition-transform duration-300 ease-out group-open:rotate-90"
@@ -155,6 +325,25 @@ export function renderSectionContent(sectionMap, currentPath) {
   return html;
 }
 
+function revealRelevantSearchResult() {
+  if (!dom.sidebar || !dom.searchInput?.value.trim()) return;
+
+  const preferred = dom.nav.querySelector(`.nav-link[data-doc-path="${CSS.escape(state.currentPath)}"]`)
+    || dom.nav.querySelector('.nav-link--search-context')
+    || dom.nav.querySelector('.nav-link');
+
+  if (!preferred) return;
+
+  const sidebarRect = dom.sidebar.getBoundingClientRect();
+  const itemRect = preferred.getBoundingClientRect();
+  const isAbove = itemRect.top < sidebarRect.top + 72;
+  const isBelow = itemRect.bottom > sidebarRect.bottom - 40;
+
+  if (!(isAbove || isBelow)) return;
+
+  preferred.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
 export function renderNav() {
   const groups = getGroups(state.filteredDocs);
   const sectionOrder = orderSections(groups);
@@ -180,6 +369,7 @@ export function renderNav() {
   dom.nav.innerHTML = navHtml;
   syncSubsectionAnimationState();
   highlightActiveLink();
+  revealRelevantSearchResult();
 }
 
 export function syncSubsectionAnimationState() {
@@ -335,35 +525,247 @@ export function openActiveSubsection() {
   content.style.display = 'block';
 }
 
+function getCurrentPageHeadingMatches(query) {
+  const headings = state.headingIndex.get(state.currentPath) || [];
+  if (!query) return [];
+
+  return headings
+    .filter(heading => heading._searchText.includes(query))
+    .slice(0, SEARCH_RESULT_LIMIT);
+}
+
+function renderCurrentPageHeadingResults() {
+  if (!state.searchUi?.panel || !state.searchUi?.message) return;
+
+  const query = getActiveSearchQuery();
+  const shouldShow = state.searchUiVisible && document.activeElement === dom.searchInput && !!query;
+  const matches = shouldShow ? getCurrentPageHeadingMatches(query) : [];
+  state.searchUiHeadingResults = matches;
+
+  if (!shouldShow) {
+    state.searchUiActiveIndex = -1;
+    state.searchUi.panel.classList.remove('is-visible');
+    state.searchUi.message.hidden = true;
+    state.searchUi.results.innerHTML = '';
+    return;
+  }
+
+  if (!matches.length) {
+    state.searchUiActiveIndex = -1;
+    state.searchUi.results.innerHTML = '';
+    state.searchUi.message.hidden = false;
+    state.searchUi.message.textContent = 'Cap títol d’aquesta pàgina coincideix amb la cerca.';
+    state.searchUi.panel.classList.add('is-visible');
+    return;
+  }
+
+  state.searchUi.message.hidden = true;
+  state.searchUi.panel.classList.add('is-visible');
+  state.searchUi.results.innerHTML = matches
+    .map((heading, index) => `
+      <button
+        type="button"
+        class="search-heading-result"
+        data-heading-slug="${escapeHtml(heading.slug)}"
+        data-heading-index="${index}"
+      >
+        <span class="search-heading-result__eyebrow">En aquesta pàgina</span>
+        <span class="search-heading-result__text">${escapeHtml(heading.text)}</span>
+      </button>
+    `)
+    .join('');
+
+  if (state.searchUiActiveIndex >= matches.length) {
+    state.searchUiActiveIndex = matches.length - 1;
+  }
+
+  syncActiveSearchHeadingResult();
+}
+
+function syncActiveSearchHeadingResult() {
+  if (!state.searchUi?.results) return;
+
+  const buttons = state.searchUi.results.querySelectorAll('.search-heading-result');
+  let activeButton = null;
+
+  for (const button of buttons) {
+    const index = Number(button.dataset.headingIndex);
+    const isActive = index === state.searchUiActiveIndex;
+    button.classList.toggle('is-active', isActive);
+    if (isActive) activeButton = button;
+  }
+
+  activeButton?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+}
+
+function ensureSearchUi() {
+  if (searchUiReady || !dom.searchWrapper) return;
+
+  const panel = document.createElement('div');
+  panel.className = 'search-assist-panel';
+  panel.innerHTML = `
+    <p class="search-assist-message" hidden></p>
+    <div class="search-assist-results"></div>
+  `;
+
+  dom.searchWrapper.appendChild(panel);
+  state.searchUi = {
+    panel,
+    message: panel.querySelector('.search-assist-message'),
+    results: panel.querySelector('.search-assist-results')
+  };
+
+  state.searchUi.results.addEventListener('mousedown', event => {
+    event.preventDefault();
+    const button = event.target.closest('.search-heading-result');
+    if (!button) return;
+    navigateToHeadingResult(button.dataset.headingSlug);
+  });
+
+  searchUiReady = true;
+}
+
+export function initializeSearchUi() {
+  ensureSearchUi();
+}
+
+function hideCurrentPageHeadingResults() {
+  if (!state.searchUi?.panel) return;
+  state.searchUiVisible = false;
+  renderCurrentPageHeadingResults();
+}
+
+export function clearSearch(resetInput = true) {
+  clearTimeout(searchDebounceTimer);
+
+  if (resetInput && dom.searchInput) {
+    dom.searchInput.value = '';
+  }
+
+  state.filteredDocs = state.docs;
+  state.searchUiActiveIndex = -1;
+  hideCurrentPageHeadingResults();
+  renderNav();
+}
+
+function navigateToHeadingResult(slug) {
+  const navigated = navigateToCurrentHeading(slug);
+  if (!navigated) return;
+
+  hideCurrentPageHeadingResults();
+  clearSearch(true);
+}
+
+function updateFilteredDocs(query) {
+  state.filteredDocs = filterDocs(query);
+  renderNav();
+
+  if (state.filteredDocs.length) {
+    state.searchUi.message.hidden = true;
+  } else {
+    state.searchUi.message.hidden = false;
+    state.searchUi.message.textContent = 'No s’ha trobat cap pàgina amb aquesta cerca.';
+    state.searchUi.panel.classList.add('is-visible');
+  }
+
+  renderCurrentPageHeadingResults();
+}
+
 export function filterDocs(query) {
   if (!query) return state.docs;
 
   ensureDocSearchIndex();
 
-  return state.docs.filter(doc =>
-    doc._searchTitle.includes(query) ||
-    doc._searchPath.includes(query) ||
-    doc._searchSection.includes(query)
-  );
+  return state.docs.filter(doc => {
+    const headings = state.headingIndex.get(doc.path) || [];
+    return doc._searchTitle.includes(query)
+      || doc._searchPath.includes(query)
+      || doc._searchSection.includes(query)
+      || headings.some(heading => heading._searchText.includes(query));
+  });
 }
 
 export function handleSearchInput() {
+  ensureSearchUi();
   clearTimeout(searchDebounceTimer);
 
   searchDebounceTimer = setTimeout(() => {
-    const query = dom.searchInput.value.trim().toLowerCase();
-    state.filteredDocs = filterDocs(query);
-    renderNav();
-  }, 100);
+    const query = getActiveSearchQuery();
+
+    if (!query) {
+      clearSearch(false);
+      return;
+    }
+
+    state.searchUiVisible = true;
+    updateFilteredDocs(query);
+  }, 120);
+}
+
+export function handleSearchFocus() {
+  ensureSearchUi();
+  state.searchUiVisible = true;
+  renderCurrentPageHeadingResults();
+}
+
+export function handleSearchBlur() {
+  globalThis.setTimeout(() => {
+    if (document.activeElement === dom.searchInput) return;
+    hideCurrentPageHeadingResults();
+  }, SEARCH_UI_BLUR_DELAY);
+}
+
+export function handleSearchKeydown(event) {
+  const results = state.searchUiHeadingResults || [];
+  if (!results.length) return;
+
+  if (event.key === 'ArrowDown') {
+    event.preventDefault();
+    state.searchUiVisible = true;
+    state.searchUiActiveIndex = Math.min(
+      state.searchUiActiveIndex + 1,
+      results.length - 1
+    );
+    syncActiveSearchHeadingResult();
+    return;
+  }
+
+  if (event.key === 'ArrowUp') {
+    event.preventDefault();
+    state.searchUiVisible = true;
+    state.searchUiActiveIndex = Math.max(state.searchUiActiveIndex - 1, 0);
+    syncActiveSearchHeadingResult();
+    return;
+  }
+
+  if (event.key === 'Enter' && state.searchUiActiveIndex >= 0) {
+    event.preventDefault();
+    const active = results[state.searchUiActiveIndex];
+    if (active) {
+      navigateToHeadingResult(active.slug);
+    }
+    return;
+  }
+
+  if (event.key === 'Escape') {
+    hideCurrentPageHeadingResults();
+    dom.searchInput.blur();
+  }
 }
 
 export function handleNavClick(event) {
   const summary = event.target.closest('summary');
-  if (!summary || !dom.nav.contains(summary)) return;
+  if (summary && dom.nav.contains(summary)) {
+    const details = summary.parentElement;
+    if (details?.classList.contains('subsection')) {
+      event.preventDefault();
+      animateSubsection(details, !details.open);
+      return;
+    }
+  }
 
-  const details = summary.parentElement;
-  if (!details?.classList.contains('subsection')) return;
-
-  event.preventDefault();
-  animateSubsection(details, !details.open);
+  const link = event.target.closest('.nav-link');
+  if (link) {
+    clearSearch(true);
+  }
 }

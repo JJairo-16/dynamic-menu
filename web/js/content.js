@@ -19,7 +19,9 @@ import {
   renderBreadcrumbs,
   renderDocNav,
   highlightActiveLink,
-  openActiveSubsection
+  openActiveSubsection,
+  setCurrentPageHeadingsFromDom,
+  clearSearch
 } from './navigation.js';
 
 const MAX_PAGE_CACHE = 8;
@@ -76,7 +78,7 @@ async function transitionContent(html, skipTransition = false) {
   }
 
   dom.contentCard.classList.add('page-transition-out');
-  await wait(130);
+  await wait(120);
   dom.content.innerHTML = html;
   dom.contentCard.classList.remove('page-transition-out');
   dom.contentCard.classList.add('page-transition-in');
@@ -131,6 +133,31 @@ export function wrapTables() {
   }
 }
 
+function getStickyOffset() {
+  const header = document.querySelector('header');
+  return (header?.offsetHeight || 0) + 18;
+}
+
+export function smoothScrollToHeadingElement(element) {
+  if (!element) return;
+
+  const top = window.scrollY + element.getBoundingClientRect().top - getStickyOffset();
+  window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+}
+
+export function navigateToCurrentHeading(slug) {
+  const target = document.getElementById(slug);
+  if (!target) return false;
+
+  target.classList.add('heading-targeted');
+  globalThis.setTimeout(() => {
+    target.classList.remove('heading-targeted');
+  }, 1200);
+
+  smoothScrollToHeadingElement(target);
+  return true;
+}
+
 export async function loadRoute(options = {}) {
   const { skipTransition = false } = options;
   const requestId = ++routeRequestId;
@@ -170,7 +197,9 @@ export async function loadRoute(options = {}) {
   highlightActiveLink();
   openActiveSubsection();
   enhanceExternalLinks();
+  setCurrentPageHeadingsFromDom();
   closeMenu();
+  clearSearch(true);
 
   window.scrollTo({ top: 0, behavior: skipTransition ? 'auto' : 'smooth' });
 

@@ -47,7 +47,12 @@ export const state = {
   manifestLoaded: false,
   docByPath: new Map(),
   docIndexByPath: new Map(),
-  desktopSidebarCollapsed: false
+  desktopSidebarCollapsed: false,
+  headingIndex: new Map(),
+  searchUi: null,
+  searchUiVisible: false,
+  searchUiHeadingResults: [],
+  searchUiActiveIndex: -1
 };
 
 export const dom = {
@@ -63,7 +68,8 @@ export const dom = {
   desktopMenuButton: document.getElementById('desktopMenuButton'),
   closeMenuButton: document.getElementById('closeMenuButton'),
   layout: document.getElementById('layout'),
-  contentCard: document.getElementById('contentCard')
+  contentCard: document.getElementById('contentCard'),
+  mainContent: document.getElementById('mainContent')
 };
 
 export function escapeHtml(value) {

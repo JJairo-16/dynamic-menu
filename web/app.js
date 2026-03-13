@@ -13,10 +13,15 @@ import {
   sortDocsByPath,
   renderNav,
   handleSearchInput,
-  handleNavClick
+  handleNavClick,
+  initializeSearchUi,
+  handleSearchFocus,
+  handleSearchBlur,
+  handleSearchKeydown,
+  warmHeadingIndexInBackground
 } from './js/navigation.js';
 import {
-  loadRoute,
+  loadRoute
 } from './js/content.js';
 
 function handleViewportChange() {
@@ -29,6 +34,9 @@ function wireEvents() {
   globalThis.addEventListener('hashchange', loadRoute);
   globalThis.addEventListener('resize', handleViewportChange, { passive: true });
   dom.searchInput.addEventListener('input', handleSearchInput);
+  dom.searchInput.addEventListener('focus', handleSearchFocus);
+  dom.searchInput.addEventListener('blur', handleSearchBlur);
+  dom.searchInput.addEventListener('keydown', handleSearchKeydown);
   dom.menuButton.addEventListener('click', openMenu);
   dom.desktopMenuButton?.addEventListener('click', toggleDesktopSidebar);
   dom.closeMenuButton.addEventListener('click', closeMenu);
@@ -55,9 +63,11 @@ async function init() {
   state.manifestLoaded = true;
 
   restoreDesktopSidebarState();
+  initializeSearchUi();
   wireEvents();
   renderNav();
   await loadRoute({ skipTransition: true });
+  warmHeadingIndexInBackground();
 
   waitForShiki().catch(error => {
     console.error('No s\'ha pogut inicialitzar Shiki.', error);

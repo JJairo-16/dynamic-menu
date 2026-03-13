@@ -80,18 +80,10 @@ function showLocalOpenMessage() {
   `;
 }
 
-function isFileProtocol() {
-  return location.protocol === 'file:';
+function showLocalOpenMessageIfNeeded() {
+  if (location.protocol === 'file:') {
+    showLocalOpenMessage();
+  }
 }
 
-(async () => {
-  if (isFileProtocol()) {
-    showLocalOpenMessage();
-    return;
-  }
-
-  init().catch(error => {
-    console.error(error);
-    showLocalOpenMessage();
-  });
-})();
+showLocalOpenMessageIfNeeded();

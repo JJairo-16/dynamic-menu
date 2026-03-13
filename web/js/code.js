@@ -12,33 +12,83 @@ export function waitForShiki() {
     return Promise.resolve(globalThis.shikiHighlighter);
   }
 
-  if (!shikiReadyPromise) {
-    shikiReadyPromise = import('https://esm.sh/shiki@1.29.2')
-      .then(async ({ createHighlighter }) => {
-        const highlighter = await createHighlighter({
-          themes: ['dark-plus'],
-          langs: [
-            'java',
-            'bash',
-            'powershell',
-            'xml',
-            'groovy',
-            'json',
-            'markdown',
-            'text'
-          ]
-        });
-
-        globalThis.shikiHighlighter = highlighter;
-        return highlighter;
-      });
+  if (shikiReadyPromise) {
+    return shikiReadyPromise;
   }
+
+  shikiReadyPromise = import('https://esm.sh/shiki@1.29.2')
+    .then(async ({ createHighlighter }) => {
+      const highlighter = await createHighlighter({
+        themes: ['dark-plus'],
+        langs: [
+          'java',
+          'bash',
+          'powershell',
+          'xml',
+          'groovy',
+          'json',
+          'markdown',
+          'text'
+        ]
+      });
+
+      globalThis.shikiHighlighter = highlighter;
+      return highlighter;
+    });
 
   return shikiReadyPromise;
 }
 
 export function canShowCopyButton(rawLang) {
   return !!rawLang && COPY_BUTTON_LANGS.has(rawLang.toLowerCase());
+}
+
+function formatLanguageLabel(rawLang) {
+  if (!rawLang) return 'TEXT';
+
+  const labels = {
+    js: 'JAVASCRIPT',
+    ts: 'TYPESCRIPT',
+    bash: 'BASH',
+    sh: 'SHELL',
+    shell: 'SHELL',
+    powershell: 'POWERSHELL',
+    xml: 'XML',
+    groovy: 'GROOVY',
+    json: 'JSON',
+    md: 'MARKDOWN',
+    markdown: 'MARKDOWN',
+    yml: 'YAML',
+    yaml: 'YAML',
+    txt: 'TEXT',
+    plaintext: 'TEXT',
+    text: 'TEXT',
+    java: 'JAVA'
+  };
+
+  const normalized = rawLang.toLowerCase();
+  return labels[normalized] || normalized.toUpperCase();
+}
+
+function createCodeToolbar(rawLang, code, showCopyButton) {
+  const toolbar = document.createElement('div');
+  toolbar.className = 'code-toolbar';
+
+  const meta = document.createElement('div');
+  meta.className = 'code-toolbar-meta';
+
+  const lang = document.createElement('span');
+  lang.className = 'code-lang';
+  lang.textContent = formatLanguageLabel(rawLang);
+
+  meta.appendChild(lang);
+  toolbar.appendChild(meta);
+
+  if (showCopyButton) {
+    toolbar.appendChild(createCopyButton(code));
+  }
+
+  return toolbar;
 }
 
 export async function highlightCodeBlocks() {
@@ -74,21 +124,22 @@ export async function highlightCodeBlocks() {
       const wrapper = document.createElement('div');
       wrapper.className = 'shiki-wrapper';
 
-      if (showCopyButton) {
-        wrapper.appendChild(createCopyButton(code));
-      }
+      const toolbar = createCodeToolbar(rawLang, code, showCopyButton);
 
+      wrapper.appendChild(toolbar);
       wrapper.appendChild(shikiNode);
       block.parentElement.replaceWith(wrapper);
     } catch (error) {
       console.warn(`No s'ha pogut ressaltar el bloc com ${lang}.`, error);
 
       const pre = block.parentElement;
-      if (!pre || !showCopyButton) continue;
+      if (!pre) continue;
 
       const wrapper = document.createElement('div');
       wrapper.className = 'shiki-wrapper';
-      wrapper.appendChild(createCopyButton(code));
+
+      const toolbar = createCodeToolbar(rawLang, code, showCopyButton);
+      wrapper.appendChild(toolbar);
       wrapper.appendChild(pre.cloneNode(true));
       pre.replaceWith(wrapper);
     }
