@@ -49,8 +49,8 @@ Estructures de dades del sistema.
 
 Permeten executar lògica abans i després de cada iteració del menú.
 
-- [01 - MenuLoopHook](05-hooks/01-menu-loop-hook.md)
-- [02 - MenuLoopState](05-hooks/02-menu-loop-state.md)
+- [01 - MenuLoopState](05-hooks/01-menu-loop-state.md)
+- [02 - MenuLoopHook](05-hooks/02-menu-loop-hook.md)
 
 ---
 
@@ -89,14 +89,15 @@ Funcionalitats avançades del sistema de menús.
 Utilitats avançades per inspeccionar, eliminar, reemplaçar i ordenar opcions d’un `DynamicMenu` utilitzant selectors, mappers i configuracions d’edició.
 
 - [01 - Menu Editor Overview](09-editor/01-menu-editor-overview.md)
-- [02 - Range](09-editor/02-range.md)
-- [03 - Edit Config](09-editor/03-edit-config.md)
-- [04 - Selectors and Mappers](09-editor/04-selectors-and-mappers.md)
-- [05 - Menu Editor](09-editor/05-menu-editor.md)
-- [06 - Fuent Builders](09-editor/06-fluent-builders.md)
-- **07 - Builders**
+- **02 - Operation Elements**
+  - [01 - Range](09-editor/02-operation-elements/01-range.md)
+  - [02 - Edit Config](09-editor/02-operation-elements/02-edit-config.md)
+  - [03 - Selectors and Mappers](09-editor/02-operation-elements/03-selectors-and-mappers.md)
+- [02 - Menu Editor](09-editor/02-menu-editor.md)
+- [03 - Fluent Builders](09-editor/03-fluent-builders.md)
+- **04 - Builders**
   - [01 - Simple Query](09-editor/07-builders/01-simple-query-builder.md)
-  - [02 - Remove](09-editor/07-builders/02-remove-builder.md)
-  - [03 - Sort](09-editor/07-builders/03-sort-builder.md)
-  - [04 - Replace](09-editor/07-builders/04-replace-builder.md)
+  - [02 - Remove Builder](09-editor/04-builders/02-remove-builder.md)
+  - [03 - Sort Builder](09-editor/04-builders/03-sort-builder.md)
+  - [04 - Replace Builder](09-editor/04-builders/04-replace-builder.md)
   - [05 - Advanced Query](09-editor/07-builders/05-advanced-query-builder.md)

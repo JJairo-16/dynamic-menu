@@ -19,14 +19,13 @@ Són especialment útils quan necessites combinar:
 
 # Builders
 
-Els Builders es tracten de constructors que permeten modificar o transformar dades dins del flux del menu editor.
+Els Builders es tracten de constructors que permeten **modificar o transformar** dades dins del flux del menu editor.
 
-- **[Query Builder](07-builders/01-query-builder.md):**
-  Permet **construir consultes sobre dades** per tal de **filtrar, buscar o obtenir informació específica** dins d’una col·lecció.
-
-- **[Remove Builder](07-builders/02-remove-builder.md):** Elimina camps o elements d’una estructura de dades.
-- **[Sort Builder](07-builders/03-sort-builder.md):** Ordena col·leccions de dades segons un o diversos camps.
-- **[Replace Builder](07-builders/04-replace-builder.md):** Substitueix valors o continguts dins d’una estructura de dades.
+- **[Simple Query Builder](04-builders/01-simple-query-builder.md):** Permet crear consultes per filtrar o obtenir dades específiques.
+- **[Remove Builder](04-builders/02-remove-builder.md):** Elimina camps o elements d’una estructura de dades.
+- **[Sort Builder](04-builders/03-sort-builder.md):** Ordena col·leccions de dades segons un o diversos camps.
+- **[Replace Builder](04-builders/04-replace-builder.md):** Substitueix valors o continguts dins d’una estructura de dades.
+- **[Advanced Query Builder](04-builders/05-advanced-query-builder.md):** Versió avançada del query.
 
 ---
 

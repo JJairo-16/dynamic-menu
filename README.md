@@ -23,9 +23,24 @@ Està pensada per simplificar la creació de **CLI interactius, eines de termina
 
 ## ▌Documentació
 
-La documentació completa de la llibreria es pot consultar aquí:
+La documentació completa de la llibreria està disponible als següents formats:
+
+### Documentació en Markdown
+
+Per consultar-la directament des del repositori:
 
 **[Índex de la documentació](docs/index.md)**
+
+### Documentació en versió web
+
+Si prefereixes navegar-la com a pàgina web local:
+
+**[Índex de la documentació vía web](web/index.html)**
+> Requereix python o l'estensió liveServer de vscode.
+
+---
+
+### Contingut de la documentació
 
 Inclou guies detallades sobre:
 
