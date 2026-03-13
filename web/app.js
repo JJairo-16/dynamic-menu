@@ -1,4 +1,13 @@
-import { state, dom, normalizeContentRoot, openMenu, closeMenu } from './js/state.js';
+import {
+  state,
+  dom,
+  normalizeContentRoot,
+  openMenu,
+  closeMenu,
+  toggleDesktopSidebar,
+  restoreDesktopSidebarState,
+  isDesktopViewport
+} from './js/state.js';
 import { handleContentClick, waitForShiki } from './js/code.js';
 import {
   sortDocsByPath,
@@ -8,15 +17,20 @@ import {
 } from './js/navigation.js';
 import {
   loadRoute,
-  showLocalOpenMessage,
-  isFileProtocol,
-  canLoadDocs
 } from './js/content.js';
+
+function handleViewportChange() {
+  if (isDesktopViewport()) {
+    closeMenu();
+  }
+}
 
 function wireEvents() {
   globalThis.addEventListener('hashchange', loadRoute);
+  globalThis.addEventListener('resize', handleViewportChange, { passive: true });
   dom.searchInput.addEventListener('input', handleSearchInput);
   dom.menuButton.addEventListener('click', openMenu);
+  dom.desktopMenuButton?.addEventListener('click', toggleDesktopSidebar);
   dom.closeMenuButton.addEventListener('click', closeMenu);
   dom.overlay.addEventListener('click', closeMenu);
   dom.nav.addEventListener('click', handleNavClick);
@@ -27,7 +41,7 @@ async function init() {
   const manifest = await fetch('./manifest.json').then(response => response.json());
 
   state.contentRoot = normalizeContentRoot(manifest.contentRoot);
-  state.docs = Array.isArray(manifest.docs) ? manifest.docs.slice() : [];
+  state.docs = Array.isArray(manifest.docs) ? sortDocsByPath(manifest.docs.slice()) : [];
 
   state.docByPath = new Map();
   state.docIndexByPath = new Map();
@@ -40,9 +54,10 @@ async function init() {
   state.filteredDocs = state.docs;
   state.manifestLoaded = true;
 
+  restoreDesktopSidebarState();
   wireEvents();
   renderNav();
-  await loadRoute();
+  await loadRoute({ skipTransition: true });
 
   waitForShiki().catch(error => {
     console.error('No s\'ha pogut inicialitzar Shiki.', error);
@@ -50,17 +65,7 @@ async function init() {
 }
 
 (async () => {
-  if (isFileProtocol()) {
-    const ok = await canLoadDocs();
-
-    if (!ok) {
-      showLocalOpenMessage();
-      return;
-    }
-  }
-
   init().catch(error => {
     console.error(error);
-    showLocalOpenMessage();
   });
 })();

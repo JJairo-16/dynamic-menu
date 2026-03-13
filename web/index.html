@@ -53,6 +53,16 @@
           </svg>
         </button>
 
+        <button id="desktopMenuButton"
+          class="hidden h-10 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 text-sm font-medium text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 lg:inline-flex"
+          aria-label="Mostrar o ocultar el menú lateral"
+          aria-expanded="true">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+          <span class="hidden xl:inline">Menú</span>
+        </button>
+
         <div class="min-w-0 flex-1">
           <div class="flex flex-wrap items-center gap-3">
             <div>
@@ -110,6 +120,7 @@
     </div>
   </div>
 
+  <script src="./file-error.js"></script>
   <script type="module" src="./app.js"></script>
 </body>
 

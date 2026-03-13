@@ -3,6 +3,7 @@ export const NOT_FOUND_MARKDOWN = '# No trobat\n\nAquest document no existeix.';
 export const ROOT_SUBSECTION = '_root';
 export const HOME_SECTION = 'Home';
 export const SHIKI_THEME = 'dark-plus';
+export const SIDEBAR_STORAGE_KEY = 'docs.sidebar.collapsed';
 
 export const SECTION_SORT_OPTIONS = { numeric: true, sensitivity: 'base' };
 export const PATH_COLLATOR = new Intl.Collator(undefined, SECTION_SORT_OPTIONS);
@@ -45,7 +46,8 @@ export const state = {
   lowerIndexReady: false,
   manifestLoaded: false,
   docByPath: new Map(),
-  docIndexByPath: new Map()
+  docIndexByPath: new Map(),
+  desktopSidebarCollapsed: false
 };
 
 export const dom = {
@@ -58,6 +60,7 @@ export const dom = {
   sidebar: document.getElementById('sidebar'),
   overlay: document.getElementById('overlay'),
   menuButton: document.getElementById('menuButton'),
+  desktopMenuButton: document.getElementById('desktopMenuButton'),
   closeMenuButton: document.getElementById('closeMenuButton'),
   layout: document.getElementById('layout'),
   contentCard: document.getElementById('contentCard')
@@ -106,12 +109,55 @@ export function normalizeLanguage(lang) {
   return LANGUAGE_MAP[normalized] || normalized;
 }
 
+export function isDesktopViewport() {
+  return globalThis.matchMedia('(min-width: 1024px)').matches;
+}
+
 export function openMenu() {
+  if (isDesktopViewport()) return;
   dom.sidebar.classList.remove('-translate-x-full');
   dom.overlay.classList.remove('hidden');
 }
 
 export function closeMenu() {
+  if (isDesktopViewport()) return;
   dom.sidebar.classList.add('-translate-x-full');
   dom.overlay.classList.add('hidden');
+}
+
+export function applyDesktopSidebarState(collapsed, persist = true) {
+  state.desktopSidebarCollapsed = !!collapsed;
+  document.body.classList.toggle('desktop-sidebar-collapsed', state.desktopSidebarCollapsed);
+
+  if (dom.desktopMenuButton) {
+    dom.desktopMenuButton.setAttribute('aria-expanded', String(!state.desktopSidebarCollapsed));
+    dom.desktopMenuButton.setAttribute(
+      'aria-label',
+      state.desktopSidebarCollapsed ? 'Mostrar el menú lateral' : 'Ocultar el menú lateral'
+    );
+  }
+
+  if (persist) {
+    try {
+      localStorage.setItem(SIDEBAR_STORAGE_KEY, state.desktopSidebarCollapsed ? '1' : '0');
+    } catch {
+      // ignore storage issues
+    }
+  }
+}
+
+export function restoreDesktopSidebarState() {
+  let collapsed = false;
+
+  try {
+    collapsed = localStorage.getItem(SIDEBAR_STORAGE_KEY) === '1';
+  } catch {
+    collapsed = false;
+  }
+
+  applyDesktopSidebarState(collapsed, false);
+}
+
+export function toggleDesktopSidebar() {
+  applyDesktopSidebarState(!state.desktopSidebarCollapsed);
 }

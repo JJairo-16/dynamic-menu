@@ -260,11 +260,15 @@ export function animateSubsection(details, open) {
   content.addEventListener('transitionend', onEnd);
 }
 
-export function renderBreadcrumbs() {
+export function renderBreadcrumbs(isNotFound = false) {
   const current = state.docByPath.get(state.currentPath);
 
-  if (!current) {
-    dom.breadcrumbs.innerHTML = '';
+  if (isNotFound || !current) {
+    dom.breadcrumbs.innerHTML = `
+      <span class="font-semibold text-rose-700">No trobat</span>
+      <span class="mx-2 text-slate-300">/</span>
+      <span>${escapeHtml(state.currentPath)}</span>
+    `;
     return;
   }
 
@@ -273,7 +277,12 @@ export function renderBreadcrumbs() {
   `;
 }
 
-export function renderDocNav() {
+export function renderDocNav(isNotFound = false) {
+  if (isNotFound) {
+    dom.docNav.innerHTML = '';
+    return;
+  }
+
   const index = state.docs.findIndex(doc => doc.path === state.currentPath);
   const prev = index > 0 ? state.docs[index - 1] : null;
   const next = index >= 0 && index < state.docs.length - 1 ? state.docs[index + 1] : null;
