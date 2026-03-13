@@ -1,6 +1,8 @@
 package menu.editor.builders;
 
+import java.util.List;
 import java.util.Objects;
+import java.util.function.Consumer;
 
 import menu.DynamicMenu;
 import menu.editor.EditConfig;
@@ -15,18 +17,28 @@ import menu.editor.helpers.OptionSelector;
  * {@link RemoveFamily}, de manera que els casos simples es poden resoldre
  * amb wrappers estàtics i els casos avançats amb una construcció fluïda.
  *
- * @param <T> tipus del context principal
- * @param <C> tipus del context secundari
+ * <p>Les crides {@code thenX()} no executen cap canvi immediatament.
+ * Cada builder acumula la seva operació pendent i només l'última crida
+ * terminal executa tota la cadena en ordre.
+ *
+ * @param <T> tipus de retorn del menú
+ * @param <C> tipus del context del menú
  */
-public final class RemoveBuilder<T, C> {
-    private final DynamicMenu<T, C> menu;
+public final class RemoveBuilder<T, C> extends AbstractChainableMenuBuilder<T, C> {
     private OptionSelector<T, C> selector;
     private Range range = Range.all();
     private int limit = Integer.MAX_VALUE;
     private boolean reverse = false;
 
     public RemoveBuilder(DynamicMenu<T, C> menu) {
-        this.menu = Objects.requireNonNull(menu, "El menú no pot ser nul");
+        super(menu);
+    }
+
+    RemoveBuilder(
+            DynamicMenu<T, C> menu,
+            List<Consumer<DynamicMenu<T, C>>> pendingOperations) {
+
+        super(menu, pendingOperations);
     }
 
     /**
@@ -40,6 +52,11 @@ public final class RemoveBuilder<T, C> {
         return this;
     }
 
+    /**
+     * Defineix que s'han de considerar totes les opcions.
+     *
+     * @return aquest builder
+     */
     public RemoveBuilder<T, C> whereAny() {
         this.selector = (index, option) -> true;
         return this;
@@ -158,24 +175,69 @@ public final class RemoveBuilder<T, C> {
                 .build();
     }
 
+    private Consumer<DynamicMenu<T, C>> currentOperation() {
+        OptionSelector<T, C> currentSelector = Objects.requireNonNull(
+                selector,
+                "La condició no pot ser nul·la");
+        EditConfig currentConfig = buildConfig();
+
+        return currentMenu -> RemoveFamily.removeIf(
+                currentMenu,
+                currentSelector,
+                currentConfig);
+    }
+
     /**
-     * Executa l'operació i retorna el nombre d'elements eliminats.
+     * Executa tota la cadena pendent i retorna el nombre d'elements eliminats
+     * de l'última operació d'aquest builder.
      *
-     * @return nombre d'elements eliminats
+     * @return nombre d'elements eliminats per l'última operació
      */
     public int execute() {
+        applyPendingOperations();
         return RemoveFamily.removeIf(
-                menu,
+                menu(),
                 Objects.requireNonNull(selector, "La condició no pot ser nul·la"),
                 buildConfig());
     }
 
     /**
-     * Executa l'operació i indica si s'ha eliminat almenys un element.
+     * Executa tota la cadena pendent i indica si l'última operació ha eliminat
+     * almenys un element.
      *
-     * @return {@code true} si s'ha eliminat almenys una opció
+     * @return {@code true} si l'última operació ha eliminat almenys una opció
      */
     public boolean executeAny() {
         return execute() > 0;
+    }
+
+    /**
+     * Continua amb una nova eliminació sobre el mateix menú sense executar encara
+     * la cadena.
+     *
+     * @return builder d'eliminació encadenat
+     */
+    public RemoveBuilder<T, C> thenRemove() {
+        return new RemoveBuilder<>(menu(), pendingPlus(currentOperation()));
+    }
+
+    /**
+     * Continua amb una substitució sobre el mateix menú sense executar encara
+     * la cadena.
+     *
+     * @return builder de substitució encadenat
+     */
+    public ReplaceBuilder<T, C> thenReplace() {
+        return new ReplaceBuilder<>(menu(), pendingPlus(currentOperation()));
+    }
+
+    /**
+     * Continua amb una ordenació sobre el mateix menú sense executar encara
+     * la cadena.
+     *
+     * @return builder d'ordenació encadenat
+     */
+    public SortBuilder<T, C> thenSort() {
+        return new SortBuilder<>(menu(), pendingPlus(currentOperation()));
     }
 }

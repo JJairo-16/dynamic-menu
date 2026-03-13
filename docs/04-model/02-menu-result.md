@@ -15,7 +15,7 @@ Dit d'una altra manera: sense `MenuResult`, el motor no sap si ha de continuar, 
 | `MenuResult.exitMenu()`         | finalitza `run()` retornant `null`   |
 
 ## `repeatLoop()`
-<>
+
 És el resultat més habitual quan una acció només ha de fer alguna operació i permetre que el menú segueixi viu.
 
 ```java

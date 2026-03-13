@@ -87,7 +87,15 @@ public final class QueryFamily {
             DynamicMenu<T, C> menu,
             OptionSelector<T, C> selector) {
 
-        return indexOfFirst(menu, selector) >= 0;
+        return containsMatch(menu, selector, Range.all());
+    }
+
+    public static <T, C> boolean containsMatch(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            Range range) {
+
+        return indexOfFirst(menu, selector, range) >= 0;
     }
 
     public static <T, C> boolean containsLabel(
@@ -113,22 +121,7 @@ public final class QueryFamily {
             OptionSelector<T, C> selector,
             Range range) {
 
-        Objects.requireNonNull(menu, "El menú no pot ser nul");
-        Objects.requireNonNull(selector, "La condició no pot ser nul·la");
-        Objects.requireNonNull(range, "El rang no pot ser nul");
-
-        List<MenuOption<T, C>> options = currentOptions(menu);
-        validateRange(range, options.size());
-
-        int count = 0;
-        Range effectiveRange = range.clamp(options.size());
-        for (int i = effectiveRange.fromInclusive(); i < effectiveRange.toExclusive(); i++) {
-            if (selector.test(i, options.get(i))) {
-                count++;
-            }
-        }
-
-        return count;
+        return indexesOf(menu, selector, range).size();
     }
 
     public static <T, C> int countLabelMatches(
@@ -191,13 +184,11 @@ public final class QueryFamily {
         List<MenuOption<T, C>> options = currentOptions(menu);
         validateRange(range, options.size());
 
-        List<MenuOption<T, C>> matches = new ArrayList<>();
-        Range effectiveRange = range.clamp(options.size());
-        for (int i = effectiveRange.fromInclusive(); i < effectiveRange.toExclusive(); i++) {
-            MenuOption<T, C> option = options.get(i);
-            if (selector.test(i, option)) {
-                matches.add(option);
-            }
+        List<Integer> indexes = indexesOf(menu, selector, range);
+        List<MenuOption<T, C>> matches = new ArrayList<>(indexes.size());
+
+        for (int index : indexes) {
+            matches.add(options.get(index));
         }
 
         return List.copyOf(matches);
@@ -229,36 +220,32 @@ public final class QueryFamily {
             DynamicMenu<T, C> menu,
             OptionSelector<T, C> selector) {
 
-        Objects.requireNonNull(menu, "El menú no pot ser nul");
-        Objects.requireNonNull(selector, "La condició no pot ser nul·la");
+        return findFirst(menu, selector, Range.all());
+    }
 
-        List<MenuOption<T, C>> options = currentOptions(menu);
-        for (int i = 0; i < options.size(); i++) {
-            MenuOption<T, C> option = options.get(i);
-            if (selector.test(i, option)) {
-                return option;
-            }
-        }
+    public static <T, C> MenuOption<T, C> findFirst(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            Range range) {
 
-        return null;
+        int index = indexOfFirst(menu, selector, range);
+        return index >= 0 ? currentOptions(menu).get(index) : null;
     }
 
     public static <T, C> MenuOption<T, C> findLast(
             DynamicMenu<T, C> menu,
             OptionSelector<T, C> selector) {
 
-        Objects.requireNonNull(menu, "El menú no pot ser nul");
-        Objects.requireNonNull(selector, "La condició no pot ser nul·la");
+        return findLast(menu, selector, Range.all());
+    }
 
-        List<MenuOption<T, C>> options = currentOptions(menu);
-        for (int i = options.size() - 1; i >= 0; i--) {
-            MenuOption<T, C> option = options.get(i);
-            if (selector.test(i, option)) {
-                return option;
-            }
-        }
+    public static <T, C> MenuOption<T, C> findLast(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            Range range) {
 
-        return null;
+        int index = indexOfLast(menu, selector, range);
+        return index >= 0 ? currentOptions(menu).get(index) : null;
     }
 
     public static <T, C> MenuOption<T, C> findFirstLabel(
@@ -282,17 +269,26 @@ public final class QueryFamily {
             int limit,
             boolean reverse) {
 
-        if (limit < 0)
+        Objects.requireNonNull(options, "La llista d'opcions no pot ser nul·la");
+        Objects.requireNonNull(selector, "La condició no pot ser nul·la");
+        Objects.requireNonNull(range, "El rang no pot ser nul");
+
+        if (limit < 0) {
             throw new IllegalArgumentException("El límit no pot ser negatiu");
+        }
 
-        if (limit == 0)
+        if (limit == 0) {
             return new LinkedHashSet<>();
+        }
 
-        int capacity = Math.min(limit, range.toExclusive() - range.fromInclusive());
+        validateRange(range, options.size());
+        Range effectiveRange = range.clamp(options.size());
+
+        int capacity = Math.min(limit, effectiveRange.toExclusive() - effectiveRange.fromInclusive());
         Set<Integer> matches = LinkedHashSet.newLinkedHashSet(capacity);
 
-        int from = range.fromInclusive();
-        int to = range.toExclusive();
+        int from = effectiveRange.fromInclusive();
+        int to = effectiveRange.toExclusive();
 
         if (!reverse) {
             for (int i = from; i < to; i++) {

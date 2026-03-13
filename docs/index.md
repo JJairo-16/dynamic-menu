@@ -94,3 +94,8 @@ Utilitats avançades per inspeccionar, eliminar, reemplaçar i ordenar opcions d
 - [04 - Selectors and Mappers](09-editor/04-selectors-and-mappers.md)
 - [05 - Menu Editor](09-editor/05-menu-editor.md)
 - [06 - Fuent Builders](09-editor/06-fluent-builders.md)
+- **07 - Builders**
+  - [01 - Query](09-editor/07-builders/01-query-builder.md)
+  - [02 - Remove](09-editor/07-builders/02-remove-builder.md)
+  - [03 - Sort](09-editor/07-builders/03-sort-builder.md)
+  - [04 - Replace](09-editor/07-builders/04-replace-builder.md)

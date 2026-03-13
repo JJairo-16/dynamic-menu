@@ -11,7 +11,7 @@ menu.addOption("Dir hola", () -> {
     return MenuResult.repeatLoop();
 });
 
-menu.addOption("Sortir", () -> MenuResult.exit());
+menu.addOption("Sortir", MenuResult::exit);
 
 menu.run();
 ```

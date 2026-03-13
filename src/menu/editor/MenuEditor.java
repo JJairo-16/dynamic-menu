@@ -7,8 +7,10 @@ import java.util.List;
 import menu.DynamicMenu;
 import menu.editor.helpers.*;
 import menu.model.MenuOption;
+import menu.editor.builders.QueryBuilder;
 import menu.editor.builders.RemoveBuilder;
 import menu.editor.builders.ReplaceBuilder;
+import menu.editor.builders.SortBuilder;
 import menu.editor.core.*;
 
 /** Utilitats avançades d'edició per a {@link DynamicMenu}. */
@@ -26,12 +28,12 @@ public final class MenuEditor {
         return MenuEditorSupport.alwaysTrueSelector();
     }
 
-    @SuppressWarnings({"SameReturnValue"})
+    @SuppressWarnings({ "SameReturnValue" })
     public static <T, C> boolean alwaysTrue(int index, MenuOption<T, C> option) {
         return true;
     }
 
-    @SuppressWarnings({"SameReturnValue"})
+    @SuppressWarnings({ "SameReturnValue" })
     public static <T, C> boolean alwaysFalse(int index, MenuOption<T, C> option) {
         return false;
     }
@@ -60,8 +62,8 @@ public final class MenuEditor {
      *
      * @param menu     menú objectiu
      * @param selector condició de selecció
-     * @param <T>      tipus del context principal
-     * @param <C>      tipus del context secundari
+     * @param <T>      tipus de retorn del menú
+     * @param <C>      tipus del context del menú
      * @return nombre d'elements eliminats
      */
     public static <T, C> int removeIf(
@@ -77,8 +79,8 @@ public final class MenuEditor {
      * @param menu     menú objectiu
      * @param selector condició de selecció
      * @param range    rang a aplicar
-     * @param <T>      tipus del context principal
-     * @param <C>      tipus del context secundari
+     * @param <T>      tipus de retorn del menú
+     * @param <C>      tipus del context del menú
      * @return nombre d'elements eliminats
      */
     public static <T, C> int removeIf(
@@ -96,8 +98,8 @@ public final class MenuEditor {
      * @param selector condició de selecció
      * @param range    rang a aplicar
      * @param limit    límit màxim d'eliminacions
-     * @param <T>      tipus del context principal
-     * @param <C>      tipus del context secundari
+     * @param <T>      tipus de retorn del menú
+     * @param <C>      tipus del context del menú
      * @return nombre d'elements eliminats
      */
     public static <T, C> int removeIf(
@@ -115,8 +117,8 @@ public final class MenuEditor {
      * @param menu     menú objectiu
      * @param selector condició de selecció
      * @param config   configuració d'edició
-     * @param <T>      tipus del context principal
-     * @param <C>      tipus del context secundari
+     * @param <T>      tipus de retorn del menú
+     * @param <C>      tipus del context del menú
      * @return nombre d'elements eliminats
      */
     public static <T, C> int removeIf(
@@ -132,8 +134,8 @@ public final class MenuEditor {
      *
      * @param menu     menú objectiu
      * @param selector condició de selecció
-     * @param <T>      tipus del context principal
-     * @param <C>      tipus del context secundari
+     * @param <T>      tipus de retorn del menú
+     * @param <C>      tipus del context del menú
      * @return nombre d'elements eliminats
      */
     public static <T, C> int removeAllIfReverse(
@@ -150,8 +152,8 @@ public final class MenuEditor {
      * @param menu     menú objectiu
      * @param selector condició de selecció
      * @param range    rang a aplicar
-     * @param <T>      tipus del context principal
-     * @param <C>      tipus del context secundari
+     * @param <T>      tipus de retorn del menú
+     * @param <C>      tipus del context del menú
      * @return nombre d'elements eliminats
      */
     public static <T, C> int removeAllIfReverse(
@@ -170,8 +172,8 @@ public final class MenuEditor {
      * @param selector condició de selecció
      * @param range    rang a aplicar
      * @param limit    límit màxim d'eliminacions
-     * @param <T>      tipus del context principal
-     * @param <C>      tipus del context secundari
+     * @param <T>      tipus de retorn del menú
+     * @param <C>      tipus del context del menú
      * @return nombre d'elements eliminats
      */
     public static <T, C> int removeAllIfReverse(
@@ -190,8 +192,8 @@ public final class MenuEditor {
      * @param menu     menú objectiu
      * @param selector condició de selecció
      * @param config   configuració base
-     * @param <T>      tipus del context principal
-     * @param <C>      tipus del context secundari
+     * @param <T>      tipus de retorn del menú
+     * @param <C>      tipus del context del menú
      * @return nombre d'elements eliminats
      */
     public static <T, C> int removeAllIfReverse(
@@ -207,8 +209,8 @@ public final class MenuEditor {
      *
      * @param menu     menú objectiu
      * @param selector condició de selecció
-     * @param <T>      tipus del context principal
-     * @param <C>      tipus del context secundari
+     * @param <T>      tipus de retorn del menú
+     * @param <C>      tipus del context del menú
      * @return {@code true} si s'ha eliminat una opció
      */
     public static <T, C> boolean removeFirstIf(
@@ -223,8 +225,8 @@ public final class MenuEditor {
      *
      * @param menu     menú objectiu
      * @param selector condició de selecció
-     * @param <T>      tipus del context principal
-     * @param <C>      tipus del context secundari
+     * @param <T>      tipus de retorn del menú
+     * @param <C>      tipus del context del menú
      * @return {@code true} si s'ha eliminat una opció
      */
     public static <T, C> boolean removeLastIf(
@@ -239,8 +241,8 @@ public final class MenuEditor {
      *
      * @param menu  menú objectiu
      * @param label etiqueta exacta
-     * @param <T>   tipus del context principal
-     * @param <C>   tipus del context secundari
+     * @param <T>   tipus de retorn del menú
+     * @param <C>   tipus del context del menú
      * @return {@code true} si s'ha eliminat una opció
      */
     public static <T, C> boolean removeFirstLabel(
@@ -255,8 +257,8 @@ public final class MenuEditor {
      *
      * @param menu  menú objectiu
      * @param label etiqueta exacta
-     * @param <T>   tipus del context principal
-     * @param <C>   tipus del context secundari
+     * @param <T>   tipus de retorn del menú
+     * @param <C>   tipus del context del menú
      * @return {@code true} si s'ha eliminat una opció
      */
     public static <T, C> boolean removeLastLabel(
@@ -271,8 +273,8 @@ public final class MenuEditor {
      *
      * @param menu  menú objectiu
      * @param label etiqueta exacta
-     * @param <T>   tipus del context principal
-     * @param <C>   tipus del context secundari
+     * @param <T>   tipus de retorn del menú
+     * @param <C>   tipus del context del menú
      * @return nombre d'elements eliminats
      */
     public static <T, C> int removeAllLabels(
@@ -290,8 +292,8 @@ public final class MenuEditor {
      * Inicia una operació fluïda d'eliminació sobre el menú indicat.
      *
      * @param menu menú objectiu
-     * @param <T>  tipus del context principal
-     * @param <C>  tipus del context secundari
+     * @param <T>  tipus de retorn del menú
+     * @param <C>  tipus del context del menú
      * @return operador fluent d'eliminació
      */
     public static <T, C> RemoveBuilder<T, C> remove(DynamicMenu<T, C> menu) {
@@ -303,8 +305,8 @@ public final class MenuEditor {
      *
      * @param menu     menú objectiu
      * @param selector condició de selecció
-     * @param <T>      tipus del context principal
-     * @param <C>      tipus del context secundari
+     * @param <T>      tipus de retorn del menú
+     * @param <C>      tipus del context del menú
      * @return operador fluent d'eliminació
      */
     public static <T, C> RemoveBuilder<T, C> remove(
@@ -312,6 +314,38 @@ public final class MenuEditor {
             OptionSelector<T, C> selector) {
 
         return remove(menu).where(selector);
+    }
+
+    // -------------------------------------------------------------------------
+    // Sort - API fluïda pública
+    // -------------------------------------------------------------------------
+
+    /**
+     * Inicia una operació fluïda d'ordenació sobre el menú indicat.
+     *
+     * @param menu menú objectiu
+     * @param <T>  tipus de retorn del menú
+     * @param <C>  tipus del context del menú
+     * @return operador fluent d'ordenació
+     */
+    public static <T, C> SortBuilder<T, C> sort(DynamicMenu<T, C> menu) {
+        return new SortBuilder<>(menu);
+    }
+
+    /**
+     * Inicia una operació fluïda d'ordenació amb un comparador inicial.
+     *
+     * @param menu       menú objectiu
+     * @param comparator comparador inicial
+     * @param <T>        tipus de retorn del menú
+     * @param <C>        tipus del context del menú
+     * @return operador fluent d'ordenació
+     */
+    public static <T, C> SortBuilder<T, C> sort(
+            DynamicMenu<T, C> menu,
+            Comparator<MenuOption<T, C>> comparator) {
+
+        return sort(menu).comparator(comparator);
     }
 
     // -------------------------------------------------------------------------
@@ -589,4 +623,15 @@ public final class MenuEditor {
         return QueryFamily.findLastLabel(menu, label);
     }
 
+    /**
+     * Inicia una operació fluïda de consulta sobre el menú indicat.
+     *
+     * @param menu menú objectiu
+     * @param <T>  tipus de retorn del menú
+     * @param <C>  tipus del context del menú
+     * @return operador fluent de consulta
+     */
+    public static <T, C> QueryBuilder<T, C> query(DynamicMenu<T, C> menu) {
+        return new QueryBuilder<>(menu);
+    }
 }
