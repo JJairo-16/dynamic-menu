@@ -47,12 +47,31 @@ public abstract class AbstractChainableMenuBuilder<T, C> {
     }
 
     /**
-     * Aplica totes les operacions pendents acumulades abans de l'operació final.
+     * Aplica totes les operacions pendents acumulades sobre el menú real.
      */
     protected final void applyPendingOperations() {
+        applyPendingOperationsOn(menu);
+    }
+
+    /**
+     * Aplica totes les operacions pendents acumulades sobre el menú indicat.
+     *
+     * @param target menú objectiu sobre el qual aplicar la cadena pendent
+     */
+    protected final void applyPendingOperationsOn(DynamicMenu<T, C> target) {
+        Objects.requireNonNull(target, "El menú objectiu no pot ser nul");
         for (Consumer<DynamicMenu<T, C>> operation : pendingOperations) {
-            operation.accept(menu);
+            operation.accept(target);
         }
+    }
+
+    /**
+     * Retorna una còpia defensiva de la cadena d'operacions pendents.
+     *
+     * @return llista d'operacions pendents
+     */
+    protected final List<Consumer<DynamicMenu<T, C>>> pendingOperations() {
+        return new ArrayList<>(pendingOperations);
     }
 
     /**

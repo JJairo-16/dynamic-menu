@@ -2,7 +2,8 @@ package menu.editor.builders;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Predicate;
 
 import menu.DynamicMenu;
 import menu.editor.Range;
@@ -17,9 +18,15 @@ import menu.model.MenuOption;
  * {@link QueryFamily}, de manera que els casos simples es poden resoldre
  * amb wrappers estàtics i els casos avançats amb una construcció fluïda.
  *
- * <p>Les crides {@code thenX()} no executen cap canvi immediatament.
- * Cada builder acumula la seva operació pendent i només l'última crida
- * terminal executa tota la cadena en ordre.
+ * <p>A diferència dels builders de modificació, aquest builder no aplica
+ * canvis sobre el menú real quan resol una consulta. Si la cadena conté
+ * operacions pendents prèvies, aquestes s'apliquen sobre una còpia temporal
+ * del menú i la consulta es resol sobre aquest estat virtual.
+ *
+ * <p>Quan s'encadena cap a {@link RemoveBuilder} o {@link ReplaceBuilder},
+ * la condició i el rang actuals es transfereixen al builder següent perquè
+ * la query no es perdi. En canvi, {@link SortBuilder} només reutilitza el
+ * rang, ja que no treballa amb un selector de coincidència equivalent.
  *
  * @param <T> tipus de retorn del menú
  * @param <C> tipus del context del menú
@@ -34,7 +41,7 @@ public final class QueryBuilder<T, C> extends AbstractChainableMenuBuilder<T, C>
 
     QueryBuilder(
             DynamicMenu<T, C> menu,
-            List<Consumer<DynamicMenu<T, C>>> pendingOperations) {
+            List<java.util.function.Consumer<DynamicMenu<T, C>>> pendingOperations) {
 
         super(menu, pendingOperations);
     }
@@ -47,6 +54,18 @@ public final class QueryBuilder<T, C> extends AbstractChainableMenuBuilder<T, C>
      */
     public QueryBuilder<T, C> where(OptionSelector<T, C> selector) {
         this.selector = Objects.requireNonNull(selector, "La condició no pot ser nul·la");
+        return this;
+    }
+
+    /**
+     * Defineix una condició de selecció basada únicament en el label de l'opció.
+     *
+     * @param predicate condició sobre el label
+     * @return aquest builder
+     */
+    public QueryBuilder<T, C> whereLabel(Predicate<String> predicate) {
+        Objects.requireNonNull(predicate, "La condició sobre el label no pot ser nul·la");
+        this.selector = (index, option) -> predicate.test(option.label());
         return this;
     }
 
@@ -82,159 +101,186 @@ public final class QueryBuilder<T, C> extends AbstractChainableMenuBuilder<T, C>
         return range(Range.of(fromInclusive, toExclusive));
     }
 
-    private Consumer<DynamicMenu<T, C>> currentOperation() {
-        OptionSelector<T, C> currentSelector = Objects.requireNonNull(
-                selector,
-                "La condició no pot ser nul·la");
-        Range currentRange = Objects.requireNonNull(range, "El rang no pot ser nul");
+    private OptionSelector<T, C> requireSelector() {
+        return Objects.requireNonNull(selector, "La condició no pot ser nul·la");
+    }
 
-        return currentMenu -> QueryFamily.matchingOptions(
-                currentMenu,
-                currentSelector,
-                currentRange);
+    private Range requireRange() {
+        return Objects.requireNonNull(range, "El rang no pot ser nul");
     }
 
     /**
-     * Executa tota la cadena pendent i indica si existeix almenys una coincidència.
+     * Crea una còpia temporal del menú actual i hi aplica totes les operacions
+     * pendents de la cadena, sense tocar el menú real.
+     *
+     * @return menú temporal amb l'estat virtual de la cadena
+     */
+    private DynamicMenu<T, C> buildPreviewMenu() {
+        DynamicMenu<T, C> previewMenu = menu().createChildMenu(
+                menu().getTitle(),
+                menu().getContext());
+
+        applyPendingOperationsOn(previewMenu);
+        return previewMenu;
+    }
+
+    /**
+     * Resol la query sobre una còpia temporal del menú i retorna les opcions
+     * coincidents.
+     *
+     * @return llista immutable d'opcions coincidents
+     */
+    private List<MenuOption<T, C>> resolveOptions() {
+        DynamicMenu<T, C> previewMenu = buildPreviewMenu();
+        return QueryFamily.matchingOptions(
+                previewMenu,
+                requireSelector(),
+                requireRange());
+    }
+
+    /**
+     * Resol la query sobre una còpia temporal del menú i transforma el resultat
+     * final amb el col·lector indicat.
+     *
+     * @param collector transformador del resultat
+     * @param <R> tipus de sortida final
+     * @return resultat transformat
+     */
+    public <R> R collect(Function<? super List<MenuOption<T, C>>, ? extends R> collector) {
+        Objects.requireNonNull(collector, "El col·lector no pot ser nul");
+        return collector.apply(resolveOptions());
+    }
+
+    /**
+     * Indica si existeix almenys una coincidència.
      *
      * @return {@code true} si existeix almenys una coincidència
      */
     public boolean exists() {
-        applyPendingOperations();
-        return QueryFamily.containsMatch(
-                menu(),
-                Objects.requireNonNull(selector, "La condició no pot ser nul·la"),
-                Objects.requireNonNull(range, "El rang no pot ser nul"));
+        return !resolveOptions().isEmpty();
     }
 
     /**
-     * Executa tota la cadena pendent i retorna el nombre de coincidències.
+     * Retorna el nombre de coincidències.
      *
      * @return nombre d'opcions coincidents
      */
     public int count() {
-        applyPendingOperations();
-        return QueryFamily.countMatches(
-                menu(),
-                Objects.requireNonNull(selector, "La condició no pot ser nul·la"),
-                Objects.requireNonNull(range, "El rang no pot ser nul"));
+        return resolveOptions().size();
     }
 
     /**
-     * Executa tota la cadena pendent i retorna l'índex de la primera coincidència.
+     * Retorna el primer índex coincident dins del menú virtual.
      *
      * @return índex de la primera coincidència, o {@code -1} si no n'hi ha cap
      */
     public int firstIndex() {
-        applyPendingOperations();
+        DynamicMenu<T, C> previewMenu = buildPreviewMenu();
         return QueryFamily.indexOfFirst(
-                menu(),
-                Objects.requireNonNull(selector, "La condició no pot ser nul·la"),
-                Objects.requireNonNull(range, "El rang no pot ser nul"));
+                previewMenu,
+                requireSelector(),
+                requireRange());
     }
 
     /**
-     * Executa tota la cadena pendent i retorna l'índex de l'última coincidència.
+     * Retorna l'últim índex coincident dins del menú virtual.
      *
      * @return índex de l'última coincidència, o {@code -1} si no n'hi ha cap
      */
     public int lastIndex() {
-        applyPendingOperations();
+        DynamicMenu<T, C> previewMenu = buildPreviewMenu();
         return QueryFamily.indexOfLast(
-                menu(),
-                Objects.requireNonNull(selector, "La condició no pot ser nul·la"),
-                Objects.requireNonNull(range, "El rang no pot ser nul"));
+                previewMenu,
+                requireSelector(),
+                requireRange());
     }
 
     /**
-     * Executa tota la cadena pendent i retorna totes les coincidències.
-     *
-     * @return llista d'opcions coincidents
-     */
-    public List<MenuOption<T, C>> options() {
-        applyPendingOperations();
-        return QueryFamily.matchingOptions(
-                menu(),
-                Objects.requireNonNull(selector, "La condició no pot ser nul·la"),
-                Objects.requireNonNull(range, "El rang no pot ser nul"));
-    }
-
-    /**
-     * Executa tota la cadena pendent i retorna tots els índexs coincidents.
+     * Retorna tots els índexs coincidents dins del menú virtual.
      *
      * @return llista d'índexs coincidents
      */
     public List<Integer> indexes() {
-        applyPendingOperations();
+        DynamicMenu<T, C> previewMenu = buildPreviewMenu();
         return QueryFamily.indexesOf(
-                menu(),
-                Objects.requireNonNull(selector, "La condició no pot ser nul·la"),
-                Objects.requireNonNull(range, "El rang no pot ser nul"));
+                previewMenu,
+                requireSelector(),
+                requireRange());
     }
 
     /**
-     * Executa tota la cadena pendent i retorna la primera opció coincident.
+     * Retorna totes les opcions coincidents.
+     *
+     * @return llista d'opcions coincidents
+     */
+    public List<MenuOption<T, C>> options() {
+        return resolveOptions();
+    }
+
+    /**
+     * Retorna la primera opció coincident.
      *
      * @return primera opció coincident, o {@code null} si no n'hi ha cap
      */
     public MenuOption<T, C> first() {
-        applyPendingOperations();
-        return QueryFamily.findFirst(
-                menu(),
-                Objects.requireNonNull(selector, "La condició no pot ser nul·la"),
-                Objects.requireNonNull(range, "El rang no pot ser nul"));
+        List<MenuOption<T, C>> options = resolveOptions();
+        return options.isEmpty() ? null : options.get(0);
     }
 
     /**
-     * Executa tota la cadena pendent i retorna l'última opció coincident.
+     * Retorna l'última opció coincident.
      *
      * @return última opció coincident, o {@code null} si no n'hi ha cap
      */
     public MenuOption<T, C> last() {
-        applyPendingOperations();
-        return QueryFamily.findLast(
-                menu(),
-                Objects.requireNonNull(selector, "La condició no pot ser nul·la"),
-                Objects.requireNonNull(range, "El rang no pot ser nul"));
+        List<MenuOption<T, C>> options = resolveOptions();
+        return options.isEmpty() ? null : options.get(options.size() - 1);
     }
 
     /**
      * Continua amb una nova consulta sobre el mateix menú sense executar encara
-     * la cadena.
+     * cap canvi real. La condició i el rang actuals es transfereixen.
      *
      * @return builder de consulta encadenat
      */
     public QueryBuilder<T, C> thenQuery() {
-        return new QueryBuilder<>(menu(), pendingPlus(currentOperation()));
+        return new QueryBuilder<>(menu(), pendingOperations())
+                .where(requireSelector())
+                .range(requireRange());
     }
 
     /**
      * Continua amb una eliminació sobre el mateix menú sense executar encara
-     * la cadena.
+     * la cadena. La condició i el rang actuals es transfereixen al builder següent.
      *
      * @return builder d'eliminació encadenat
      */
     public RemoveBuilder<T, C> thenRemove() {
-        return new RemoveBuilder<>(menu(), pendingPlus(currentOperation()));
+        return new RemoveBuilder<>(menu(), pendingOperations())
+                .where(requireSelector())
+                .range(requireRange());
     }
 
     /**
      * Continua amb una substitució sobre el mateix menú sense executar encara
-     * la cadena.
+     * la cadena. La condició i el rang actuals es transfereixen al builder següent.
      *
      * @return builder de substitució encadenat
      */
     public ReplaceBuilder<T, C> thenReplace() {
-        return new ReplaceBuilder<>(menu(), pendingPlus(currentOperation()));
+        return new ReplaceBuilder<>(menu(), pendingOperations())
+                .where(requireSelector())
+                .range(requireRange());
     }
 
     /**
      * Continua amb una ordenació sobre el mateix menú sense executar encara
-     * la cadena.
+     * la cadena. El rang actual es transfereix al builder següent.
      *
      * @return builder d'ordenació encadenat
      */
     public SortBuilder<T, C> thenSort() {
-        return new SortBuilder<>(menu(), pendingPlus(currentOperation()));
+        return new SortBuilder<>(menu(), pendingOperations())
+                .range(requireRange());
     }
 }

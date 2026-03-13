@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 import menu.DynamicMenu;
 import menu.editor.Range;
@@ -105,6 +106,18 @@ public final class SortBuilder<T, C> extends AbstractChainableMenuBuilder<T, C> 
     }
 
     /**
+     * Fixa les opcions seleccionades al principi del segment ordenat.
+     *
+     * @param predicate selector de les opcions a fixar al principi per label
+     * @return aquest builder
+     */
+    public SortBuilder<T, C> pinLabelFirst(Predicate<String> predicate) {
+        Objects.requireNonNull(predicate, "La condició no pot ser nul·la");
+        this.firstSelector = (i, opt) -> predicate.test(opt.label());
+        return this;
+    }
+
+    /**
      * Fixa les opcions seleccionades al final del segment ordenat.
      *
      * @param selector selector de les opcions a fixar al final
@@ -112,6 +125,18 @@ public final class SortBuilder<T, C> extends AbstractChainableMenuBuilder<T, C> 
      */
     public SortBuilder<T, C> pinLast(OptionSelector<T, C> selector) {
         this.lastSelector = Objects.requireNonNull(selector, "El selector final no pot ser nul");
+        return this;
+    }
+
+    /**
+     * Fixa les opcions seleccionades al final del segment ordenat.
+     *
+     * @param predicate selector de les opcions a fixar al final per label
+     * @return aquest builder
+     */
+    public SortBuilder<T, C> pinLabelLast(Predicate<String> predicate) {
+        Objects.requireNonNull(predicate, "La condició no pot ser nul·la");
+        this.lastSelector = (i, opt) -> predicate.test(opt.label());
         return this;
     }
 
@@ -261,5 +286,15 @@ public final class SortBuilder<T, C> extends AbstractChainableMenuBuilder<T, C> 
      */
     public ReplaceBuilder<T, C> thenReplace() {
         return new ReplaceBuilder<>(menu(), pendingPlus(currentOperation()));
+    }
+
+    /**
+     * Continua amb una nova consulta sobre el mateix menú sense executar encara
+     * cap canvi real. La condició i el rang actuals es transfereixen.
+     *
+     * @return builder de consulta encadenat
+     */
+    public QueryBuilder<T, C> thenQuery() {
+        return new QueryBuilder<>(menu(), pendingPlus(currentOperation()));
     }
 }

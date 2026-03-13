@@ -3,6 +3,7 @@ package menu.editor.builders;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 import menu.DynamicMenu;
 import menu.action.MenuAction;
@@ -58,6 +59,18 @@ public final class ReplaceBuilder<T, C> extends AbstractChainableMenuBuilder<T, 
      */
     public ReplaceBuilder<T, C> where(OptionSelector<T, C> selector) {
         this.selector = Objects.requireNonNull(selector, "La condició no pot ser nul·la");
+        return this;
+    }
+
+    /**
+     * Defineix la condició de selecció sobre el label.
+     *
+     * @param predicate condició a aplicar
+     * @return aquest builder
+     */
+    public ReplaceBuilder<T, C> whereLabel(Predicate<String> predicate) {
+        Objects.requireNonNull(predicate, "La condició no pot ser nul·la");
+        this.selector = (i, opt) -> predicate.test(opt.label());
         return this;
     }
 
@@ -379,5 +392,15 @@ public final class ReplaceBuilder<T, C> extends AbstractChainableMenuBuilder<T, 
      */
     public SortBuilder<T, C> thenSort() {
         return new SortBuilder<>(menu(), pendingPlus(currentOperation()));
+    }
+
+    /**
+     * Continua amb una nova consulta sobre el mateix menú sense executar encara
+     * cap canvi real. La condició i el rang actuals es transfereixen.
+     *
+     * @return builder de consulta encadenat
+     */
+    public QueryBuilder<T, C> thenQuery() {
+        return new QueryBuilder<>(menu(), pendingPlus(currentOperation()));
     }
 }

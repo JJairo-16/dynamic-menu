@@ -3,6 +3,7 @@ package menu.editor.builders;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 import menu.DynamicMenu;
 import menu.editor.EditConfig;
@@ -13,11 +14,13 @@ import menu.editor.helpers.OptionSelector;
 /**
  * Builder fluent per a operacions d'eliminació.
  *
- * <p>Aquesta API actua com a façana pública sobre la família interna
+ * <p>
+ * Aquesta API actua com a façana pública sobre la família interna
  * {@link RemoveFamily}, de manera que els casos simples es poden resoldre
  * amb wrappers estàtics i els casos avançats amb una construcció fluïda.
  *
- * <p>Les crides {@code thenX()} no executen cap canvi immediatament.
+ * <p>
+ * Les crides {@code thenX()} no executen cap canvi immediatament.
  * Cada builder acumula la seva operació pendent i només l'última crida
  * terminal executa tota la cadena en ordre.
  *
@@ -53,6 +56,18 @@ public final class RemoveBuilder<T, C> extends AbstractChainableMenuBuilder<T, C
     }
 
     /**
+     * Defineix la condició de selecció sobre el label.
+     *
+     * @param predicate condició a aplicar
+     * @return aquest builder
+     */
+    public RemoveBuilder<T, C> whereLabel(Predicate<String> predicate) {
+        Objects.requireNonNull(predicate, "La condició no pot ser nul·la");
+        this.selector = (i, opt) -> predicate.test(opt.label());
+        return this;
+    }
+
+    /**
      * Defineix que s'han de considerar totes les opcions.
      *
      * @return aquest builder
@@ -77,7 +92,7 @@ public final class RemoveBuilder<T, C> extends AbstractChainableMenuBuilder<T, C
      * Defineix el rang d'actuació.
      *
      * @param fromInclusive inici inclòs
-     * @param toExclusive final exclòs
+     * @param toExclusive   final exclòs
      * @return aquest builder
      */
     public RemoveBuilder<T, C> range(int fromInclusive, int toExclusive) {
@@ -239,5 +254,15 @@ public final class RemoveBuilder<T, C> extends AbstractChainableMenuBuilder<T, C
      */
     public SortBuilder<T, C> thenSort() {
         return new SortBuilder<>(menu(), pendingPlus(currentOperation()));
+    }
+
+    /**
+     * Continua amb una nova consulta sobre el mateix menú sense executar encara
+     * cap canvi real. La condició i el rang actuals es transfereixen.
+     *
+     * @return builder de consulta encadenat
+     */
+    public QueryBuilder<T, C> thenQuery() {
+        return new QueryBuilder<>(menu(), pendingPlus(currentOperation()));
     }
 }

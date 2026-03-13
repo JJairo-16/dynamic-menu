@@ -1,4 +1,4 @@
-# Query Builder
+# Simple Query Builder
 
 `QueryBuilder<T, C>` construeix consultes sobre un `DynamicMenu` sense modificar-lo.
 
@@ -18,13 +18,12 @@ Serveix per:
 - comptar opcions coincidents
 - obtenir índexs
 - obtenir opcions
-- preparar una cadena que després continuï amb altres builders
 
-Internament, actua com a façana sobre la família de consulta del paquet.
+Internament, la consulta es resol sobre **una còpia temporal del menú**, de manera que cap operació modifica el menú real.
 
 ---
 
-# 1. Mètodes públics de configuració
+# 1. Definir la selecció
 
 ## `where(selector)`
 
@@ -38,6 +37,22 @@ MenuEditor.query(menu)
 
 La condició s’expressa amb un `OptionSelector`.
 
+---
+
+## `whereLabel(predicate)`
+
+Defineix una condició basada únicament en el `label` de l’opció.
+
+```java
+MenuEditor.query(menu)
+    .whereLabel(label -> label.equals("Exit"))
+    .exists();
+```
+
+Internament el predicat es transforma en un `OptionSelector`.
+
+---
+
 ## `whereAny()`
 
 Selecciona totes les opcions.
@@ -48,7 +63,11 @@ MenuEditor.query(menu)
     .count();
 ```
 
-És l’equivalent conceptual a fer servir un selector que sempre retorna `true`.
+És equivalent a un selector que sempre retorna `true`.
+
+---
+
+# 2. Definir el rang
 
 ## `range(range)`
 
@@ -61,9 +80,11 @@ MenuEditor.query(menu)
     .count();
 ```
 
+---
+
 ## `range(fromInclusive, toExclusive)`
 
-Drecera per crear i aplicar el rang.
+Drecera per crear el rang.
 
 ```java
 MenuEditor.query(menu)
@@ -76,7 +97,7 @@ Aquest rang limita les opcions que es tenen en compte durant la consulta.
 
 ---
 
-# 2. Operacions terminals de consulta
+# 3. Operacions terminals
 
 ## `exists()`
 
@@ -88,6 +109,8 @@ boolean exists = MenuEditor.query(menu)
     .exists();
 ```
 
+---
+
 ## `count()`
 
 Retorna el nombre de coincidències.
@@ -97,6 +120,8 @@ int count = MenuEditor.query(menu)
     .where((index, option) -> option.label().startsWith("Play"))
     .count();
 ```
+
+---
 
 ## `firstIndex()`
 
@@ -108,6 +133,8 @@ int first = MenuEditor.query(menu)
     .firstIndex();
 ```
 
+---
+
 ## `lastIndex()`
 
 Retorna l’últim índex coincident.
@@ -118,6 +145,8 @@ int last = MenuEditor.query(menu)
     .lastIndex();
 ```
 
+---
+
 ## `indexes()`
 
 Retorna tots els índexs coincidents.
@@ -127,6 +156,8 @@ List<Integer> indexes = MenuEditor.query(menu)
     .where((index, option) -> option.label().startsWith("Settings"))
     .indexes();
 ```
+
+---
 
 ## `options()`
 
@@ -140,26 +171,45 @@ List<MenuOption<T, C>> options = MenuEditor.query(menu)
 
 ---
 
-# 3. Encadenament amb altres builders
+## `first()`
 
-`QueryBuilder` també pot formar part d’una cadena d’operacions.
+Retorna la primera opció coincident.
 
 ```java
-MenuEditor.query(menu)
-    .where((index, option) -> option.label().startsWith("Temp"))
-    .thenRemove()
-    .whereAny()
-    .execute();
+MenuOption<T, C> option = MenuEditor.query(menu)
+    .whereLabel(label -> label.equals("Exit"))
+    .first();
 ```
 
-Les crides `thenX()` **no executen cap operació immediatament**.
+Si no hi ha coincidències retorna `null`.
 
-Cada builder afegeix una operació pendent que només s’aplica quan es crida una operació terminal com `execute()` o `apply()`.
+---
 
-## Quan convé usar-lo
+## `last()`
 
-És útil quan vols:
+Retorna l’última opció coincident.
 
-- inspeccionar el menú abans de modificar-lo
-- reutilitzar la mateixa lògica de selecció que faries servir en un remove o replace
-- iniciar una cadena declarativa que després continuï amb altres operacions
+```java
+MenuOption<T, C> option = MenuEditor.query(menu)
+    .whereLabel(label -> label.startsWith("Settings"))
+    .last();
+```
+
+Si no hi ha coincidències retorna `null`.
+
+---
+
+## `collect(collector)`
+
+Permet transformar el resultat amb un col·lector.
+
+```java
+Set<String> labels = MenuEditor.query(menu)
+    .whereAny()
+    .collect(list ->
+        list.stream()
+            .map(MenuOption::label)
+            .collect(Collectors.toSet()));
+```
+
+Aquest mètode és útil quan es vol construir un resultat personalitzat.

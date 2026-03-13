@@ -45,6 +45,18 @@ MenuEditor.replace(menu)
 
 Sense `where(...)`, `execute()` i `executeAny()` fallaran perquè la condició és obligatòria.
 
+## `whereLabel(predicate)`
+
+Defineix una condició de selecció basada únicament en el `label` de l'opció.
+
+```java
+MenuEditor.query(menu)
+    .whereLabel(label -> label.equals("Exit"))
+    .exists();
+```
+
+Internament, el predicat es transforma en un `OptionSelector` equivalent.
+
 ## `map(optionMapper)`
 
 Defineix una transformació completa de l’opció.

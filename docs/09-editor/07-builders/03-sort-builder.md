@@ -82,6 +82,17 @@ MenuEditor.sort(menu)
     .apply();
 ```
 
+## `pinLabelFirst(predicate)`
+
+Manté certes opcions fixades al principi del bloc ordenat filtrades per label.
+
+```java
+MenuEditor.sort(menu)
+    .byLabel()
+    .pinLabelFirst(label -> label.equals("Play"))
+    .apply();
+```
+
 ## `pinLast(selector)`
 
 Manté certes opcions fixades al final del bloc ordenat.
@@ -90,6 +101,17 @@ Manté certes opcions fixades al final del bloc ordenat.
 MenuEditor.sort(menu)
     .byLabel()
     .pinLast((index, option) -> option.label().equals("Exit"))
+    .apply();
+```
+
+## `pinLabelLast(predicate)`
+
+Manté certes opcions fixades al final del bloc ordenat filtrades per label.
+
+```java
+MenuEditor.sort(menu)
+    .byLabel()
+    .pinLast(label -> label.equals("Exit"))
     .apply();
 ```
 
