@@ -1,91 +1,152 @@
 package menu.editor.builders;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
 
 import menu.DynamicMenu;
-
 /**
- * Contracte base per als builders encadenables de {@code MenuEditor}.
+ * Pare mínim per a tots els builders encadenables.
  *
- * <p>Aquesta classe centralitza la gestió del menú objectiu i de la cadena
- * d'operacions pendents. Les crides {@code thenX()} dels builders concrets no
- * executen canvis immediatament: simplement afegeixen l'operació actual a la
- * cadena perquè el builder terminal l'apliqui en ordre quan es cridi una
- * operació final com ara {@code execute()} o {@code apply()}.
+ * <p>Centralitza:
+ * <ul>
+ *   <li>menú objectiu</li>
+ *   <li>pipeline pendent compost</li>
+ *   <li>helpers de chaining</li>
+ *   <li>hook de canvi d'estat</li>
+ * </ul>
  *
  * @param <T> tipus de retorn del menú
  * @param <C> tipus del context del menú
+ * @param <S> tipus concret del builder fluent
  */
-public abstract class AbstractChainableMenuBuilder<T, C> {
+public abstract class AbstractChainableMenuBuilder<
+        T, C,
+        S extends AbstractChainableMenuBuilder<T, C, S>> {
+
     private final DynamicMenu<T, C> menu;
-    private final List<Consumer<DynamicMenu<T, C>>> pendingOperations;
+    private final Consumer<DynamicMenu<T, C>> pendingPipeline;
+    private final boolean hasPendingOperations;
 
     protected AbstractChainableMenuBuilder(DynamicMenu<T, C> menu) {
-        this(menu, List.of());
+        this(menu, target -> { }, false);
     }
 
     protected AbstractChainableMenuBuilder(
             DynamicMenu<T, C> menu,
-            List<Consumer<DynamicMenu<T, C>>> pendingOperations) {
+            Consumer<DynamicMenu<T, C>> pendingPipeline) {
+        this(menu, pendingPipeline, true);
+    }
+
+    protected AbstractChainableMenuBuilder(
+            DynamicMenu<T, C> menu,
+            Consumer<DynamicMenu<T, C>> pendingPipeline,
+            boolean hasPendingOperations) {
 
         this.menu = Objects.requireNonNull(menu, "El menú no pot ser nul");
-        this.pendingOperations = new ArrayList<>(Objects.requireNonNull(
-                pendingOperations,
-                "La cadena d'operacions no pot ser nul·la"));
+        this.pendingPipeline = Objects.requireNonNull(
+                pendingPipeline,
+                "La cadena d'operacions no pot ser nul·la");
+        this.hasPendingOperations = hasPendingOperations;
     }
 
     /**
-     * Retorna el menú objectiu de la cadena.
-     *
-     * @return menú objectiu
+     * Retorna aquest builder amb el tipus concret.
+     */
+    protected abstract S self();
+
+    /**
+     * Hook de canvi d'estat perquè els fills invalidin cachés si ho necessiten.
+     */
+    protected void onStateChanged() {
+    }
+
+    /**
+     * Retorna el menú objectiu.
      */
     public final DynamicMenu<T, C> menu() {
         return menu;
     }
 
     /**
-     * Aplica totes les operacions pendents acumulades sobre el menú real.
+     * Indica si hi ha operacions pendents.
+     */
+    protected final boolean hasPendingOperations() {
+        return hasPendingOperations;
+    }
+
+    /**
+     * Retorna el pipeline pendent actual.
+     */
+    protected final Consumer<DynamicMenu<T, C>> pendingPipeline() {
+        return pendingPipeline;
+    }
+
+    /**
+     * Aplica les operacions pendents sobre el menú real.
      */
     protected final void applyPendingOperations() {
         applyPendingOperationsOn(menu);
     }
 
     /**
-     * Aplica totes les operacions pendents acumulades sobre el menú indicat.
-     *
-     * @param target menú objectiu sobre el qual aplicar la cadena pendent
+     * Aplica les operacions pendents sobre un menú indicat.
      */
     protected final void applyPendingOperationsOn(DynamicMenu<T, C> target) {
         Objects.requireNonNull(target, "El menú objectiu no pot ser nul");
-        for (Consumer<DynamicMenu<T, C>> operation : pendingOperations) {
-            operation.accept(target);
+        if (!hasPendingOperations) {
+            return;
         }
+        pendingPipeline.accept(target);
     }
 
     /**
-     * Retorna una còpia defensiva de la cadena d'operacions pendents.
-     *
-     * @return llista d'operacions pendents
+     * Retorna el pipeline pendent actual amb l'operació indicada al final.
      */
-    protected final List<Consumer<DynamicMenu<T, C>>> pendingOperations() {
-        return new ArrayList<>(pendingOperations);
-    }
-
-    /**
-     * Retorna una nova llista amb les operacions pendents i l'operació actual al final.
-     *
-     * @param currentOperation operació actual a afegir
-     * @return nova cadena d'operacions pendents
-     */
-    protected final List<Consumer<DynamicMenu<T, C>>> pendingPlus(
+    protected final Consumer<DynamicMenu<T, C>> pendingPlus(
             Consumer<DynamicMenu<T, C>> currentOperation) {
 
         Objects.requireNonNull(currentOperation, "L'operació actual no pot ser nul·la");
-        List<Consumer<DynamicMenu<T, C>>> operations = new ArrayList<>(pendingOperations);
-        operations.add(currentOperation);
-        return operations;
+
+        if (!hasPendingOperations) {
+            return currentOperation;
+        }
+
+        return pendingPipeline.andThen(currentOperation);
+    }
+
+    /**
+     * Helper per encadenar cap a RemoveBuilder.
+     */
+    protected final RemoveBuilder<T, C> chainToRemove(
+            Consumer<DynamicMenu<T, C>> currentOperation) {
+
+        return new RemoveBuilder<>(menu(), pendingPlus(currentOperation), true);
+    }
+
+    /**
+     * Helper per encadenar cap a ReplaceBuilder.
+     */
+    protected final ReplaceBuilder<T, C> chainToReplace(
+            Consumer<DynamicMenu<T, C>> currentOperation) {
+
+        return new ReplaceBuilder<>(menu(), pendingPlus(currentOperation), true);
+    }
+
+    /**
+     * Helper per encadenar cap a SortBuilder.
+     */
+    protected final SortBuilder<T, C> chainToSort(
+            Consumer<DynamicMenu<T, C>> currentOperation) {
+
+        return new SortBuilder<>(menu(), pendingPlus(currentOperation), true);
+    }
+
+    /**
+     * Helper per encadenar cap a QueryBuilder.
+     */
+    protected final QueryBuilder<T, C> chainToQuery(
+            Consumer<DynamicMenu<T, C>> currentOperation) {
+
+        return new QueryBuilder<>(menu(), pendingPlus(currentOperation), true);
     }
 }

@@ -19,7 +19,10 @@ Serveix per:
 - obtenir índexs
 - obtenir opcions
 
-Internament, la consulta es resol sobre **una còpia temporal del menú**, de manera que cap operació modifica el menú real.
+Internament, la consulta es resol sobre **un estat virtual del menú**.  
+Si hi ha operacions pendents en una cadena fluent, aquestes s’apliquen primer sobre una còpia temporal.
+
+Això garanteix que **cap consulta modifica el menú real**. :contentReference[oaicite:0]{index=0}
 
 ---
 
@@ -212,4 +215,14 @@ Set<String> labels = MenuEditor.query(menu)
             .collect(Collectors.toSet()));
 ```
 
-Aquest mètode és útil quan es vol construir un resultat personalitzat.
+---
+
+## `resolve()`
+
+Alias semàntic de `options()`.
+
+```java
+List<MenuOption<T, C>> options = MenuEditor.query(menu)
+    .whereAny()
+    .resolve();
+```

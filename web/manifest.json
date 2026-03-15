@@ -1,175 +1,55 @@
 {
-  "contentRoot": "../docs",
-  "docs": [
-    {
-      "path": "index.md",
-      "title": "Dynamic Menu Library",
-      "section": "Home"
-    },
-    {
-      "path": "01-getting-started/01-installation.md",
-      "title": "Installation",
-      "section": "01-getting-started"
-    },
-    {
-      "path": "01-getting-started/02-first-menu.md",
-      "title": "First Menu",
-      "section": "01-getting-started"
-    },
-    {
-      "path": "01-getting-started/03-basic-concepts.md",
-      "title": "Basic Concepts",
-      "section": "01-getting-started"
-    },
-    {
-      "path": "02-menu/01-dynamic-menu.md",
-      "title": "DynamicMenu",
-      "section": "02-menu"
-    },
-    {
-      "path": "02-menu/02-menu-context.md",
-      "title": "Menu Context",
-      "section": "02-menu"
-    },
-    {
-      "path": "02-menu/03-child-menus.md",
-      "title": "Child Menus",
-      "section": "02-menu"
-    },
-    {
-      "path": "03-actions/01-simple-menu-action.md",
-      "title": "SimpleMenuAction",
-      "section": "03-actions"
-    },
-    {
-      "path": "03-actions/02-menu-action.md",
-      "title": "MenuAction",
-      "section": "03-actions"
-    },
-    {
-      "path": "03-actions/03-menu-runtime-action.md",
-      "title": "MenuRuntimeAction",
-      "section": "03-actions"
-    },
-    {
-      "path": "04-model/01-menu-option.md",
-      "title": "MenuOption",
-      "section": "04-model"
-    },
-    {
-      "path": "04-model/02-menu-result.md",
-      "title": "MenuResult",
-      "section": "04-model"
-    },
-    {
-      "path": "05-hooks/01-menu-loop-state.md",
-      "title": "MenuLoopState",
-      "section": "05-hooks"
-    },
-    {
-      "path": "05-hooks/02-menu-loop-hook.md",
-      "title": "MenuLoopHook",
-      "section": "05-hooks"
-    },
-    {
-      "path": "06-selector/01-menu-selector.md",
-      "title": "MenuSelector",
-      "section": "06-selector"
-    },
-    {
-      "path": "07-snapshots/01-snapshots.md",
-      "title": "Snapshots",
-      "section": "07-snapshots"
-    },
-    {
-      "path": "07-snapshots/02-menu-navigation.md",
-      "title": "Menu Navigation",
-      "section": "07-snapshots"
-    },
-    {
-      "path": "07-snapshots/03-context-rollback.md",
-      "title": "Context Rollback",
-      "section": "07-snapshots"
-    },
-    {
-      "path": "07-snapshots/04-composite-snapshots.md",
-      "title": "Composite Snapshots",
-      "section": "07-snapshots"
-    },
-    {
-      "path": "08-advanced/01-runtime-and-option-management.md",
-      "title": "Runtime and Option Management",
-      "section": "08-advanced"
-    },
-    {
-      "path": "08-advanced/02-best-practices.md",
-      "title": "Best Practices",
-      "section": "08-advanced"
-    },
-    {
-      "path": "08-advanced/03-auto-cleanup.md",
-      "title": "Auto Cleanup",
-      "section": "08-advanced"
-    },
-    {
-      "path": "08-advanced/04-policies.md",
-      "title": "Policies",
-      "section": "08-advanced"
-    },
-    {
-      "path": "09-editor/01-menu-editor-overview.md",
-      "title": "Menu Editor Overview",
-      "section": "09-editor"
-    },
-    {
-      "path": "09-editor/02-operation-elements/01-range.md",
-      "title": "Range",
-      "section": "09-editor"
-    },
-    {
-      "path": "09-editor/02-operation-elements/02-edit-config.md",
-      "title": "Edit Config",
-      "section": "09-editor"
-    },
-    {
-      "path": "09-editor/02-operation-elements/03-selectors-and-mappers.md",
-      "title": "Selectors and Mappers",
-      "section": "09-editor"
-    },
-    {
-      "path": "09-editor/02-menu-editor.md",
-      "title": "Menu Editor",
-      "section": "09-editor"
-    },
-    {
-      "path": "09-editor/03-fluent-builders.md",
-      "title": "Fluent Builders",
-      "section": "09-editor"
-    },
-    {
-      "path": "09-editor/04-builders/01-simple-query-builder.md",
-      "title": "Simple Query",
-      "section": "09-editor"
-    },
-    {
-      "path": "09-editor/04-builders/02-remove-builder.md",
-      "title": "Remove",
-      "section": "09-editor"
-    },
-    {
-      "path": "09-editor/04-builders/03-sort-builder.md",
-      "title": "Sort",
-      "section": "09-editor"
-    },
-    {
-      "path": "09-editor/04-builders/04-replace-builder.md",
-      "title": "Replace",
-      "section": "09-editor"
-    },
-    {
-      "path":"09-editor/04-builders/05-advanced-query-builder.md",
-      "title": "Advanced Query",
-      "section": "09-editor"
-    }
-  ]
+	"contentRoot": "../docs",
+	"docs": [
+		{
+			"path": "index.md",
+			"title": "Dynamic Menu Library",
+			"section": "Home"
+		},
+
+		{ "path": "01-getting-started/01-installation.md" },
+		{ "path": "01-getting-started/02-first-menu.md" },
+		{ "path": "01-getting-started/03-basic-concepts.md" },
+
+		{ "path": "02-menu/01-dynamic-menu.md" },
+		{ "path": "02-menu/02-menu-context.md" },
+		{ "path": "02-menu/03-child-menus.md" },
+
+		{ "path": "03-actions/01-simple-menu-action.md" },
+		{ "path": "03-actions/02-menu-action.md" },
+		{ "path": "03-actions/03-menu-runtime-action.md" },
+
+		{ "path": "04-model/01-menu-option.md" },
+		{ "path": "04-model/02-menu-result.md" },
+
+		{ "path": "05-hooks/01-menu-loop-state.md" },
+		{ "path": "05-hooks/02-menu-loop-hook.md" },
+
+		{ "path": "06-selector/01-menu-selector.md" },
+
+		{ "path": "07-snapshots/01-snapshots.md" },
+		{ "path": "07-snapshots/02-menu-navigation.md" },
+		{ "path": "07-snapshots/03-context-rollback.md" },
+		{ "path": "07-snapshots/04-composite-snapshots.md" },
+
+		{ "path": "08-advanced/01-runtime-and-option-management.md" },
+		{ "path": "08-advanced/02-best-practices.md" },
+		{ "path": "08-advanced/03-auto-cleanup.md" },
+		{ "path": "08-advanced/04-policies.md" },
+
+		{ "path": "09-editor/01-menu-editor-overview.md" },
+		{ "path": "09-editor/02-operation-elements/01-range.md" },
+		{ "path": "09-editor/02-operation-elements/02-edit-config.md" },
+		{
+			"path": "09-editor/02-operation-elements/03-selectors-and-mappers.md"
+		},
+		{ "path": "09-editor/02-menu-editor.md" },
+
+		{ "path": "09-editor/03-builders/01-builders-overview.md" },
+		{ "path": "09-editor/03-builders/02-query-builder.md" },
+		{ "path": "09-editor/03-builders/03-remove-builder.md" },
+		{ "path": "09-editor/03-builders/04-replace-builder.md" },
+		{ "path": "09-editor/03-builders/05-sort-builder.md" },
+		{ "path": "09-editor/03-builders/06-builder-pipelines.md" }
+	]
 }

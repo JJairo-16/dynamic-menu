@@ -24,6 +24,64 @@ import {
   loadRoute
 } from './js/content.js';
 
+function stripNumericPrefix(value) {
+  return String(value || '').replace(/^\d+-/, '');
+}
+
+function prettifyLabel(value) {
+  return stripNumericPrefix(value)
+    .replace(/\.md$/i, '')
+    .replaceAll(/[-_]+/g, ' ')
+    .trim();
+}
+
+function toTitleCase(value) {
+  return String(value || '')
+    .split(' ')
+    .filter(Boolean)
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+}
+
+function inferTitleFromPath(path) {
+  const parts = String(path || '').split('/').filter(Boolean);
+  const fileName = parts.at(-1) || 'index.md';
+  const baseName = fileName.toLowerCase() === 'index.md' && parts.length > 1
+    ? parts.at(-2)
+    : fileName;
+
+  return toTitleCase(prettifyLabel(baseName)) || 'Sense títol';
+}
+
+function inferSectionFromPath(path) {
+  const parts = String(path || '').split('/').filter(Boolean);
+
+  if (!parts.length) {
+    return 'Home';
+  }
+
+  if (parts.length === 1 && parts[0].toLowerCase() === 'index.md') {
+    return 'Home';
+  }
+
+  return parts[0];
+}
+
+function hydrateDoc(doc) {
+  const path = String(doc?.path || '').trim();
+
+  if (!path) {
+    return null;
+  }
+
+  return {
+    ...doc,
+    path,
+    title: String(doc.title || '').trim() || inferTitleFromPath(path),
+    section: String(doc.section || '').trim() || inferSectionFromPath(path)
+  };
+}
+
 function handleViewportChange() {
   if (isDesktopViewport()) {
     closeMenu();
@@ -49,7 +107,13 @@ async function init() {
   const manifest = await fetch('./manifest.json').then(response => response.json());
 
   state.contentRoot = normalizeContentRoot(manifest.contentRoot);
-  state.docs = Array.isArray(manifest.docs) ? sortDocsByPath(manifest.docs.slice()) : [];
+  state.docs = Array.isArray(manifest.docs)
+    ? sortDocsByPath(
+      manifest.docs
+        .map(hydrateDoc)
+        .filter(Boolean)
+    )
+    : [];
 
   state.docByPath = new Map();
   state.docIndexByPath = new Map();

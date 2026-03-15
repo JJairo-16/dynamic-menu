@@ -89,15 +89,18 @@ Funcionalitats avançades del sistema de menús.
 Utilitats avançades per inspeccionar, eliminar, reemplaçar i ordenar opcions d’un `DynamicMenu` utilitzant selectors, mappers i configuracions d’edició.
 
 - [01 - Menu Editor Overview](09-editor/01-menu-editor-overview.md)
+
 - **02 - Operation Elements**
   - [01 - Range](09-editor/02-operation-elements/01-range.md)
   - [02 - Edit Config](09-editor/02-operation-elements/02-edit-config.md)
   - [03 - Selectors and Mappers](09-editor/02-operation-elements/03-selectors-and-mappers.md)
-- [02 - Menu Editor](09-editor/02-menu-editor.md)
-- [03 - Fluent Builders](09-editor/03-fluent-builders.md)
+
+- [03 - Menu Editor](09-editor/02-menu-editor.md)
+
 - **04 - Builders**
-  - [01 - Simple Query](09-editor/07-builders/01-simple-query-builder.md)
-  - [02 - Remove Builder](09-editor/04-builders/02-remove-builder.md)
-  - [03 - Sort Builder](09-editor/04-builders/03-sort-builder.md)
-  - [04 - Replace Builder](09-editor/04-builders/04-replace-builder.md)
-  - [05 - Advanced Query](09-editor/07-builders/05-advanced-query-builder.md)
+  - [01 - Builders Overview](09-editor/03-builders/01-builders-overview.md)
+  - [02 - Query Builder](09-editor/03-builders/02-query-builder.md)
+  - [03 - Remove Builder](09-editor/03-builders/03-remove-builder.md)
+  - [04 - Replace Builder](09-editor/03-builders/04-replace-builder.md)
+  - [05 - Sort Builder](09-editor/03-builders/05-sort-builder.md)
+  - [06 - Builder Pipelines](09-editor/03-builders/06-builder-pipelines.md)
