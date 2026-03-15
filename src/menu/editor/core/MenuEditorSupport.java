@@ -62,7 +62,7 @@ public class MenuEditorSupport {
         if (from > size)
             throw new IndexOutOfBoundsException("L'inici del rang està fora de la mida actual: " + from + " > " + size);
 
-        if (to > size && to != Integer.MAX_VALUE)
+        if (to - 1 > size && to != Integer.MAX_VALUE)
             throw new IndexOutOfBoundsException("El final del rang està fora de la mida actual: " + to + " > " + size);
     }
 

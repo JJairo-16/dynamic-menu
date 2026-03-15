@@ -138,45 +138,103 @@ Això és útil quan vols inspeccionar o reutilitzar la configuració.
 
 `RemoveBuilder` pot continuar en pipeline amb altres operacions.
 
+Per defecte, quan l'encadenament surt de `RemoveBuilder`, el builder següent no hereta cap estat fluent.
+
+Això vol dir que ni el selector, ni el rang, ni la configuració d'edició es transfereixen automàticament, excepte si es demana explícitament amb `thenX(InheritanceMode)`.
+
 ### `thenRemove()`
 
-Crea un nou `RemoveBuilder` conservant el context actual.
+Crea un nou `RemoveBuilder` sense heretar estat per defecte.
 
 ```java
 MenuEditor.remove(menu)
     .whereAny()
-    .thenRemove();
+    .thenRemove()
+    .whereLabel(label -> label.startsWith("Temp"))
+    .execute();
 ```
 
 ### `thenReplace()`
 
-Continua amb `ReplaceBuilder`.
+Continua amb `ReplaceBuilder` sense herència per defecte.
 
 ```java
 MenuEditor.remove(menu)
     .whereAny()
     .thenReplace()
-    .label("Nou");
+    .whereAny()
+    .label("Nou")
+    .execute();
 ```
 
 ### `thenSort()`
 
-Continua amb `SortBuilder`.
+Continua amb `SortBuilder` sense herència per defecte.
 
 ```java
 MenuEditor.remove(menu)
     .whereAny()
     .thenSort()
-    .byLabel();
+    .range(0, 10)
+    .byLabel()
+    .apply();
 ```
 
 ### `thenQuery()`
 
-Continua amb `QueryBuilder`.
+Continua amb `QueryBuilder` sense herència per defecte.
 
 ```java
 MenuEditor.remove(menu)
     .whereAny()
     .thenQuery()
+    .whereAny()
     .count();
 ```
+
+## Herència explícita amb `InheritanceMode`
+
+Si vols conservar part del context actual, pots usar `thenX(InheritanceMode)`.
+
+### Heretar només el rang
+
+```java
+MenuEditor.remove(menu)
+    .whereAny()
+    .range(0, 10)
+    .thenSort(InheritanceMode.RANGE)
+    .byLabel()
+    .apply();
+```
+
+### Heretar selector i rang
+
+```java
+MenuEditor.remove(menu)
+    .whereLabel(label -> label.startsWith("Temp"))
+    .range(0, 10)
+    .thenQuery(InheritanceMode.SELECTION)
+    .count();
+```
+
+### Heretar tot l'estat d'edició
+
+Entre builders d'edició, `InheritanceMode.ALL` també conserva la configuració d'edició compatible.
+
+```java
+MenuEditor.remove(menu)
+    .whereLabel(label -> label.startsWith("Temp"))
+    .range(0, 10)
+    .limit(2)
+    .reverse()
+    .thenReplace(InheritanceMode.ALL)
+    .label("Temporal")
+    .execute();
+```
+
+## Resum de modes
+
+- `InheritanceMode.NONE`: no hereta res
+- `InheritanceMode.RANGE`: hereta només el rang
+- `InheritanceMode.SELECTION`: hereta selector i rang
+- `InheritanceMode.ALL`: hereta tot l'estat compatible; entre builders d'edició inclou també la configuració com `limit(...)` i `reverse(...)`

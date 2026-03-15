@@ -147,44 +147,100 @@ boolean changed = MenuEditor.replace(menu)
 
 `ReplaceBuilder` també es pot integrar en pipelines.
 
+Per defecte, quan l'encadenament surt de `ReplaceBuilder`, el builder següent no hereta cap estat fluent.
+
+Això inclou selector, rang i configuració d'edició, llevat que es faci servir `thenX(InheritanceMode)`.
+
 ### `thenReplace()`
 
-Continua amb un nou `ReplaceBuilder`.
+Continua amb un nou `ReplaceBuilder` sense herència per defecte.
 
 ```java
 MenuEditor.replace(menu)
     .whereAny()
-    .thenReplace();
+    .thenReplace()
+    .whereAny()
+    .label("Nou")
+    .execute();
 ```
 
 ### `thenRemove()`
 
-Continua amb `RemoveBuilder`.
+Continua amb `RemoveBuilder` sense herència per defecte.
 
 ```java
 MenuEditor.replace(menu)
     .whereAny()
-    .thenRemove();
+    .thenRemove()
+    .whereAny()
+    .execute();
 ```
 
 ### `thenSort()`
 
-Continua amb `SortBuilder`.
+Continua amb `SortBuilder` sense herència per defecte.
 
 ```java
 MenuEditor.replace(menu)
     .whereAny()
     .thenSort()
-    .byLabel();
+    .range(0, 10)
+    .byLabel()
+    .apply();
 ```
 
 ### `thenQuery()`
 
-Continua amb `QueryBuilder`.
+Continua amb `QueryBuilder` sense herència per defecte.
 
 ```java
 MenuEditor.replace(menu)
     .whereAny()
     .thenQuery()
+    .whereAny()
     .count();
 ```
+
+## Herència explícita amb `InheritanceMode`
+
+### Heretar només el rang
+
+```java
+MenuEditor.replace(menu)
+    .whereAny()
+    .range(0, 10)
+    .thenSort(InheritanceMode.RANGE)
+    .byLabel()
+    .apply();
+```
+
+### Heretar selector i rang
+
+```java
+MenuEditor.replace(menu)
+    .whereLabel(label -> label.equals("Old"))
+    .range(0, 10)
+    .thenQuery(InheritanceMode.SELECTION)
+    .count();
+```
+
+### Heretar tot l'estat d'edició
+
+Quan el destí també és un builder d'edició, `ALL` conserva també la configuració compatible.
+
+```java
+MenuEditor.replace(menu)
+    .whereLabel(label -> label.equals("Old"))
+    .range(0, 10)
+    .limit(1)
+    .reverse()
+    .thenRemove(InheritanceMode.ALL)
+    .execute();
+```
+
+## Resum de modes
+
+- `InheritanceMode.NONE`: no hereta res
+- `InheritanceMode.RANGE`: hereta només el rang
+- `InheritanceMode.SELECTION`: hereta selector i rang
+- `InheritanceMode.ALL`: hereta tot l'estat compatible; entre builders d'edició també inclou la configuració fluent comuna

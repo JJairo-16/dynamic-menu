@@ -46,6 +46,32 @@ L'execució real només passa quan es crida una operació terminal com:
 
 Fins a aquest moment, el pipeline només descriu què s’ha de fer.
 
+## Herència d'estat entre passos
+
+A més d'afegir una nova operació al pipeline, `thenX()` també pot decidir si el builder següent hereta part de l'estat fluent actual.
+
+La regla general és:
+
+- si el pipeline surt de `QueryBuilder`, es conserva l'estat compatible per defecte
+- si surt de `RemoveBuilder`, `ReplaceBuilder` o `SortBuilder`, per defecte no s'hereta res
+
+Quan es necessita un comportament diferent, es pot usar `thenX(InheritanceMode)`.
+
+\```java
+MenuEditor.remove(menu)
+    .whereLabel(label -> label.startsWith("Temp"))
+    .range(0, 10)
+    .thenQuery(InheritanceMode.SELECTION)
+    .count();
+\```
+
+Això permet controlar de manera explícita si el pas següent ha de rebre:
+
+- res
+- només el rang
+- selector i rang
+- tot l'estat compatible
+
 ## Benefici principal
 
 Aquest model és útil quan vols construir operacions més expressives,

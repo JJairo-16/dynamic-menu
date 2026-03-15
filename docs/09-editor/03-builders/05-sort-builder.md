@@ -87,50 +87,87 @@ Quan només necessites una ordenació textual estàndard,
 
 `SortBuilder` també pot formar part d’un pipeline.
 
+Per defecte, quan l'encadenament surt de `SortBuilder`, el builder següent no hereta cap estat fluent.
+
+Com que `SortBuilder` treballa principalment amb rang i criteris d'ordenació, la forma habitual d'herència explícita és transferir només el rang.
+
 ### `thenSort()`
 
-Continua amb un nou `SortBuilder`.
+Continua amb un nou `SortBuilder` sense herència per defecte.
 
-```java
+\```java
 MenuEditor.sort(menu)
     .range(0, 10)
     .thenSort()
     .byLabel()
     .apply();
-```
+\```
 
 ### `thenQuery()`
 
-Continua amb `QueryBuilder`.
+Continua amb `QueryBuilder` sense herència per defecte.
 
-```java
+\```java
 MenuEditor.sort(menu)
     .range(0, 10)
     .thenQuery()
+    .whereAny()
     .count();
-```
+\```
 
 ### `thenRemove()`
 
-Continua amb `RemoveBuilder`.
+Continua amb `RemoveBuilder` sense herència per defecte.
 
-```java
+\```java
 MenuEditor.sort(menu)
     .range(0, 10)
     .thenRemove()
     .whereAny()
     .execute();
-```
+\```
 
 ### `thenReplace()`
 
-Continua amb `ReplaceBuilder`.
+Continua amb `ReplaceBuilder` sense herència per defecte.
 
-```java
+\```java
 MenuEditor.sort(menu)
     .range(0, 10)
     .thenReplace()
     .whereAny()
     .label("Nou")
     .execute();
-```
+\```
+
+## Herència explícita amb `InheritanceMode`
+
+### Heretar el rang
+
+\```java
+MenuEditor.sort(menu)
+    .range(0, 10)
+    .thenQuery(InheritanceMode.RANGE)
+    .whereAny()
+    .count();
+\```
+
+\```java
+MenuEditor.sort(menu)
+    .range(0, 10)
+    .thenRemove(InheritanceMode.RANGE)
+    .whereAny()
+    .execute();
+\```
+
+### Sobre `SELECTION`
+
+`SortBuilder` no defineix selector fluent propi per a l'encadenament.
+
+Per això, `InheritanceMode.SELECTION` no és el mode adequat quan l'origen és `SortBuilder`; la forma habitual és usar `RANGE` o `ALL`, que en aquest context equivalen pràcticament a transferir només el rang.
+
+## Resum de modes
+
+- `InheritanceMode.NONE`: no hereta res
+- `InheritanceMode.RANGE`: hereta el rang
+- `InheritanceMode.ALL`: hereta tot l'estat compatible; en aquest cas, essencialment el rang

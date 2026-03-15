@@ -1,4 +1,4 @@
-package menu.editor.builders;
+package menu.editor.builders.base;
 
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -76,5 +76,15 @@ public abstract class AbstractSelectableRangedBuilder<
      */
     protected final void setSelectorSilently(OptionSelector<T, C> selector) {
         this.selector = Objects.requireNonNull(selector, "La condició no pot ser nul·la");
+    }
+
+    /**
+     * Hereta selector i rang cap al builder objectiu.
+     */
+    protected final <B extends AbstractSelectableRangedBuilder<T, C, B>> B inheritSelectionTo(B target) {
+        Objects.requireNonNull(target, "El builder objectiu no pot ser nul");
+        target.where(requireSelector());
+        target.range(requireRange());
+        return target;
     }
 }

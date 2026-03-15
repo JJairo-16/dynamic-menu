@@ -6,6 +6,8 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 import menu.DynamicMenu;
+import menu.editor.builders.base.AbstractSelectableRangedBuilder;
+import menu.editor.builders.base.InheritanceMode;
 import menu.editor.core.QueryFamily;
 import menu.model.MenuOption;
 
@@ -33,14 +35,14 @@ public final class QueryBuilder<T, C>
         super(menu);
     }
 
-    QueryBuilder(
+    public QueryBuilder(
             DynamicMenu<T, C> menu,
             Consumer<DynamicMenu<T, C>> pendingPipeline) {
 
         super(menu, pendingPipeline);
     }
 
-    QueryBuilder(
+    public QueryBuilder(
             DynamicMenu<T, C> menu,
             Consumer<DynamicMenu<T, C>> pendingPipeline,
             boolean hasPendingOperations) {
@@ -170,38 +172,76 @@ public final class QueryBuilder<T, C>
         return options.isEmpty() ? null : options.get(options.size() - 1);
     }
 
-    /**
-     * Continua amb una nova query mantenint selector i rang.
-     */
+    private <B extends AbstractSelectableRangedBuilder<T, C, B>> B applySelectableInheritance(
+            B target,
+            InheritanceMode inheritanceMode) {
+
+        Objects.requireNonNull(inheritanceMode, "El mode d'herència no pot ser nul");
+
+        switch (inheritanceMode) {
+            case NONE:
+                return target;
+            case RANGE:
+                return inheritRangeTo(target);
+            case SELECTION:
+                return inheritSelectionTo(target);
+            case ALL:
+                return inheritSelectionTo(target);
+            default:
+                throw new IllegalArgumentException("Mode d'herència no suportat: " + inheritanceMode);
+        }
+    }
+
+    private SortBuilder<T, C> applySortInheritance(
+            SortBuilder<T, C> target,
+            InheritanceMode inheritanceMode) {
+
+        Objects.requireNonNull(inheritanceMode, "El mode d'herència no pot ser nul");
+
+        switch (inheritanceMode) {
+            case NONE:
+                return target;
+            case RANGE:
+                return inheritRangeTo(target);
+            case ALL:
+                return inheritRangeTo(target);
+            case SELECTION:
+                throw new IllegalArgumentException(
+                        "SortBuilder no admet herència de selector; usa RANGE o ALL");
+            default:
+                throw new IllegalArgumentException("Mode d'herència no suportat: " + inheritanceMode);
+        }
+    }
+
     public QueryBuilder<T, C> thenQuery() {
-        return chainToQuery(target -> { })
-                .where(requireSelector())
-                .range(requireRange());
+        return thenQuery(InheritanceMode.ALL);
     }
 
-    /**
-     * Continua amb remove mantenint selector i rang.
-     */
+    public QueryBuilder<T, C> thenQuery(InheritanceMode inheritanceMode) {
+        return applySelectableInheritance(chainToQuery(target -> { }), inheritanceMode);
+    }
+
     public RemoveBuilder<T, C> thenRemove() {
-        return chainToRemove(target -> { })
-                .where(requireSelector())
-                .range(requireRange());
+        return thenRemove(InheritanceMode.ALL);
     }
 
-    /**
-     * Continua amb replace mantenint selector i rang.
-     */
+    public RemoveBuilder<T, C> thenRemove(InheritanceMode inheritanceMode) {
+        return applySelectableInheritance(chainToRemove(target -> { }), inheritanceMode);
+    }
+
     public ReplaceBuilder<T, C> thenReplace() {
-        return chainToReplace(target -> { })
-                .where(requireSelector())
-                .range(requireRange());
+        return thenReplace(InheritanceMode.ALL);
     }
 
-    /**
-     * Continua amb sort mantenint només el rang.
-     */
+    public ReplaceBuilder<T, C> thenReplace(InheritanceMode inheritanceMode) {
+        return applySelectableInheritance(chainToReplace(target -> { }), inheritanceMode);
+    }
+
     public SortBuilder<T, C> thenSort() {
-        return chainToSort(target -> { })
-                .range(requireRange());
+        return thenSort(InheritanceMode.ALL);
+    }
+
+    public SortBuilder<T, C> thenSort(InheritanceMode inheritanceMode) {
+        return applySortInheritance(chainToSort(target -> { }), inheritanceMode);
     }
 }

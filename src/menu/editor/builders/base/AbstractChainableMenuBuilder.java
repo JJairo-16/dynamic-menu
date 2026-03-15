@@ -1,9 +1,10 @@
-package menu.editor.builders;
+package menu.editor.builders.base;
 
 import java.util.Objects;
 import java.util.function.Consumer;
 
 import menu.DynamicMenu;
+import menu.editor.builders.*;
 /**
  * Pare mínim per a tots els builders encadenables.
  *

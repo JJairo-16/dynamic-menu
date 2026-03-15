@@ -1,4 +1,4 @@
-package menu.editor.builders;
+package menu.editor.builders.base;
 
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -131,5 +131,15 @@ public abstract class AbstractEditBuilder<
 
         configDirty = false;
         return cachedConfig;
+    }
+
+    /**
+     * Hereta selector, rang i configuració d'edició.
+     */
+    protected final <B extends AbstractEditBuilder<T, C, B>> B inheritEditStateTo(B target) {
+        Objects.requireNonNull(target, "El builder objectiu no pot ser nul");
+        target.where(requireSelector());
+        target.config(buildConfig());
+        return target;
     }
 }

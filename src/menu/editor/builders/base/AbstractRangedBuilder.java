@@ -1,4 +1,4 @@
-package menu.editor.builders;
+package menu.editor.builders.base;
 
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -63,5 +63,13 @@ public abstract class AbstractRangedBuilder<
      */
     protected final void setRangeSilently(Range range) {
         this.range = Objects.requireNonNull(range, "El rang no pot ser nul");
+    }
+
+    /**
+     * Hereta només el rang cap al builder objectiu.
+     */
+    protected final <B extends AbstractRangedBuilder<T, C, B>> B inheritRangeTo(B target) {
+        Objects.requireNonNull(target, "El builder objectiu no pot ser nul");
+        return target.range(requireRange());
     }
 }

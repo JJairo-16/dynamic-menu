@@ -195,6 +195,17 @@ sinó una col·lecció o un resultat derivat.
 
 Això permet reutilitzar el selector i, en alguns casos, també el rang.
 
+## Herència predeterminada
+
+Quan l'encadenament surt de `QueryBuilder`, el comportament per defecte és:
+> `QueryBuilder` és el punt d'encadenament amb més herència predeterminada.
+> Això el converteix en una bona base quan primer vols localitzar coincidències i després reutilitzar aquest context en una operació posterior.
+
+- `thenQuery()` hereta selector i rang
+- `thenRemove()` hereta selector i rang
+- `thenReplace()` hereta selector i rang
+- `thenSort()` hereta només el rang
+
 ### `thenQuery()`
 
 Continua la mateixa consulta amb un nou `QueryBuilder`.
@@ -202,6 +213,7 @@ Continua la mateixa consulta amb un nou `QueryBuilder`.
 ```java
 MenuEditor.query(menu)
     .whereAny()
+    .range(0, 10)
     .thenQuery()
     .count();
 ```
@@ -246,3 +258,59 @@ MenuEditor.query(menu)
 
 En aquest cas només es transfereix el rang,
 ja que l’ordenació no funciona a partir del selector de coincidència.
+
+## Herència explícita amb `InheritanceMode`
+
+Quan vols controlar la transferència d'estat de forma explícita,
+pots usar la variant `thenX(InheritanceMode)`.
+
+### `thenQuery(InheritanceMode)`
+
+```java
+MenuEditor.query(menu)
+    .whereAny()
+    .range(0, 10)
+    .thenQuery(InheritanceMode.NONE)
+    .whereLabel(label -> label.equals("Exit"))
+    .count();
+```
+
+### `thenRemove(InheritanceMode)`
+
+```java
+MenuEditor.query(menu)
+    .whereLabel(label -> label.startsWith("Temp"))
+    .thenRemove(InheritanceMode.ALL)
+    .execute();
+```
+
+### `thenReplace(InheritanceMode)`
+
+```java
+MenuEditor.query(menu)
+    .whereLabel(label -> label.equals("Old"))
+    .thenReplace(InheritanceMode.SELECTION)
+    .label("New")
+    .execute();
+```
+
+### `thenSort(InheritanceMode)`
+
+```java
+MenuEditor.query(menu)
+    .whereAny()
+    .range(0, 10)
+    .thenSort(InheritanceMode.RANGE)
+    .byLabel()
+    .apply();
+```
+
+## Modes disponibles
+
+- `InheritanceMode.NONE`: no hereta res
+- `InheritanceMode.RANGE`: hereta només el rang
+- `InheritanceMode.SELECTION`: hereta selector i rang
+- `InheritanceMode.ALL`: hereta tot l'estat compatible amb el builder destí
+
+En el cas de `SortBuilder`, l'herència efectiva mai no inclou selector,
+de manera que habitualment s'usen `RANGE` o `ALL` com a sinònims pràctics.

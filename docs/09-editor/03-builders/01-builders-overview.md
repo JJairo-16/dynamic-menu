@@ -77,3 +77,27 @@ Tots aquests builders segueixen una idea semblant:
 4. executar-la o resoldre-la
 
 Això fa que l’API sigui coherent entre builders diferents.
+
+## Herència en l'encadenament
+
+Quan un builder continua amb `thenX()`, el builder següent pot heretar una part de l'estat fluent anterior.
+
+La política predeterminada és aquesta:
+
+- des de `QueryBuilder`, `thenQuery()`, `thenRemove()` i `thenReplace()` hereten selector i rang
+- des de `QueryBuilder`, `thenSort()` hereta només el rang
+- des de `RemoveBuilder`, `ReplaceBuilder` i `SortBuilder`, per defecte no s'hereta res
+
+Quan cal sobreescriure aquest comportament, es pot usar la variant `thenX(InheritanceMode)`.
+
+Modes disponibles:
+
+- `InheritanceMode.NONE`
+- `InheritanceMode.RANGE`
+- `InheritanceMode.SELECTION`
+- `InheritanceMode.ALL`
+
+Això permet distingir clarament entre:
+
+- comportament fluent per defecte
+- herència explícita demanada per l'usuari

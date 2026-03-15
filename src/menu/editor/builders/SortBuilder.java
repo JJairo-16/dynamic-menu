@@ -10,6 +10,8 @@ import java.util.function.Predicate;
 
 import menu.DynamicMenu;
 import menu.editor.Range;
+import menu.editor.builders.base.AbstractRangedBuilder;
+import menu.editor.builders.base.InheritanceMode;
 import menu.editor.core.MenuEditorSupport;
 import menu.editor.core.SortFamily;
 import menu.editor.helpers.OptionSelector;
@@ -30,14 +32,14 @@ public final class SortBuilder<T, C>
         super(menu);
     }
 
-    SortBuilder(
+    public SortBuilder(
             DynamicMenu<T, C> menu,
             Consumer<DynamicMenu<T, C>> pendingPipeline) {
 
         super(menu, pendingPipeline);
     }
 
-    SortBuilder(
+    public SortBuilder(
             DynamicMenu<T, C> menu,
             Consumer<DynamicMenu<T, C>> pendingPipeline,
             boolean hasPendingOperations) {
@@ -196,20 +198,56 @@ public final class SortBuilder<T, C>
         return execute();
     }
 
+    private <B extends AbstractRangedBuilder<T, C, B>> B applyRangedInheritance(
+            B target,
+            InheritanceMode inheritanceMode) {
+
+        Objects.requireNonNull(inheritanceMode, "El mode d'herència no pot ser nul");
+
+        switch (inheritanceMode) {
+            case NONE:
+                return target;
+            case RANGE:
+                return inheritRangeTo(target);
+            case ALL:
+                return inheritRangeTo(target);
+            case SELECTION:
+                throw new IllegalArgumentException(
+                        "SortBuilder no té selector per heretar; usa RANGE o ALL");
+            default:
+                throw new IllegalArgumentException("Mode d'herència no suportat: " + inheritanceMode);
+        }
+    }
+
     public SortBuilder<T, C> thenSort() {
-        return chainToSort(currentOperation());
+        return thenSort(InheritanceMode.NONE);
+    }
+
+    public SortBuilder<T, C> thenSort(InheritanceMode inheritanceMode) {
+        return applyRangedInheritance(chainToSort(currentOperation()), inheritanceMode);
     }
 
     public RemoveBuilder<T, C> thenRemove() {
-        return chainToRemove(currentOperation());
+        return thenRemove(InheritanceMode.NONE);
+    }
+
+    public RemoveBuilder<T, C> thenRemove(InheritanceMode inheritanceMode) {
+        return applyRangedInheritance(chainToRemove(currentOperation()), inheritanceMode);
     }
 
     public ReplaceBuilder<T, C> thenReplace() {
-        return chainToReplace(currentOperation());
+        return thenReplace(InheritanceMode.NONE);
+    }
+
+    public ReplaceBuilder<T, C> thenReplace(InheritanceMode inheritanceMode) {
+        return applyRangedInheritance(chainToReplace(currentOperation()), inheritanceMode);
     }
 
     public QueryBuilder<T, C> thenQuery() {
-        return chainToQuery(currentOperation())
-                .range(requireRange());
+        return thenQuery(InheritanceMode.NONE);
+    }
+
+    public QueryBuilder<T, C> thenQuery(InheritanceMode inheritanceMode) {
+        return applyRangedInheritance(chainToQuery(currentOperation()), inheritanceMode);
     }
 }
