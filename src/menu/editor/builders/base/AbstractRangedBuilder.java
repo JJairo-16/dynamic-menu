@@ -46,9 +46,12 @@ public abstract class AbstractRangedBuilder<
 
     /**
      * Defineix el rang d'actuació.
+     *
+     * Si es fan servir índexs negatius, es resolen comptant des del final
+     * del menú actual.
      */
     public S range(int fromInclusive, int toExclusive) {
-        return range(Range.of(fromInclusive, toExclusive));
+        return range(Range.of(fromInclusive, toExclusive, menu().optionCount()));
     }
 
     /**

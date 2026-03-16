@@ -49,7 +49,7 @@ També pots utilitzar la llibreria com a **fitxer JAR precompilat**.
 Versió actual:
 
 ```
-dynamic-menu-1.3.1.jar
+dynamic-menu-1.3.2.jar
 ```
 
 ## Afegir el JAR manualment
@@ -59,7 +59,7 @@ Col·loca el JAR dins d'una carpeta del projecte, per exemple:
 ```
 project/
  ├─ lib/
- │   └─ dynamic-menu-1.3.1.jar
+ │   └─ dynamic-menu-1.3.2.jar
  └─ src/
 ```
 
@@ -68,13 +68,13 @@ project/
 ## Compilació (PowerShell)
 
 ```powershell
-javac -cp "lib/dynamic-menu-1.3.1.jar" -d out (Get-ChildItem -Recurse -Filter *.java src).FullName
+javac -cp "lib/dynamic-menu-1.3.2.jar" -d out (Get-ChildItem -Recurse -Filter *.java src).FullName
 ```
 
 Execució:
 
 ```powershell
-java -cp "out;lib/dynamic-menu-1.3.1.jar" com.example.Main
+java -cp "out;lib/dynamic-menu-1.3.2.jar" com.example.Main
 ```
 
 ---
@@ -82,13 +82,13 @@ java -cp "out;lib/dynamic-menu-1.3.1.jar" com.example.Main
 ## Compilació (Bash / Linux / macOS)
 
 ```bash
-javac -cp "lib/dynamic-menu-1.3.1.jar" -d out $(find src -name "*.java")
+javac -cp "lib/dynamic-menu-1.3.2.jar" -d out $(find src -name "*.java")
 ```
 
 Execució:
 
 ```bash
-java -cp "out:lib/dynamic-menu-1.3.1.jar" com.example.Main
+java -cp "out:lib/dynamic-menu-1.3.2.jar" com.example.Main
 ```
 
 ---

@@ -41,19 +41,47 @@ Range range = Range.of(2, 5);
 
 Aquest rang cobreix des de l’índex `2` fins abans de l’índex `5`.
 
+## Índexs negatius
+
+`Range` també admet **índexs negatius**.
+
+Quan es fa servir un valor negatiu, es compta des del final de la llista:
+
+- `-1` és l’últim element
+- `-2` és el penúltim
+- `-3` és el tercer comptant des del final
+
+Exemple:
+
+```java
+Range range = Range.of(-3, -1);
+```
+
+Si el menú té mida `10`, aquest rang equivaldrà a:
+
+```text
+[7, 9)
+```
+
+És a dir, afectarà els índexs:
+
+```text
+7 i 8
+```
+
+Els índexs negatius es resolen automàticament quan el rang es construeix dins dels builders del `MenuEditor`.
+
 ## Validacions
 
 `Range` valida els valors en construir-se.
 
 No es permet:
 
-- un índex inicial negatiu
 - un índex final menor que l’inicial
 
 Exemples no vàlids:
 
 ```java
-Range.of(-1, 3);
 Range.of(5, 2);
 ```
 
