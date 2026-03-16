@@ -6,6 +6,14 @@ En aquesta llibreria és una peça **gairebé obligatòria**: totes les accions 
 
 Dit d'una altra manera: sense `MenuResult`, el motor no sap si ha de continuar, retornar un valor o finalitzar el menú.
 
+## Obtenció
+
+S'importa utilitzant:
+
+```java
+import menu.model.MenuResult;
+```
+
 ## Tipus de resultat principals
 
 | Mètode                          | Efecte                               |

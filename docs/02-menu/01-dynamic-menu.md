@@ -10,6 +10,14 @@ S'encarrega de:
 - gestionar opcions, hooks, snapshots i polítiques a través de la seva API pública
 - crear menús fills
 
+## Obtenció
+
+S'importa utilitzant:
+
+```java
+import menu.DynamicMenu;
+```
+
 ## Tipus genèrics
 
 `DynamicMenu` utilitza dos tipus genèrics:
@@ -119,6 +127,14 @@ Alguns dels mètodes més utilitzats de `DynamicMenu` són:
 ## Polítiques del menú
 
 `DynamicMenu` exposa dos grans tipus de configuració avançada:
+
+### Obtenció
+
+S'importa utilitzant:
+
+```java
+import menu.snapshot.MenuDuplicatePolicy;
+```
 
 ### Política de duplicats
 

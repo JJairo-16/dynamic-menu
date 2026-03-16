@@ -25,6 +25,16 @@ MenuEditor.query(menu)
     .exists();
 ```
 
+### `whereIndex(predicate)`
+
+Selecciona les opcions a partir d’una condició aplicada sobre l’índex.
+
+```java
+MenuEditor.query(menu)
+    .whereIndex(i -> i < 5)
+    .last();
+```
+
 ### `whereLabel(predicate)`
 
 És una drecera quan només vols filtrar pel text del label.
@@ -32,6 +42,37 @@ MenuEditor.query(menu)
 ```java
 MenuEditor.query(menu)
     .whereLabel(label -> label.equals("Exit"))
+    .exists();
+```
+
+### `whereLabelEqualsIgnoreCase(String text)`
+
+Selecciona les opcions amb un label exactament igual,
+ignorant majúscules i minúscules.
+
+```java
+MenuEditor.query(menu)
+    .whereLabelEqualsIgnoreCase("exit")
+    .exists();
+```
+
+### `whereLabelStartsWith(String prefix)`
+
+Selecciona les opcions el label de les quals comença amb el prefix indicat.
+
+```java
+MenuEditor.query(menu)
+    .whereLabelStartsWith("[ADMIN]")
+    .count();
+```
+
+### `whereLabelEndsWith(String suffix)`
+
+Selecciona les opcions el label de les quals acaba amb el sufix indicat.
+
+```java
+MenuEditor.query(menu)
+    .whereLabelEndsWith("...")
     .exists();
 ```
 
@@ -314,3 +355,11 @@ MenuEditor.query(menu)
 
 En el cas de `SortBuilder`, l'herència efectiva mai no inclou selector,
 de manera que habitualment s'usen `RANGE` o `ALL` com a sinònims pràctics.
+
+### Obtenció
+
+S'importa utilitzant:
+
+```java
+import menu.editor.base.InheritanceMode;
+```

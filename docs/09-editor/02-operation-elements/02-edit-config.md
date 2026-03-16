@@ -8,6 +8,14 @@ No serveix per configurar un editor visual, sinó per controlar tres aspectes d�
 - `limit`
 - `reverse`
 
+## Obtenció
+
+S'importa utilitzant:
+
+```java
+import menu.editor.EditConfig;
+```
+
 ## Configuració per defecte
 
 ```java

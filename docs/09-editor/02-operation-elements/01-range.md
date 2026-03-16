@@ -17,6 +17,14 @@ Per exemple, `Range.of(1, 4)` afecta els índexs:
 - `2`
 - `3`
 
+## Obtenció
+
+S'importa utilitzant:
+
+```java
+import menu.editor.Range;
+```
+
 ## Crear un rang complet
 
 ```java

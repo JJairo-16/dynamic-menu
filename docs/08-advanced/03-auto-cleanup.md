@@ -10,6 +10,14 @@ Aquest sistema serveix per evitar que el consum de memòria creixi de manera inn
 
 La configuració es fa amb `MenuCleanupConfig`, que viu a `menu.config`.
 
+## Obtenció
+
+S'importa utilitzant:
+
+```java
+import menu.config.MenuCleanupConfig;
+```
+
 ## Per què existeix
 
 Un `DynamicMenu` pot conservar estat intern entre execucions.

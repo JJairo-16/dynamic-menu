@@ -10,6 +10,14 @@ Els snapshots permeten guardar i restaurar l'estat estructural del menú.
 
 Encara que internament existeixin `MenuSnapshot` i `MenuSnapshotManager`, l'ús habitual es fa **a través de `DynamicMenu` i els seus wrappers**.
 
+## Obtenció
+
+S'importa utilitzant:
+
+```java
+import menu.snapshot.MenuSnapshot;
+```
+
 ## Operacions principals
 
 Els wrappers principals per treballar amb snapshots són:

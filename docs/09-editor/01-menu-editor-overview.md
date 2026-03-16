@@ -11,6 +11,14 @@ Aquest paquet està pensat per treballar a un nivell més declaratiu que l’API
 - “canvia només l’acció”
 - “transforma l’opció completa”
 
+## Obtenció
+
+S'importa utilitzant:
+
+```java
+import menu.editor.MenuEditor;
+```
+
 ## Peces principals del paquet
 
 Els conceptes centrals d’aquesta secció són:

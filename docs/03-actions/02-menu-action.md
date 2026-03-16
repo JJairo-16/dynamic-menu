@@ -4,6 +4,14 @@
 
 És una interfície funcional pensada per definir accions simples.
 
+## Obtenció
+
+S'importa utilitzant:
+
+```java
+import menu.action.MenuAction;
+```
+
 ## Signatura
 
 ```java

@@ -10,9 +10,7 @@ import menu.editor.helpers.OptionSelector;
 /**
  * Pare per als builders que treballen amb selector i rang.
  */
-public abstract class AbstractSelectableRangedBuilder<
-        T, C,
-        S extends AbstractSelectableRangedBuilder<T, C, S>>
+public abstract class AbstractSelectableRangedBuilder<T, C, S extends AbstractSelectableRangedBuilder<T, C, S>>
         extends AbstractRangedBuilder<T, C, S> {
 
     private OptionSelector<T, C> selector;
@@ -46,12 +44,66 @@ public abstract class AbstractSelectableRangedBuilder<
     }
 
     /**
+     * Defineix la condició de selecció basada en l'índex.
+     */
+    public S whereIndex(Predicate<Integer> predicate) {
+        Objects.requireNonNull(predicate, "La condició no pot ser nul·la");
+        this.selector = (index, option) -> predicate.test(index);
+        onStateChanged();
+        return self();
+    }
+
+    /**
      * Defineix la condició de selecció basada en el label.
      */
     public S whereLabel(Predicate<String> predicate) {
         Objects.requireNonNull(predicate, "La condició no pot ser nul·la");
-        this.selector = (index, option) -> predicate.test(option.label());
+        this.selector = labelAdapter(predicate);
         onStateChanged();
+        return self();
+    }
+
+    /**
+     * Defineix la condició de selecció basada en un label exactament igual.
+     */
+    public S whereLabelEquals(String text) {
+        Objects.requireNonNull(text, "L'String no pot ser nul");
+
+        this.selector = labelAdapter(l -> l.equals(text));
+        return self();
+    }
+
+    /**
+     * Defineix la condició de selecció basada en un label igual ignorant majúscules i minúscules.
+     */
+    public S whereLabelEqualsIgnoreCase(String text) {
+        Objects.requireNonNull(text, "L'String no pot ser nul");
+
+        this.selector = labelAdapter(l -> l.equalsIgnoreCase(text));
+        return self();
+    }
+
+    /**
+     * Defineix la condició de selecció basada en un label que comença amb el prefix indicat.
+     */
+    public S whereLabelStartsWidth(String prefix) {
+        Objects.requireNonNull(prefix, "El prefix no pot ser nul");
+        if (prefix.isEmpty())
+            throw new IllegalArgumentException("El prefix no pot estar en blanc");
+
+        this.selector = labelAdapter(l -> l.startsWith(prefix));
+        return self();
+    }
+
+    /**
+     * Defineix la condició de selecció basada en un label que acaba amb el sufix indicat.
+     */
+    public S whereLabelEndsWidth(String suffix) {
+        Objects.requireNonNull(suffix, "El sufix no pot ser nul");
+        if (suffix.isEmpty())
+            throw new IllegalArgumentException("El sufix no pot estar en blanc");
+
+        this.selector = labelAdapter(l -> l.endsWith(suffix));
         return self();
     }
 
@@ -86,5 +138,9 @@ public abstract class AbstractSelectableRangedBuilder<
         target.where(requireSelector());
         target.range(requireRange());
         return target;
+    }
+
+    private final OptionSelector<T, C> labelAdapter(Predicate<String> predicate) {
+        return (index, option) -> predicate.test(option.label());
     }
 }

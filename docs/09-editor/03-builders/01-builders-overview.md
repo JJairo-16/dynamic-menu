@@ -59,7 +59,12 @@ Aquesta arquitectura permet unificar mètodes com:
 
 - `range(...)`
 - `where(...)`
+- `whereIndex(...)`
 - `whereLabel(...)`
+- `whereLabelEquals(...)`
+- `whereLabelEqualsIgnoreCase(...)`
+- `whereLabelStartsWidth(...)`
+- `whereLabelEndsWidth(...)`
 - `whereAny()`
 - `limit(...)`
 - `reverse(...)`
@@ -101,3 +106,11 @@ Això permet distingir clarament entre:
 
 - comportament fluent per defecte
 - herència explícita demanada per l'usuari
+
+### Obtenció
+
+S'importa utilitzant:
+
+```java
+import menu.editor.base.InheritanceMode;
+```

@@ -4,6 +4,14 @@
 
 Això permet modificar el menú dinàmicament.
 
+## Obtenció
+
+S'importa utilitzant:
+
+```java
+import menu.action.MenuRuntimeAction;
+```
+
 ## Signatura
 
 ```java

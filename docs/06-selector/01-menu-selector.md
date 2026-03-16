@@ -7,6 +7,14 @@ Això permet separar:
 - la lògica del menú
 - la forma d'interactuar amb l'usuari
 
+## Obtenció
+
+S'importa utilitzant:
+
+```java
+import menu.selector.MenuSelector;
+```
+
 ## Signatura
 
 ```java

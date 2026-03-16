@@ -15,7 +15,13 @@ Si el context conté estat mutable, restaurar un `MenuSnapshot` no desfà aquest
 
 Per permetre rollback complet es pot utilitzar un **context snapshoteable**.
 
----
+## Obtenció
+
+S'importa utilitzant:
+
+```java
+import menu.snapshot.context.ContextStateSnapshotSupport;
+```
 
 ## Context snapshoteable
 
@@ -37,8 +43,6 @@ public interface ContextStateSnapshotSupport<S> {
 ```
 
 El tipus genèric `S` representa el tipus del snapshot del context.
-
----
 
 ## Exemple de context snapshoteable
 
@@ -65,8 +69,6 @@ public class AppContext implements ContextStateSnapshotSupport<AppContext.State>
 ```
 
 Ara el context pot guardar i restaurar el seu estat intern.
-
----
 
 ## Limitació dels snapshots normals
 

@@ -238,3 +238,11 @@ MenuEditor.remove(menu)
 - `InheritanceMode.RANGE`: hereta només el rang
 - `InheritanceMode.SELECTION`: hereta selector i rang
 - `InheritanceMode.ALL`: hereta tot l'estat compatible; entre builders d'edició inclou també la configuració com `limit(...)` i `reverse(...)`
+
+### Obtenció
+
+S'importa utilitzant:
+
+```java
+import menu.editor.base.InheritanceMode;
+```

@@ -57,13 +57,13 @@ La regla general és:
 
 Quan es necessita un comportament diferent, es pot usar `thenX(InheritanceMode)`.
 
-\```java
+```java
 MenuEditor.remove(menu)
     .whereLabel(label -> label.startsWith("Temp"))
     .range(0, 10)
     .thenQuery(InheritanceMode.SELECTION)
     .count();
-\```
+```
 
 Això permet controlar de manera explícita si el pas següent ha de rebre:
 

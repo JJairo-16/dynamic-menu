@@ -7,8 +7,6 @@ Un **composite snapshot** guarda:
 
 Això permet restaurar **tot l'estat del sistema del menú**.
 
----
-
 ## Estructura
 
 Un snapshot compost es representa amb:
@@ -29,8 +27,6 @@ public record CompositeMenuSnapshot<T,C,S>(
 )
 ```
 
----
-
 ## Gestor de snapshots compostos
 
 Els snapshots compostos es gestionen amb:
@@ -46,8 +42,6 @@ Manté:
 - snapshots registrats
 - pila de snapshots
 - estat per cada instància de menú
-
----
 
 ## Crear un snapshot compost
 
@@ -66,8 +60,6 @@ Això guarda:
 - estat del menú
 - estat del context
 
----
-
 ## Restaurar un snapshot compost
 
 ```java
@@ -78,8 +70,6 @@ Internament es restaura:
 
 1. el snapshot del menú
 2. el snapshot del context
-
----
 
 ## Snapshots registrats
 
@@ -105,8 +95,6 @@ support.removeRegisteredSnapshot(menu, "main");
 
 support.clearRegisteredSnapshots(menu);
 ```
-
----
 
 ## Pila de snapshots
 
@@ -135,8 +123,6 @@ Netejar-la:
 ```java
 support.clearSnapshotStack(menu);
 ```
-
----
 
 ## Navegació amb rollback complet
 

@@ -9,6 +9,14 @@ No utilitza:
 
 Només executa codi i retorna un resultat.
 
+## Obtenció
+
+S'importa utilitzant:
+
+```java
+import menu.action.SimpleMenuAction;
+```
+
 ## Signatura
 
 ```java
