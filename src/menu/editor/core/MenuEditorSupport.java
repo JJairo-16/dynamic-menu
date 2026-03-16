@@ -15,7 +15,8 @@ import menu.model.MenuOption;
 import menu.snapshot.MenuSnapshot;
 
 public class MenuEditorSupport {
-    private MenuEditorSupport() {}
+    private MenuEditorSupport() {
+    }
 
     public static <T, C> OptionSelector<T, C> alwaysFalseSelector() {
         return (index, option) -> false;
@@ -29,10 +30,15 @@ public class MenuEditorSupport {
         return (index, option) -> Objects.equals(option.label(), label);
     }
 
+    private static final Comparator<MenuOption<?, ?>> DEFAULT_LABEL_COMPARATOR = Comparator
+            .<MenuOption<?, ?>, String>comparing(
+                    MenuOption::label,
+                    String.CASE_INSENSITIVE_ORDER)
+            .thenComparing(MenuOption::label);
+
+    @SuppressWarnings("unchecked")
     public static <T, C> Comparator<MenuOption<T, C>> defaultLabelComparator() {
-        return Comparator.comparing(
-                MenuOption<T, C>::label,
-                String.CASE_INSENSITIVE_ORDER).thenComparing(MenuOption::label);
+        return (Comparator<MenuOption<T, C>>) (Comparator<?>) DEFAULT_LABEL_COMPARATOR;
     }
 
     public static <T, C> List<MenuOption<T, C>> currentOptions(DynamicMenu<T, C> menu) {

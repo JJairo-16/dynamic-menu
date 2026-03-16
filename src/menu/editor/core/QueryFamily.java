@@ -33,12 +33,7 @@ public final class QueryFamily {
             OptionSelector<T, C> selector,
             Range range) {
 
-        Objects.requireNonNull(menu, "El menú no pot ser nul");
-        Objects.requireNonNull(selector, "La condició no pot ser nul·la");
-        Objects.requireNonNull(range, "El rang no pot ser nul");
-
-        List<MenuOption<T, C>> options = currentOptions(menu);
-        validateRange(range, options.size());
+        List<MenuOption<T, C>> options = validatedOptions(menu, selector, range);
 
         Range effectiveRange = range.clamp(options.size());
         for (int i = effectiveRange.fromInclusive(); i < effectiveRange.toExclusive(); i++) {
@@ -62,12 +57,7 @@ public final class QueryFamily {
             OptionSelector<T, C> selector,
             Range range) {
 
-        Objects.requireNonNull(menu, "El menú no pot ser nul");
-        Objects.requireNonNull(selector, "La condició no pot ser nul·la");
-        Objects.requireNonNull(range, "El rang no pot ser nul");
-
-        List<MenuOption<T, C>> options = currentOptions(menu);
-        validateRange(range, options.size());
+        List<MenuOption<T, C>> options = validatedOptions(menu, selector, range);
 
         Range effectiveRange = range.clamp(options.size());
         for (int i = effectiveRange.toExclusive() - 1; i >= effectiveRange.fromInclusive(); i--) {
@@ -121,7 +111,18 @@ public final class QueryFamily {
             OptionSelector<T, C> selector,
             Range range) {
 
-        return indexesOf(menu, selector, range).size();
+        List<MenuOption<T, C>> options = validatedOptions(menu, selector, range);
+
+        Range effectiveRange = range.clamp(options.size());
+        int count = 0;
+
+        for (int i = effectiveRange.fromInclusive(); i < effectiveRange.toExclusive(); i++) {
+            if (selector.test(i, options.get(i))) {
+                count++;
+            }
+        }
+
+        return count;
     }
 
     public static <T, C> int countLabelMatches(
@@ -147,12 +148,7 @@ public final class QueryFamily {
             OptionSelector<T, C> selector,
             Range range) {
 
-        Objects.requireNonNull(menu, "El menú no pot ser nul");
-        Objects.requireNonNull(selector, "La condició no pot ser nul·la");
-        Objects.requireNonNull(range, "El rang no pot ser nul");
-
-        List<MenuOption<T, C>> options = currentOptions(menu);
-        validateRange(range, options.size());
+        List<MenuOption<T, C>> options = validatedOptions(menu, selector, range);
 
         List<Integer> matches = new ArrayList<>();
         Range effectiveRange = range.clamp(options.size());
@@ -177,18 +173,16 @@ public final class QueryFamily {
             OptionSelector<T, C> selector,
             Range range) {
 
-        Objects.requireNonNull(menu, "El menú no pot ser nul");
-        Objects.requireNonNull(selector, "La condició no pot ser nul·la");
-        Objects.requireNonNull(range, "El rang no pot ser nul");
+        List<MenuOption<T, C>> options = validatedOptions(menu, selector, range);
 
-        List<MenuOption<T, C>> options = currentOptions(menu);
-        validateRange(range, options.size());
+        Range effectiveRange = range.clamp(options.size());
+        List<MenuOption<T, C>> matches = new ArrayList<>();
 
-        List<Integer> indexes = indexesOf(menu, selector, range);
-        List<MenuOption<T, C>> matches = new ArrayList<>(indexes.size());
-
-        for (int index : indexes) {
-            matches.add(options.get(index));
+        for (int i = effectiveRange.fromInclusive(); i < effectiveRange.toExclusive(); i++) {
+            MenuOption<T, C> option = options.get(i);
+            if (selector.test(i, option)) {
+                matches.add(option);
+            }
         }
 
         return List.copyOf(matches);
@@ -312,5 +306,19 @@ public final class QueryFamily {
         }
 
         return matches;
+    }
+
+    private static <T, C> List<MenuOption<T, C>> validatedOptions(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            Range range) {
+
+        Objects.requireNonNull(menu, "El menú no pot ser nul");
+        Objects.requireNonNull(selector, "La condició no pot ser nul·la");
+        Objects.requireNonNull(range, "El rang no pot ser nul");
+
+        List<MenuOption<T, C>> options = currentOptions(menu);
+        validateRange(range, options.size());
+        return options;
     }
 }

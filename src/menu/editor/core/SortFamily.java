@@ -3,12 +3,13 @@ package menu.editor.core;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
-import java.util.LinkedHashSet;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
 import menu.DynamicMenu;
+import menu.editor.MenuEditor;
 import menu.editor.Range;
 import menu.editor.helpers.OptionSelector;
 import menu.model.MenuOption;
@@ -25,11 +26,9 @@ public final class SortFamily {
     // -------------------------------------------------------------------------
 
     public static <T, C> DynamicMenu<T, C> sortByLabel(DynamicMenu<T, C> menu) {
-        return sortByLabelInternal(
+        return sortByLabelSimpleInternal(
                 menu,
                 defaultLabelComparator(),
-                alwaysFalseSelector(),
-                alwaysFalseSelector(),
                 Range.all());
     }
 
@@ -37,11 +36,9 @@ public final class SortFamily {
             DynamicMenu<T, C> menu,
             Comparator<MenuOption<T, C>> comparator) {
 
-        return sortByLabelInternal(
+        return sortByLabelSimpleInternal(
                 menu,
                 comparator,
-                alwaysFalseSelector(),
-                alwaysFalseSelector(),
                 Range.all());
     }
 
@@ -49,11 +46,9 @@ public final class SortFamily {
             DynamicMenu<T, C> menu,
             Range range) {
 
-        return sortByLabelInternal(
+        return sortByLabelSimpleInternal(
                 menu,
                 defaultLabelComparator(),
-                alwaysFalseSelector(),
-                alwaysFalseSelector(),
                 range);
     }
 
@@ -62,11 +57,9 @@ public final class SortFamily {
             Comparator<MenuOption<T, C>> comparator,
             Range range) {
 
-        return sortByLabelInternal(
+        return sortByLabelSimpleInternal(
                 menu,
                 comparator,
-                alwaysFalseSelector(),
-                alwaysFalseSelector(),
                 range);
     }
 
@@ -117,6 +110,11 @@ public final class SortFamily {
             OptionSelector<T, C> firstSelector,
             OptionSelector<T, C> lastSelector,
             Range range) {
+
+        OptionSelector<T, C> falseSelector = MenuEditor.alwaysFalseSelector();
+
+        if (firstSelector == falseSelector && lastSelector == falseSelector)
+            return sortByLabelInternalWithoutPin(menu, comparator, range);
 
         return sortByLabelInternal(menu, comparator, firstSelector, lastSelector, range);
     }
@@ -169,8 +167,8 @@ public final class SortFamily {
             Collection<Integer> lastIndexes,
             Range range) {
 
-        Set<Integer> first = firstIndexes == null ? Set.of() : new LinkedHashSet<>(firstIndexes);
-        Set<Integer> last = lastIndexes == null ? Set.of() : new LinkedHashSet<>(lastIndexes);
+        Set<Integer> first = firstIndexes == null ? Set.of() : new HashSet<>(firstIndexes);
+        Set<Integer> last = lastIndexes == null ? Set.of() : new HashSet<>(lastIndexes);
 
         return sortByLabelInternal(
                 menu,
@@ -183,6 +181,34 @@ public final class SortFamily {
     // -------------------------------------------------------------------------
     // Internals
     // -------------------------------------------------------------------------
+
+    private static <T, C> DynamicMenu<T, C> sortByLabelSimpleInternal(
+            DynamicMenu<T, C> menu,
+            Comparator<MenuOption<T, C>> comparator,
+            Range range) {
+
+        Objects.requireNonNull(menu, "El menú no pot ser nul");
+        Objects.requireNonNull(comparator, "El comparador no pot ser nul");
+        Objects.requireNonNull(range, "El rang no pot ser nul");
+
+        MenuSnapshot<T, C> snapshot = menu.createSnapshot();
+        List<MenuOption<T, C>> options = new ArrayList<>(snapshot.getOptionSnapshot());
+
+        validateRange(range, options.size());
+
+        Range effectiveRange = range.clamp(options.size());
+        int from = effectiveRange.fromInclusive();
+        int to = effectiveRange.toExclusive();
+
+        if (to - from < 2) {
+            return menu;
+        }
+
+        options.subList(from, to).sort(comparator);
+
+        rebuildSnapshot(snapshot, options);
+        return menu.restoreSnapshot(snapshot);
+    }
 
     private static <T, C> DynamicMenu<T, C> sortByLabelInternal(
             DynamicMenu<T, C> menu,
@@ -211,9 +237,9 @@ public final class SortFamily {
             return menu;
         }
 
-        List<MenuOption<T, C>> first = new ArrayList<>(segmentSize);
+        List<MenuOption<T, C>> first = new ArrayList<>();
         List<MenuOption<T, C>> middle = new ArrayList<>(segmentSize);
-        List<MenuOption<T, C>> last = new ArrayList<>(segmentSize);
+        List<MenuOption<T, C>> last = new ArrayList<>();
 
         for (int index = from; index < to; index++) {
             MenuOption<T, C> option = options.get(index);
@@ -247,6 +273,35 @@ public final class SortFamily {
         for (MenuOption<T, C> option : last) {
             options.set(writeIndex++, option);
         }
+
+        rebuildSnapshot(snapshot, options);
+        return menu.restoreSnapshot(snapshot);
+    }
+
+    private static <T, C> DynamicMenu<T, C> sortByLabelInternalWithoutPin(
+            DynamicMenu<T, C> menu,
+            Comparator<MenuOption<T, C>> comparator,
+            Range range) {
+
+        Objects.requireNonNull(menu, "El menú no pot ser nul");
+        Objects.requireNonNull(comparator, "El comparador no pot ser nul");
+        Objects.requireNonNull(range, "El rang no pot ser nul");
+
+        MenuSnapshot<T, C> snapshot = menu.createSnapshot();
+        List<MenuOption<T, C>> options = new ArrayList<>(snapshot.getOptionSnapshot());
+
+        validateRange(range, options.size());
+
+        Range effectiveRange = range.clamp(options.size());
+        int from = effectiveRange.fromInclusive();
+        int to = effectiveRange.toExclusive();
+        int segmentSize = to - from;
+
+        if (segmentSize < 2) {
+            return menu;
+        }
+
+        options.subList(from, to).sort(comparator);
 
         rebuildSnapshot(snapshot, options);
         return menu.restoreSnapshot(snapshot);

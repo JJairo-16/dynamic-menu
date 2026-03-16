@@ -1210,39 +1210,15 @@ public final class ReplaceFamily {
             OptionMapper<T, C> mapper,
             EditConfig config) {
 
-        MenuSnapshot<T, C> snapshot = menu.createSnapshot();
-        List<MenuOption<T, C>> options = new ArrayList<>(snapshot.getOptionSnapshot());
+        Objects.requireNonNull(config, "La configuració no pot ser nul·la");
 
-        validateRange(config.range(), options.size());
-
-        if (options.isEmpty() || config.limit() == 0) {
-            return 0;
-        }
-
-        Range effectiveRange = config.range().clamp(options.size());
-        List<Integer> targets = new ArrayList<>(QueryFamily.collectMatchingIndexes(
-                options,
+        return executeReplace(
+                menu,
                 selector,
-                effectiveRange,
+                mapper,
+                config.range(),
                 config.limit(),
-                config.reverse()));
-        targets.sort(Integer::compareTo);
-
-        if (targets.isEmpty()) {
-            return 0;
-        }
-
-        for (int index : targets) {
-            MenuOption<T, C> current = options.get(index);
-            MenuOption<T, C> mapped = Objects.requireNonNull(
-                    mapper.map(index, current),
-                    "El transformador no pot retornar una opció nul·la");
-            options.set(index, mapped);
-        }
-
-        rebuildSnapshot(snapshot, options);
-        menu.restoreSnapshot(snapshot);
-        return targets.size();
+                config.reverse());
     }
 
     // -------------------------------------------------------------------------
@@ -1388,11 +1364,13 @@ public final class ReplaceFamily {
         }
 
         public int execute() {
-            return ReplaceFamily.replaceIf(
+            return executeReplace(
                     menu,
                     Objects.requireNonNull(selector, "La condició no pot ser nul·la"),
                     Objects.requireNonNull(mapper, "El transformador no pot ser nul"),
-                    buildConfig());
+                    range,
+                    limit,
+                    reverse);
         }
 
         public boolean executeAny() {
@@ -1448,18 +1426,18 @@ public final class ReplaceFamily {
 
         Objects.requireNonNull(menu, "El menú no pot ser nul");
 
-        MenuSnapshot<T, C> snapshot = menu.createSnapshot();
-        List<MenuOption<T, C>> options = new ArrayList<>(snapshot.getOptionSnapshot());
-
-        if (options.isEmpty()) {
-            return menu;
-        }
-
         boolean hasLabelReplacements = labelReplacements != null && !labelReplacements.isEmpty();
         boolean hasActionReplacements = actionReplacements != null && !actionReplacements.isEmpty();
         boolean hasOptionReplacements = optionReplacements != null && !optionReplacements.isEmpty();
 
         if (!hasLabelReplacements && !hasActionReplacements && !hasOptionReplacements) {
+            return menu;
+        }
+
+        MenuSnapshot<T, C> snapshot = menu.createSnapshot();
+        List<MenuOption<T, C>> options = new ArrayList<>(snapshot.getOptionSnapshot());
+
+        if (options.isEmpty()) {
             return menu;
         }
 
@@ -1501,5 +1479,73 @@ public final class ReplaceFamily {
 
         rebuildSnapshot(snapshot, options);
         return menu.restoreSnapshot(snapshot);
+    }
+
+    private static <T, C> int executeReplace(
+            DynamicMenu<T, C> menu,
+            OptionSelector<T, C> selector,
+            OptionMapper<T, C> mapper,
+            Range range,
+            int limit,
+            boolean reverse) {
+
+        Objects.requireNonNull(menu, "El menú no pot ser nul");
+        Objects.requireNonNull(selector, "La condició no pot ser nul·la");
+        Objects.requireNonNull(mapper, "El transformador no pot ser nul");
+        Objects.requireNonNull(range, "El rang no pot ser nul");
+
+        if (limit == 0) {
+            return 0;
+        }
+
+        MenuSnapshot<T, C> snapshot = menu.createSnapshot();
+        List<MenuOption<T, C>> options = new ArrayList<>(snapshot.getOptionSnapshot());
+
+        if (options.isEmpty()) {
+            return 0;
+        }
+
+        validateRange(range, options.size());
+        Range effectiveRange = range.clamp(options.size());
+
+        int replaced = 0;
+
+        if (!reverse) {
+            int index = effectiveRange.fromInclusive();
+            while (index < effectiveRange.toExclusive() && replaced < limit) {
+                MenuOption<T, C> current = options.get(index);
+                if (selector.test(index, current)) {
+                    MenuOption<T, C> mapped = Objects.requireNonNull(
+                            mapper.map(index, current),
+                            "El transformador no pot retornar una opció nul·la");
+
+                    options.set(index, mapped);
+                    replaced++;
+                }
+                index++;
+            }
+        } else {
+            int index = effectiveRange.toExclusive() - 1;
+            while (index >= effectiveRange.fromInclusive() && replaced < limit) {
+                MenuOption<T, C> current = options.get(index);
+                if (selector.test(index, current)) {
+                    MenuOption<T, C> mapped = Objects.requireNonNull(
+                            mapper.map(index, current),
+                            "El transformador no pot retornar una opció nul·la");
+
+                    options.set(index, mapped);
+                    replaced++;
+                }
+                index--;
+            }
+        }
+
+        if (replaced == 0) {
+            return 0;
+        }
+
+        rebuildSnapshot(snapshot, options);
+        menu.restoreSnapshot(snapshot);
+        return replaced;
     }
 }

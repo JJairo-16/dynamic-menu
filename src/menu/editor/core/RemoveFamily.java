@@ -3,7 +3,6 @@ package menu.editor.core;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 
 import menu.DynamicMenu;
 import menu.editor.EditConfig;
@@ -17,14 +16,16 @@ import static menu.editor.core.MenuEditorSupport.*;
 /**
  * Família d'operacions d'eliminació sobre un {@link DynamicMenu}.
  *
- * <p>Aquesta classe combina dos estils d'ús:
+ * <p>
+ * Aquesta classe combina dos estils d'ús:
  * <ul>
- *     <li><b>Mètodes estàtics</b> per als casos simples i de conveniència.</li>
- *     <li><b>API fluïda</b> per construir operacions d'eliminació més avançades
- *     de manera escalable i expressiva.</li>
+ * <li><b>Mètodes estàtics</b> per als casos simples i de conveniència.</li>
+ * <li><b>API fluïda</b> per construir operacions d'eliminació més avançades
+ * de manera escalable i expressiva.</li>
  * </ul>
  *
- * <p>La lògica real d'eliminació es centralitza en un únic nucli intern per evitar
+ * <p>
+ * La lògica real d'eliminació es centralitza en un únic nucli intern per evitar
  * duplicació i facilitar l'evolució del projecte.
  */
 public final class RemoveFamily {
@@ -187,7 +188,8 @@ public final class RemoveFamily {
     }
 
     /**
-     * Elimina totes les opcions coincidents dins d'un rang, recorrent en sentit invers.
+     * Elimina totes les opcions coincidents dins d'un rang, recorrent en sentit
+     * invers.
      *
      * @param menu     menú objectiu
      * @param selector condició de selecció
@@ -208,7 +210,8 @@ public final class RemoveFamily {
     }
 
     /**
-     * Elimina opcions coincidents dins d'un rang, amb límit i recorrent en sentit invers.
+     * Elimina opcions coincidents dins d'un rang, amb límit i recorrent en sentit
+     * invers.
      *
      * @param menu     menú objectiu
      * @param selector condició de selecció
@@ -232,7 +235,8 @@ public final class RemoveFamily {
     }
 
     /**
-     * Elimina opcions recorrent en sentit invers a partir d'una configuració existent.
+     * Elimina opcions recorrent en sentit invers a partir d'una configuració
+     * existent.
      *
      * @param menu     menú objectiu
      * @param selector condició de selecció
@@ -353,13 +357,14 @@ public final class RemoveFamily {
     /**
      * Executa la lògica real d'eliminació.
      *
-     * <p>Aquest mètode centralitza el procés complet:
+     * <p>
+     * Aquest mètode centralitza el procés complet:
      * <ol>
-     *     <li>captura l'estat actual del menú,</li>
-     *     <li>valida el rang,</li>
-     *     <li>calcula els índexs a eliminar,</li>
-     *     <li>reconstrueix el snapshot,</li>
-     *     <li>restaura el menú.</li>
+     * <li>captura l'estat actual del menú,</li>
+     * <li>valida el rang,</li>
+     * <li>calcula els índexs a eliminar,</li>
+     * <li>reconstrueix el snapshot,</li>
+     * <li>restaura el menú.</li>
      * </ol>
      *
      * @param menu     menú objectiu
@@ -384,27 +389,14 @@ public final class RemoveFamily {
         }
 
         Range effectiveRange = config.range().clamp(options.size());
-        Set<Integer> toRemove = QueryFamily.collectMatchingIndexes(
-                options,
-                selector,
-                effectiveRange,
-                config.limit(),
-                config.reverse());
 
-        if (toRemove.isEmpty()) {
-            return 0;
-        }
+        if (config.limit() == 1)
+            return executeRemoveSingleMatch(menu, snapshot, options, selector, effectiveRange, config.reverse());
 
-        List<MenuOption<T, C>> rebuilt = new ArrayList<>(options.size() - toRemove.size());
-        for (int i = 0; i < options.size(); i++) {
-            if (!toRemove.contains(i)) {
-                rebuilt.add(options.get(i));
-            }
-        }
+        if (!config.reverse())
+            return executeRemoveForwardSinglePass(menu, snapshot, options, selector, effectiveRange, config.limit());
 
-        rebuildSnapshot(snapshot, rebuilt);
-        menu.restoreSnapshot(snapshot);
-        return toRemove.size();
+        return executeRemoveReverse(menu, snapshot, options, selector, effectiveRange, config.limit());
     }
 
     // -------------------------------------------------------------------------
@@ -414,7 +406,8 @@ public final class RemoveFamily {
     /**
      * Operació fluïda d'eliminació.
      *
-     * <p>Permet construir una eliminació de manera declarativa i escalable:
+     * <p>
+     * Permet construir una eliminació de manera declarativa i escalable:
      *
      * <pre>{@code
      * RemoveFamily.remove(menu)
@@ -588,5 +581,138 @@ public final class RemoveFamily {
         public boolean executeAny() {
             return execute() > 0;
         }
+    }
+
+    private static <T, C> int executeRemoveSingleMatch(
+            DynamicMenu<T, C> menu,
+            MenuSnapshot<T, C> snapshot,
+            List<MenuOption<T, C>> options,
+            OptionSelector<T, C> selector,
+            Range range,
+            boolean reverse) {
+
+        int indexToRemove = findSingleMatchingIndex(options, selector, range, reverse);
+        if (indexToRemove < 0) {
+            return 0;
+        }
+
+        int size = options.size();
+        List<MenuOption<T, C>> rebuilt = new ArrayList<>(size - 1);
+
+        rebuilt.addAll(options.subList(0, indexToRemove));
+        rebuilt.addAll(options.subList(indexToRemove + 1, size));
+
+        rebuildSnapshot(snapshot, rebuilt);
+        menu.restoreSnapshot(snapshot);
+        return 1;
+    }
+
+    private static <T, C> int findSingleMatchingIndex(
+            List<MenuOption<T, C>> options,
+            OptionSelector<T, C> selector,
+            Range range,
+            boolean reverse) {
+
+        int from = range.fromInclusive();
+        int to = range.toExclusive();
+
+        if (!reverse) {
+            for (int i = from; i < to; i++) {
+                if (selector.test(i, options.get(i))) {
+                    return i;
+                }
+            }
+        } else {
+            for (int i = to - 1; i >= from; i--) {
+                if (selector.test(i, options.get(i))) {
+                    return i;
+                }
+            }
+        }
+
+        return -1;
+    }
+
+    private static <T, C> int executeRemoveForwardSinglePass(
+            DynamicMenu<T, C> menu,
+            MenuSnapshot<T, C> snapshot,
+            List<MenuOption<T, C>> options,
+            OptionSelector<T, C> selector,
+            Range range,
+            int limit) {
+
+        int size = options.size();
+        int from = range.fromInclusive();
+        int to = range.toExclusive();
+
+        if (from >= to) {
+            return 0;
+        }
+
+        int maxPossibleRemoved = Math.min(limit, to - from);
+        List<MenuOption<T, C>> rebuilt = new ArrayList<>(size - maxPossibleRemoved);
+
+        int removed = 0;
+
+        rebuilt.addAll(options.subList(0, from));
+
+        int i = from;
+        for (; i < to && removed < limit; i++) {
+            MenuOption<T, C> option = options.get(i);
+
+            if (selector.test(i, option)) {
+                removed++;
+            } else {
+                rebuilt.add(option);
+            }
+        }
+
+        rebuilt.addAll(options.subList(i, to));
+        rebuilt.addAll(options.subList(to, size));
+
+        if (removed == 0) {
+            return 0;
+        }
+
+        rebuildSnapshot(snapshot, rebuilt);
+        menu.restoreSnapshot(snapshot);
+        return removed;
+    }
+
+    private static <T, C> int executeRemoveReverse(
+            DynamicMenu<T, C> menu,
+            MenuSnapshot<T, C> snapshot,
+            List<MenuOption<T, C>> options,
+            OptionSelector<T, C> selector,
+            Range range,
+            int limit) {
+
+        boolean[] removeMask = new boolean[options.size()];
+        int removed = 0;
+
+        int from = range.fromInclusive();
+        int to = range.toExclusive();
+
+        for (int i = to - 1; i >= from && removed < limit; i--) {
+            if (selector.test(i, options.get(i))) {
+                removeMask[i] = true;
+                removed++;
+            }
+        }
+
+        if (removed == 0) {
+            return 0;
+        }
+
+        List<MenuOption<T, C>> rebuilt = new ArrayList<>(options.size() - removed);
+        for (int i = 0; i < options.size(); i++) {
+            if (!removeMask[i]) {
+                rebuilt.add(options.get(i));
+            }
+        }
+
+        rebuildSnapshot(snapshot, rebuilt);
+        menu.restoreSnapshot(snapshot);
+        return removed;
     }
 }
