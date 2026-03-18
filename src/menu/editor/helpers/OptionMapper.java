@@ -2,9 +2,7 @@ package menu.editor.helpers;
 
 import menu.model.MenuOption;
 
-/**
- * Transformador complet d'opcions.
- */
+/** Transformador complet d'opcions. */
 @FunctionalInterface
 public interface OptionMapper<T, C> {
 

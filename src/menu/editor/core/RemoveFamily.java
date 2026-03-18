@@ -30,6 +30,7 @@ import static menu.editor.core.MenuEditorSupport.*;
  */
 public final class RemoveFamily {
     private RemoveFamily() {
+        throw new AssertionError("No es pot instanciar RemoveFamily");
     }
 
     // -------------------------------------------------------------------------
@@ -44,6 +45,7 @@ public final class RemoveFamily {
      * @param <C>  tipus del context secundari
      * @return operador fluent d'eliminació
      */
+    /** Inicia una operació d'eliminació. */
     public static <T, C> RemoveOperation<T, C> remove(DynamicMenu<T, C> menu) {
         return new RemoveOperation<>(menu);
     }
@@ -57,6 +59,7 @@ public final class RemoveFamily {
      * @param <C>      tipus del context secundari
      * @return operador fluent d'eliminació
      */
+    /** Inicia una operació d'eliminació. */
     public static <T, C> RemoveOperation<T, C> remove(
             DynamicMenu<T, C> menu,
             OptionSelector<T, C> selector) {
@@ -73,6 +76,7 @@ public final class RemoveFamily {
      * @param <C>   tipus del context secundari
      * @return operador fluent d'eliminació
      */
+    /** Inicia una eliminació per etiqueta exacta. */
     public static <T, C> RemoveOperation<T, C> removeLabel(
             DynamicMenu<T, C> menu,
             String label) {
@@ -93,6 +97,7 @@ public final class RemoveFamily {
      * @param <C>      tipus del context secundari
      * @return nombre d'elements eliminats
      */
+    /** Elimina les opcions que compleixen la condició. */
     public static <T, C> int removeIf(
             DynamicMenu<T, C> menu,
             OptionSelector<T, C> selector) {
@@ -110,6 +115,7 @@ public final class RemoveFamily {
      * @param <C>      tipus del context secundari
      * @return nombre d'elements eliminats
      */
+    /** Elimina les opcions que compleixen la condició. */
     public static <T, C> int removeIf(
             DynamicMenu<T, C> menu,
             OptionSelector<T, C> selector,
@@ -131,6 +137,7 @@ public final class RemoveFamily {
      * @param <C>      tipus del context secundari
      * @return nombre d'elements eliminats
      */
+    /** Elimina les opcions que compleixen la condició. */
     public static <T, C> int removeIf(
             DynamicMenu<T, C> menu,
             OptionSelector<T, C> selector,
@@ -153,6 +160,7 @@ public final class RemoveFamily {
      * @param <C>      tipus del context secundari
      * @return nombre d'elements eliminats
      */
+    /** Elimina les opcions que compleixen la condició. */
     public static <T, C> int removeIf(
             DynamicMenu<T, C> menu,
             OptionSelector<T, C> selector,
@@ -178,6 +186,7 @@ public final class RemoveFamily {
      * @param <C>      tipus del context secundari
      * @return nombre d'elements eliminats
      */
+    /** Elimina les coincidències en ordre invers. */
     public static <T, C> int removeAllIfReverse(
             DynamicMenu<T, C> menu,
             OptionSelector<T, C> selector) {
@@ -198,6 +207,7 @@ public final class RemoveFamily {
      * @param <C>      tipus del context secundari
      * @return nombre d'elements eliminats
      */
+    /** Elimina les coincidències en ordre invers. */
     public static <T, C> int removeAllIfReverse(
             DynamicMenu<T, C> menu,
             OptionSelector<T, C> selector,
@@ -221,6 +231,7 @@ public final class RemoveFamily {
      * @param <C>      tipus del context secundari
      * @return nombre d'elements eliminats
      */
+    /** Elimina les coincidències en ordre invers. */
     public static <T, C> int removeAllIfReverse(
             DynamicMenu<T, C> menu,
             OptionSelector<T, C> selector,
@@ -245,6 +256,7 @@ public final class RemoveFamily {
      * @param <C>      tipus del context secundari
      * @return nombre d'elements eliminats
      */
+    /** Elimina les coincidències en ordre invers. */
     public static <T, C> int removeAllIfReverse(
             DynamicMenu<T, C> menu,
             OptionSelector<T, C> selector,
@@ -271,6 +283,7 @@ public final class RemoveFamily {
      * @param <C>      tipus del context secundari
      * @return {@code true} si s'ha eliminat una opció
      */
+    /** Elimina la primera coincidència. */
     public static <T, C> boolean removeFirstIf(
             DynamicMenu<T, C> menu,
             OptionSelector<T, C> selector) {
@@ -289,6 +302,7 @@ public final class RemoveFamily {
      * @param <C>      tipus del context secundari
      * @return {@code true} si s'ha eliminat una opció
      */
+    /** Elimina l'última coincidència. */
     public static <T, C> boolean removeLastIf(
             DynamicMenu<T, C> menu,
             OptionSelector<T, C> selector) {
@@ -307,6 +321,7 @@ public final class RemoveFamily {
      * @param <C>   tipus del context secundari
      * @return {@code true} si s'ha eliminat una opció
      */
+    /** Elimina la primera opció amb l'etiqueta indicada. */
     public static <T, C> boolean removeFirstLabel(
             DynamicMenu<T, C> menu,
             String label) {
@@ -325,6 +340,7 @@ public final class RemoveFamily {
      * @param <C>   tipus del context secundari
      * @return {@code true} si s'ha eliminat una opció
      */
+    /** Elimina l'última opció amb l'etiqueta indicada. */
     public static <T, C> boolean removeLastLabel(
             DynamicMenu<T, C> menu,
             String label) {
@@ -343,6 +359,7 @@ public final class RemoveFamily {
      * @param <C>   tipus del context secundari
      * @return nombre d'elements eliminats
      */
+    /** Elimina totes les opcions amb l'etiqueta indicada. */
     public static <T, C> int removeAllLabels(
             DynamicMenu<T, C> menu,
             String label) {
@@ -374,19 +391,22 @@ public final class RemoveFamily {
      * @param <C>      tipus del context secundari
      * @return nombre d'elements eliminats
      */
+    /** Executa l'eliminació configurada. */
     private static <T, C> int executeRemove(
             DynamicMenu<T, C> menu,
             OptionSelector<T, C> selector,
             EditConfig config) {
 
         MenuSnapshot<T, C> snapshot = menu.createSnapshot();
-        List<MenuOption<T, C>> options = new ArrayList<>(snapshot.getOptionSnapshot());
+        List<MenuOption<T, C>> options = snapshot.getOptionSnapshot();
 
         validateRange(config.range(), options.size());
 
         if (options.isEmpty() || config.limit() == 0) {
             return 0;
         }
+
+        options = new ArrayList<>(options); 
 
         Range effectiveRange = config.range().clamp(options.size());
 
@@ -426,6 +446,7 @@ public final class RemoveFamily {
         private int limit = Integer.MAX_VALUE;
         private boolean reverse = false;
 
+        /** Executa aquesta operació. */
         private RemoveOperation(DynamicMenu<T, C> menu) {
             this.menu = Objects.requireNonNull(menu, "El menú no pot ser nul");
         }
@@ -436,6 +457,7 @@ public final class RemoveFamily {
          * @param selector condició a aplicar
          * @return aquesta operació
          */
+        /** Defineix la condició de selecció. */
         public RemoveOperation<T, C> where(OptionSelector<T, C> selector) {
             this.selector = Objects.requireNonNull(selector, "La condició no pot ser nul·la");
             return this;
@@ -447,6 +469,7 @@ public final class RemoveFamily {
          * @param label etiqueta exacta
          * @return aquesta operació
          */
+        /** Defineix una selecció o substitució per etiqueta. */
         public RemoveOperation<T, C> label(String label) {
             return where(exactLabelSelector(label));
         }
@@ -457,6 +480,7 @@ public final class RemoveFamily {
          * @param range rang a aplicar
          * @return aquesta operació
          */
+        /** Defineix el rang d'actuació. */
         public RemoveOperation<T, C> range(Range range) {
             this.range = Objects.requireNonNull(range, "El rang no pot ser nul");
             return this;
@@ -469,6 +493,7 @@ public final class RemoveFamily {
          * @param toExclusive   final exclòs
          * @return aquesta operació
          */
+        /** Defineix el rang d'actuació. */
         public RemoveOperation<T, C> range(int fromInclusive, int toExclusive) {
             return range(Range.of(fromInclusive, toExclusive));
         }
@@ -479,6 +504,7 @@ public final class RemoveFamily {
          * @param limit límit a aplicar
          * @return aquesta operació
          */
+        /** Defineix el límit d'elements afectats. */
         public RemoveOperation<T, C> limit(int limit) {
             this.limit = limit;
             return this;
@@ -489,6 +515,7 @@ public final class RemoveFamily {
          *
          * @return aquesta operació
          */
+        /** Configura el recorregut en sentit invers. */
         public RemoveOperation<T, C> reverse() {
             this.reverse = true;
             return this;
@@ -500,6 +527,7 @@ public final class RemoveFamily {
          * @param reverse valor nou
          * @return aquesta operació
          */
+        /** Configura el recorregut en sentit invers. */
         public RemoveOperation<T, C> reverse(boolean reverse) {
             this.reverse = reverse;
             return this;
@@ -510,6 +538,7 @@ public final class RemoveFamily {
          *
          * @return aquesta operació
          */
+        /** Limita l'operació a la primera coincidència. */
         public RemoveOperation<T, C> first() {
             this.limit = 1;
             this.reverse = false;
@@ -521,6 +550,7 @@ public final class RemoveFamily {
          *
          * @return aquesta operació
          */
+        /** Limita l'operació a l'última coincidència. */
         public RemoveOperation<T, C> last() {
             this.limit = 1;
             this.reverse = true;
@@ -532,6 +562,7 @@ public final class RemoveFamily {
          *
          * @return aquesta operació
          */
+        /** Considera totes les coincidències. */
         public RemoveOperation<T, C> all() {
             this.limit = Integer.MAX_VALUE;
             return this;
@@ -543,6 +574,7 @@ public final class RemoveFamily {
          * @param config configuració d'edició
          * @return aquesta operació
          */
+        /** Aplica una configuració base. */
         public RemoveOperation<T, C> config(EditConfig config) {
             Objects.requireNonNull(config, "La configuració no pot ser nul·la");
             this.range = config.range();
@@ -556,6 +588,7 @@ public final class RemoveFamily {
          *
          * @return configuració equivalent a l'estat de l'operació
          */
+        /** Construeix la configuració efectiva. */
         public EditConfig buildConfig() {
             return EditConfig.builder()
                     .range(range)
@@ -569,6 +602,7 @@ public final class RemoveFamily {
          *
          * @return nombre d'elements eliminats
          */
+        /** Executa l'operació. */
         public int execute() {
             return RemoveFamily.removeIf(menu, selector, buildConfig());
         }
@@ -578,11 +612,13 @@ public final class RemoveFamily {
          *
          * @return {@code true} si s'ha eliminat almenys una opció
          */
+        /** Executa l'operació i indica si hi ha canvis. */
         public boolean executeAny() {
             return execute() > 0;
         }
     }
 
+    /** Elimina una única coincidència. */
     private static <T, C> int executeRemoveSingleMatch(
             DynamicMenu<T, C> menu,
             MenuSnapshot<T, C> snapshot,
@@ -607,6 +643,7 @@ public final class RemoveFamily {
         return 1;
     }
 
+    /** Cerca l'índex d'una única coincidència. */
     private static <T, C> int findSingleMatchingIndex(
             List<MenuOption<T, C>> options,
             OptionSelector<T, C> selector,
@@ -633,6 +670,7 @@ public final class RemoveFamily {
         return -1;
     }
 
+    /** Elimina coincidències en una sola passada endavant. */
     private static <T, C> int executeRemoveForwardSinglePass(
             DynamicMenu<T, C> menu,
             MenuSnapshot<T, C> snapshot,
@@ -679,6 +717,7 @@ public final class RemoveFamily {
         return removed;
     }
 
+    /** Elimina coincidències recorrent enrere. */
     private static <T, C> int executeRemoveReverse(
             DynamicMenu<T, C> menu,
             MenuSnapshot<T, C> snapshot,

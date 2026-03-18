@@ -6,9 +6,7 @@ import java.util.function.Consumer;
 import menu.DynamicMenu;
 import menu.editor.EditConfig;
 
-/**
- * Pare per als builders d'edició que comparteixen {@link EditConfig}.
- */
+/** Pare per als builders d'edició que comparteixen {@link EditConfig}. */
 public abstract class AbstractEditBuilder<
         T, C,
         S extends AbstractEditBuilder<T, C, S>>
@@ -44,36 +42,28 @@ public abstract class AbstractEditBuilder<
         this.configDirty = true;
     }
 
-    /**
-     * Defineix el límit màxim d'edicions.
-     */
+    /** Defineix el límit màxim d'edicions. */
     public S limit(int limit) {
         this.limit = limit;
         onStateChanged();
         return self();
     }
 
-    /**
-     * Configura el recorregut en sentit invers.
-     */
+    /** Configura el recorregut en sentit invers. */
     public S reverse() {
         this.reverse = true;
         onStateChanged();
         return self();
     }
 
-    /**
-     * Defineix explícitament si s'ha de recórrer en sentit invers.
-     */
+    /** Defineix explícitament si s'ha de recórrer en sentit invers. */
     public S reverse(boolean reverse) {
         this.reverse = reverse;
         onStateChanged();
         return self();
     }
 
-    /**
-     * Limita l'operació a la primera coincidència.
-     */
+    /** Limita l'operació a la primera coincidència. */
     public S first() {
         this.limit = 1;
         this.reverse = false;
@@ -81,9 +71,7 @@ public abstract class AbstractEditBuilder<
         return self();
     }
 
-    /**
-     * Limita l'operació a l'última coincidència.
-     */
+    /** Limita l'operació a l'última coincidència. */
     public S last() {
         this.limit = 1;
         this.reverse = true;
@@ -91,18 +79,14 @@ public abstract class AbstractEditBuilder<
         return self();
     }
 
-    /**
-     * Defineix que s'han de considerar totes les coincidències.
-     */
+    /** Defineix que s'han de considerar totes les coincidències. */
     public S all() {
         this.limit = Integer.MAX_VALUE;
         onStateChanged();
         return self();
     }
 
-    /**
-     * Aplica una configuració base.
-     */
+    /** Aplica una configuració base. */
     public S config(EditConfig config) {
         Objects.requireNonNull(config, "La configuració no pot ser nul·la");
 
@@ -115,9 +99,7 @@ public abstract class AbstractEditBuilder<
         return self();
     }
 
-    /**
-     * Construeix la configuració actual.
-     */
+    /** Construeix la configuració actual. */
     public EditConfig buildConfig() {
         if (!configDirty && cachedConfig != null) {
             return cachedConfig;
@@ -133,9 +115,7 @@ public abstract class AbstractEditBuilder<
         return cachedConfig;
     }
 
-    /**
-     * Hereta selector, rang i configuració d'edició.
-     */
+    /** Hereta selector, rang i configuració d'edició. */
     protected final <B extends AbstractEditBuilder<T, C, B>> B inheritEditStateTo(B target) {
         Objects.requireNonNull(target, "El builder objectiu no pot ser nul");
         target.where(requireSelector());

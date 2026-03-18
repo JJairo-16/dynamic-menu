@@ -17,14 +17,17 @@ import menu.snapshot.MenuSnapshot;
 
 import static menu.editor.core.MenuEditorSupport.*;
 
+/** Utilitats de SortFamily. */
 public final class SortFamily {
     private SortFamily() {
+        throw new AssertionError("No es pot instanciar SortFamily");
     }
 
     // -------------------------------------------------------------------------
     // Sorting
     // -------------------------------------------------------------------------
 
+    /** Ordena les opcions per etiqueta. */
     public static <T, C> DynamicMenu<T, C> sortByLabel(DynamicMenu<T, C> menu) {
         return sortByLabelSimpleInternal(
                 menu,
@@ -32,6 +35,7 @@ public final class SortFamily {
                 Range.all());
     }
 
+    /** Ordena les opcions per etiqueta. */
     public static <T, C> DynamicMenu<T, C> sortByLabel(
             DynamicMenu<T, C> menu,
             Comparator<MenuOption<T, C>> comparator) {
@@ -42,6 +46,7 @@ public final class SortFamily {
                 Range.all());
     }
 
+    /** Ordena les opcions per etiqueta. */
     public static <T, C> DynamicMenu<T, C> sortByLabel(
             DynamicMenu<T, C> menu,
             Range range) {
@@ -52,6 +57,7 @@ public final class SortFamily {
                 range);
     }
 
+    /** Ordena les opcions per etiqueta. */
     public static <T, C> DynamicMenu<T, C> sortByLabel(
             DynamicMenu<T, C> menu,
             Comparator<MenuOption<T, C>> comparator,
@@ -63,6 +69,7 @@ public final class SortFamily {
                 range);
     }
 
+    /** Ordena les opcions per etiqueta. */
     public static <T, C> DynamicMenu<T, C> sortByLabel(
             DynamicMenu<T, C> menu,
             OptionSelector<T, C> firstSelector,
@@ -76,6 +83,7 @@ public final class SortFamily {
                 Range.all());
     }
 
+    /** Ordena les opcions per etiqueta. */
     public static <T, C> DynamicMenu<T, C> sortByLabel(
             DynamicMenu<T, C> menu,
             OptionSelector<T, C> firstSelector,
@@ -90,6 +98,7 @@ public final class SortFamily {
                 range);
     }
 
+    /** Ordena les opcions per etiqueta. */
     public static <T, C> DynamicMenu<T, C> sortByLabel(
             DynamicMenu<T, C> menu,
             Comparator<MenuOption<T, C>> comparator,
@@ -104,6 +113,7 @@ public final class SortFamily {
                 Range.all());
     }
 
+    /** Ordena les opcions per etiqueta. */
     public static <T, C> DynamicMenu<T, C> sortByLabel(
             DynamicMenu<T, C> menu,
             Comparator<MenuOption<T, C>> comparator,
@@ -119,6 +129,7 @@ public final class SortFamily {
         return sortByLabelInternal(menu, comparator, firstSelector, lastSelector, range);
     }
 
+    /** Ordena per etiqueta mantenint índexs fixats. */
     public static <T, C> DynamicMenu<T, C> sortByLabelPinnedIndexes(
             DynamicMenu<T, C> menu,
             Collection<Integer> firstIndexes,
@@ -132,6 +143,7 @@ public final class SortFamily {
                 Range.all());
     }
 
+    /** Ordena per etiqueta mantenint índexs fixats. */
     public static <T, C> DynamicMenu<T, C> sortByLabelPinnedIndexes(
             DynamicMenu<T, C> menu,
             Collection<Integer> firstIndexes,
@@ -146,6 +158,7 @@ public final class SortFamily {
                 range);
     }
 
+    /** Ordena per etiqueta mantenint índexs fixats. */
     public static <T, C> DynamicMenu<T, C> sortByLabelPinnedIndexes(
             DynamicMenu<T, C> menu,
             Comparator<MenuOption<T, C>> comparator,
@@ -160,6 +173,7 @@ public final class SortFamily {
                 Range.all());
     }
 
+    /** Ordena per etiqueta mantenint índexs fixats. */
     public static <T, C> DynamicMenu<T, C> sortByLabelPinnedIndexes(
             DynamicMenu<T, C> menu,
             Comparator<MenuOption<T, C>> comparator,
@@ -182,6 +196,7 @@ public final class SortFamily {
     // Internals
     // -------------------------------------------------------------------------
 
+    /** Ordena un rang sense fixacions. */
     private static <T, C> DynamicMenu<T, C> sortByLabelSimpleInternal(
             DynamicMenu<T, C> menu,
             Comparator<MenuOption<T, C>> comparator,
@@ -192,7 +207,7 @@ public final class SortFamily {
         Objects.requireNonNull(range, "El rang no pot ser nul");
 
         MenuSnapshot<T, C> snapshot = menu.createSnapshot();
-        List<MenuOption<T, C>> options = new ArrayList<>(snapshot.getOptionSnapshot());
+        List<MenuOption<T, C>> options = snapshot.getOptionSnapshot();
 
         validateRange(range, options.size());
 
@@ -204,12 +219,14 @@ public final class SortFamily {
             return menu;
         }
 
-        options.subList(from, to).sort(comparator);
+        List<MenuOption<T, C>> sortedRange = new ArrayList<>(options.subList(from, to));
+        sortedRange.sort(comparator);
 
-        rebuildSnapshot(snapshot, options);
+        snapshot.replaceOptions(from, sortedRange);
         return menu.restoreSnapshot(snapshot);
     }
 
+    /** Ordena per etiqueta respectant les opcions fixades. */
     private static <T, C> DynamicMenu<T, C> sortByLabelInternal(
             DynamicMenu<T, C> menu,
             Comparator<MenuOption<T, C>> comparator,
@@ -278,6 +295,7 @@ public final class SortFamily {
         return menu.restoreSnapshot(snapshot);
     }
 
+    /** Ordena un rang sense opcions fixades. */
     private static <T, C> DynamicMenu<T, C> sortByLabelInternalWithoutPin(
             DynamicMenu<T, C> menu,
             Comparator<MenuOption<T, C>> comparator,
@@ -303,7 +321,7 @@ public final class SortFamily {
 
         options.subList(from, to).sort(comparator);
 
-        rebuildSnapshot(snapshot, options);
+        rebuildSnapshotRange(snapshot, options, from, to);
         return menu.restoreSnapshot(snapshot);
     }
 }

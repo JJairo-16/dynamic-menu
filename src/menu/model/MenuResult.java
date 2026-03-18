@@ -14,9 +14,7 @@ import java.util.Objects;
  */
 public final class MenuResult<T> {
 
-    /**
-     * Tipus de resultat possibles del menú.
-     */
+    /** Tipus de resultat possibles del menú. */
     public enum Type {
         /** El menú ha de continuar amb la següent iteració. */
         CONTINUE,

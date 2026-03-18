@@ -2,9 +2,7 @@ package menu.editor.helpers;
 
 import menu.model.MenuOption;
 
-/**
- * Condició per decidir si una opció ha de ser afectada.
- */
+/** Condició per decidir si una opció ha de ser afectada. */
 @FunctionalInterface
 public interface OptionSelector<T, C> {
 

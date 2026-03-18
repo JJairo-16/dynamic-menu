@@ -15,6 +15,7 @@ import menu.snapshot.MenuSnapshot;
 
 import static menu.editor.core.MenuEditorSupport.*;
 
+/** Utilitats de ReplaceFamily. */
 public final class ReplaceFamily {
     private ReplaceFamily() {
         throw new AssertionError("No es pot instanciar ReplaceFamily");
@@ -24,6 +25,7 @@ public final class ReplaceFamily {
     // Replace by index
     // -------------------------------------------------------------------------
 
+    /** Reemplaça l'etiqueta d'una opció per índex. */
     public static <T, C> DynamicMenu<T, C> replaceLabelAt(
             DynamicMenu<T, C> menu,
             int index,
@@ -33,6 +35,7 @@ public final class ReplaceFamily {
         return replaceAtInternal(menu, index, newLabel, null, true, false);
     }
 
+    /** Reemplaça l'acció d'una opció per índex. */
     public static <T, C> DynamicMenu<T, C> replaceActionAt(
             DynamicMenu<T, C> menu,
             int index,
@@ -42,6 +45,7 @@ public final class ReplaceFamily {
         return replaceAtInternal(menu, index, null, newAction, false, true);
     }
 
+    /** Reemplaça l'acció d'una opció per índex. */
     public static <T, C> DynamicMenu<T, C> replaceActionAt(
             DynamicMenu<T, C> menu,
             int index,
@@ -51,6 +55,7 @@ public final class ReplaceFamily {
         return replaceActionAt(menu, index, runtimeOf(newAction));
     }
 
+    /** Reemplaça l'acció d'una opció per índex. */
     public static <T, C> DynamicMenu<T, C> replaceActionAt(
             DynamicMenu<T, C> menu,
             int index,
@@ -60,6 +65,7 @@ public final class ReplaceFamily {
         return replaceActionAt(menu, index, runtimeOf(newAction));
     }
 
+    /** Reemplaça opcions del menú. */
     public static <T, C> DynamicMenu<T, C> replaceAt(
             DynamicMenu<T, C> menu,
             int index,
@@ -71,6 +77,7 @@ public final class ReplaceFamily {
         return replaceAtInternal(menu, index, newLabel, newAction, true, true);
     }
 
+    /** Reemplaça opcions del menú. */
     public static <T, C> DynamicMenu<T, C> replaceAt(
             DynamicMenu<T, C> menu,
             int index,
@@ -81,6 +88,7 @@ public final class ReplaceFamily {
         return replaceAt(menu, index, newLabel, runtimeOf(newAction));
     }
 
+    /** Reemplaça opcions del menú. */
     public static <T, C> DynamicMenu<T, C> replaceAt(
             DynamicMenu<T, C> menu,
             int index,
@@ -91,6 +99,7 @@ public final class ReplaceFamily {
         return replaceAt(menu, index, newLabel, runtimeOf(newAction));
     }
 
+    /** Reemplaça opcions del menú. */
     public static <T, C> DynamicMenu<T, C> replaceAt(
             DynamicMenu<T, C> menu,
             int index,
@@ -104,10 +113,12 @@ public final class ReplaceFamily {
     // Fluent entry points interns
     // -------------------------------------------------------------------------
 
+    /** Inicia una operació de reemplaç. */
     public static <T, C> ReplaceOperation<T, C> replace(DynamicMenu<T, C> menu) {
         return new ReplaceOperation<>(menu);
     }
 
+    /** Inicia una operació de reemplaç. */
     public static <T, C> ReplaceOperation<T, C> replace(
             DynamicMenu<T, C> menu,
             OptionSelector<T, C> selector) {
@@ -115,6 +126,7 @@ public final class ReplaceFamily {
         return replace(menu).where(selector);
     }
 
+    /** Inicia un reemplaç per etiqueta exacta. */
     public static <T, C> ReplaceOperation<T, C> replaceLabel(
             DynamicMenu<T, C> menu,
             String targetLabel) {
@@ -126,6 +138,7 @@ public final class ReplaceFamily {
     // Replace by exact label
     // -------------------------------------------------------------------------
 
+    /** Reemplaça la primera etiqueta coincident. */
     public static <T, C> boolean replaceFirstLabel(
             DynamicMenu<T, C> menu,
             String targetLabel,
@@ -137,6 +150,7 @@ public final class ReplaceFamily {
                 .executeAny();
     }
 
+    /** Reemplaça l'última etiqueta coincident. */
     public static <T, C> boolean replaceLastLabel(
             DynamicMenu<T, C> menu,
             String targetLabel,
@@ -148,6 +162,7 @@ public final class ReplaceFamily {
                 .executeAny();
     }
 
+    /** Reemplaça totes les etiquetes coincidents. */
     public static <T, C> int replaceAllLabels(
             DynamicMenu<T, C> menu,
             String targetLabel,
@@ -158,6 +173,7 @@ public final class ReplaceFamily {
                 .execute();
     }
 
+    /** Reemplaça la primera acció coincident. */
     public static <T, C> boolean replaceFirstAction(
             DynamicMenu<T, C> menu,
             String targetLabel,
@@ -169,6 +185,7 @@ public final class ReplaceFamily {
                 .executeAny();
     }
 
+    /** Reemplaça la primera acció coincident. */
     public static <T, C> boolean replaceFirstAction(
             DynamicMenu<T, C> menu,
             String targetLabel,
@@ -177,6 +194,7 @@ public final class ReplaceFamily {
         return replaceFirstAction(menu, targetLabel, runtimeOf(newAction));
     }
 
+    /** Reemplaça la primera acció coincident. */
     public static <T, C> boolean replaceFirstAction(
             DynamicMenu<T, C> menu,
             String targetLabel,
@@ -185,6 +203,7 @@ public final class ReplaceFamily {
         return replaceFirstAction(menu, targetLabel, runtimeOf(newAction));
     }
 
+    /** Reemplaça l'última acció coincident. */
     public static <T, C> boolean replaceLastAction(
             DynamicMenu<T, C> menu,
             String targetLabel,
@@ -196,6 +215,7 @@ public final class ReplaceFamily {
                 .executeAny();
     }
 
+    /** Reemplaça l'última acció coincident. */
     public static <T, C> boolean replaceLastAction(
             DynamicMenu<T, C> menu,
             String targetLabel,
@@ -204,6 +224,7 @@ public final class ReplaceFamily {
         return replaceLastAction(menu, targetLabel, runtimeOf(newAction));
     }
 
+    /** Reemplaça l'última acció coincident. */
     public static <T, C> boolean replaceLastAction(
             DynamicMenu<T, C> menu,
             String targetLabel,
@@ -212,6 +233,7 @@ public final class ReplaceFamily {
         return replaceLastAction(menu, targetLabel, runtimeOf(newAction));
     }
 
+    /** Reemplaça totes les accions coincidents. */
     public static <T, C> int replaceAllActions(
             DynamicMenu<T, C> menu,
             String targetLabel,
@@ -222,6 +244,7 @@ public final class ReplaceFamily {
                 .execute();
     }
 
+    /** Reemplaça totes les accions coincidents. */
     public static <T, C> int replaceAllActions(
             DynamicMenu<T, C> menu,
             String targetLabel,
@@ -230,6 +253,7 @@ public final class ReplaceFamily {
         return replaceAllActions(menu, targetLabel, runtimeOf(newAction));
     }
 
+    /** Reemplaça totes les accions coincidents. */
     public static <T, C> int replaceAllActions(
             DynamicMenu<T, C> menu,
             String targetLabel,
@@ -238,6 +262,7 @@ public final class ReplaceFamily {
         return replaceAllActions(menu, targetLabel, runtimeOf(newAction));
     }
 
+    /** Reemplaça opcions del menú. */
     public static <T, C> boolean replaceFirst(
             DynamicMenu<T, C> menu,
             String targetLabel,
@@ -250,6 +275,7 @@ public final class ReplaceFamily {
                 .executeAny();
     }
 
+    /** Reemplaça opcions del menú. */
     public static <T, C> boolean replaceFirst(
             DynamicMenu<T, C> menu,
             String targetLabel,
@@ -259,6 +285,7 @@ public final class ReplaceFamily {
         return replaceFirst(menu, targetLabel, newLabel, runtimeOf(newAction));
     }
 
+    /** Reemplaça opcions del menú. */
     public static <T, C> boolean replaceFirst(
             DynamicMenu<T, C> menu,
             String targetLabel,
@@ -268,6 +295,7 @@ public final class ReplaceFamily {
         return replaceFirst(menu, targetLabel, newLabel, runtimeOf(newAction));
     }
 
+    /** Reemplaça opcions del menú. */
     public static <T, C> boolean replaceFirst(
             DynamicMenu<T, C> menu,
             String targetLabel,
@@ -277,6 +305,7 @@ public final class ReplaceFamily {
         return replaceFirst(menu, targetLabel, newOption.label(), newOption.action());
     }
 
+    /** Reemplaça opcions del menú. */
     public static <T, C> boolean replaceLast(
             DynamicMenu<T, C> menu,
             String targetLabel,
@@ -289,6 +318,7 @@ public final class ReplaceFamily {
                 .executeAny();
     }
 
+    /** Reemplaça opcions del menú. */
     public static <T, C> boolean replaceLast(
             DynamicMenu<T, C> menu,
             String targetLabel,
@@ -298,6 +328,7 @@ public final class ReplaceFamily {
         return replaceLast(menu, targetLabel, newLabel, runtimeOf(newAction));
     }
 
+    /** Reemplaça opcions del menú. */
     public static <T, C> boolean replaceLast(
             DynamicMenu<T, C> menu,
             String targetLabel,
@@ -307,6 +338,7 @@ public final class ReplaceFamily {
         return replaceLast(menu, targetLabel, newLabel, runtimeOf(newAction));
     }
 
+    /** Reemplaça opcions del menú. */
     public static <T, C> boolean replaceLast(
             DynamicMenu<T, C> menu,
             String targetLabel,
@@ -316,6 +348,7 @@ public final class ReplaceFamily {
         return replaceLast(menu, targetLabel, newOption.label(), newOption.action());
     }
 
+    /** Reemplaça opcions del menú. */
     public static <T, C> int replaceAll(
             DynamicMenu<T, C> menu,
             String targetLabel,
@@ -327,6 +360,7 @@ public final class ReplaceFamily {
                 .execute();
     }
 
+    /** Reemplaça opcions del menú. */
     public static <T, C> int replaceAll(
             DynamicMenu<T, C> menu,
             String targetLabel,
@@ -336,6 +370,7 @@ public final class ReplaceFamily {
         return replaceAll(menu, targetLabel, newLabel, runtimeOf(newAction));
     }
 
+    /** Reemplaça opcions del menú. */
     public static <T, C> int replaceAll(
             DynamicMenu<T, C> menu,
             String targetLabel,
@@ -345,6 +380,7 @@ public final class ReplaceFamily {
         return replaceAll(menu, targetLabel, newLabel, runtimeOf(newAction));
     }
 
+    /** Reemplaça opcions del menú. */
     public static <T, C> int replaceAll(
             DynamicMenu<T, C> menu,
             String targetLabel,
@@ -358,6 +394,7 @@ public final class ReplaceFamily {
     // Replace if
     // -------------------------------------------------------------------------
 
+    /** Reemplaça les opcions que compleixen la condició. */
     public static <T, C> int replaceIf(
             DynamicMenu<T, C> menu,
             OptionSelector<T, C> selector,
@@ -368,6 +405,7 @@ public final class ReplaceFamily {
                 .execute();
     }
 
+    /** Reemplaça les opcions que compleixen la condició. */
     public static <T, C> int replaceIf(
             DynamicMenu<T, C> menu,
             OptionSelector<T, C> selector,
@@ -380,6 +418,7 @@ public final class ReplaceFamily {
                 .execute();
     }
 
+    /** Reemplaça les opcions que compleixen la condició. */
     public static <T, C> int replaceIf(
             DynamicMenu<T, C> menu,
             OptionSelector<T, C> selector,
@@ -394,6 +433,7 @@ public final class ReplaceFamily {
                 .execute();
     }
 
+    /** Reemplaça les opcions que compleixen la condició. */
     public static <T, C> int replaceIf(
             DynamicMenu<T, C> menu,
             OptionSelector<T, C> selector,
@@ -412,6 +452,7 @@ public final class ReplaceFamily {
     // Replace if reverse
     // -------------------------------------------------------------------------
 
+    /** Reemplaça coincidències en ordre invers. */
     public static <T, C> int replaceIfReverse(
             DynamicMenu<T, C> menu,
             OptionSelector<T, C> selector,
@@ -423,6 +464,7 @@ public final class ReplaceFamily {
                 .execute();
     }
 
+    /** Reemplaça coincidències en ordre invers. */
     public static <T, C> int replaceIfReverse(
             DynamicMenu<T, C> menu,
             OptionSelector<T, C> selector,
@@ -436,6 +478,7 @@ public final class ReplaceFamily {
                 .execute();
     }
 
+    /** Reemplaça coincidències en ordre invers. */
     public static <T, C> int replaceIfReverse(
             DynamicMenu<T, C> menu,
             OptionSelector<T, C> selector,
@@ -451,6 +494,7 @@ public final class ReplaceFamily {
                 .execute();
     }
 
+    /** Reemplaça coincidències en ordre invers. */
     public static <T, C> int replaceIfReverse(
             DynamicMenu<T, C> menu,
             OptionSelector<T, C> selector,
@@ -470,6 +514,7 @@ public final class ReplaceFamily {
     // Replace label if
     // -------------------------------------------------------------------------
 
+    /** Reemplaça etiquetes segons la condició. */
     public static <T, C> int replaceLabelIf(
             DynamicMenu<T, C> menu,
             OptionSelector<T, C> selector,
@@ -480,6 +525,7 @@ public final class ReplaceFamily {
                 .execute();
     }
 
+    /** Reemplaça etiquetes segons la condició. */
     public static <T, C> int replaceLabelIf(
             DynamicMenu<T, C> menu,
             OptionSelector<T, C> selector,
@@ -492,6 +538,7 @@ public final class ReplaceFamily {
                 .execute();
     }
 
+    /** Reemplaça etiquetes segons la condició. */
     public static <T, C> int replaceLabelIf(
             DynamicMenu<T, C> menu,
             OptionSelector<T, C> selector,
@@ -506,6 +553,7 @@ public final class ReplaceFamily {
                 .execute();
     }
 
+    /** Reemplaça etiquetes segons la condició. */
     public static <T, C> int replaceLabelIf(
             DynamicMenu<T, C> menu,
             OptionSelector<T, C> selector,
@@ -518,6 +566,7 @@ public final class ReplaceFamily {
                 .execute();
     }
 
+    /** Reemplaça etiquetes segons la condició. */
     public static <T, C> int replaceLabelIf(
             DynamicMenu<T, C> menu,
             OptionSelector<T, C> selector,
@@ -528,6 +577,7 @@ public final class ReplaceFamily {
                 .execute();
     }
 
+    /** Reemplaça etiquetes segons la condició. */
     public static <T, C> int replaceLabelIf(
             DynamicMenu<T, C> menu,
             OptionSelector<T, C> selector,
@@ -540,6 +590,7 @@ public final class ReplaceFamily {
                 .execute();
     }
 
+    /** Reemplaça etiquetes segons la condició. */
     public static <T, C> int replaceLabelIf(
             DynamicMenu<T, C> menu,
             OptionSelector<T, C> selector,
@@ -554,6 +605,7 @@ public final class ReplaceFamily {
                 .execute();
     }
 
+    /** Reemplaça etiquetes segons la condició. */
     public static <T, C> int replaceLabelIf(
             DynamicMenu<T, C> menu,
             OptionSelector<T, C> selector,
@@ -570,6 +622,7 @@ public final class ReplaceFamily {
     // Replace label if reverse
     // -------------------------------------------------------------------------
 
+    /** Reemplaça etiquetes en ordre invers. */
     public static <T, C> int replaceLabelIfReverse(
             DynamicMenu<T, C> menu,
             OptionSelector<T, C> selector,
@@ -581,6 +634,7 @@ public final class ReplaceFamily {
                 .execute();
     }
 
+    /** Reemplaça etiquetes en ordre invers. */
     public static <T, C> int replaceLabelIfReverse(
             DynamicMenu<T, C> menu,
             OptionSelector<T, C> selector,
@@ -594,6 +648,7 @@ public final class ReplaceFamily {
                 .execute();
     }
 
+    /** Reemplaça etiquetes en ordre invers. */
     public static <T, C> int replaceLabelIfReverse(
             DynamicMenu<T, C> menu,
             OptionSelector<T, C> selector,
@@ -609,6 +664,7 @@ public final class ReplaceFamily {
                 .execute();
     }
 
+    /** Reemplaça etiquetes en ordre invers. */
     public static <T, C> int replaceLabelIfReverse(
             DynamicMenu<T, C> menu,
             OptionSelector<T, C> selector,
@@ -622,6 +678,7 @@ public final class ReplaceFamily {
                 .execute();
     }
 
+    /** Reemplaça etiquetes en ordre invers. */
     public static <T, C> int replaceLabelIfReverse(
             DynamicMenu<T, C> menu,
             OptionSelector<T, C> selector,
@@ -633,6 +690,7 @@ public final class ReplaceFamily {
                 .execute();
     }
 
+    /** Reemplaça etiquetes en ordre invers. */
     public static <T, C> int replaceLabelIfReverse(
             DynamicMenu<T, C> menu,
             OptionSelector<T, C> selector,
@@ -646,6 +704,7 @@ public final class ReplaceFamily {
                 .execute();
     }
 
+    /** Reemplaça etiquetes en ordre invers. */
     public static <T, C> int replaceLabelIfReverse(
             DynamicMenu<T, C> menu,
             OptionSelector<T, C> selector,
@@ -661,6 +720,7 @@ public final class ReplaceFamily {
                 .execute();
     }
 
+    /** Reemplaça etiquetes en ordre invers. */
     public static <T, C> int replaceLabelIfReverse(
             DynamicMenu<T, C> menu,
             OptionSelector<T, C> selector,
@@ -674,6 +734,7 @@ public final class ReplaceFamily {
                 .execute();
     }
 
+    /** Reemplaça l'etiqueta de la primera coincidència. */
     public static <T, C> boolean replaceFirstLabelIf(
             DynamicMenu<T, C> menu,
             OptionSelector<T, C> selector,
@@ -685,6 +746,7 @@ public final class ReplaceFamily {
                 .executeAny();
     }
 
+    /** Reemplaça l'etiqueta de la primera coincidència. */
     public static <T, C> boolean replaceFirstLabelIf(
             DynamicMenu<T, C> menu,
             OptionSelector<T, C> selector,
@@ -696,6 +758,7 @@ public final class ReplaceFamily {
                 .executeAny();
     }
 
+    /** Reemplaça l'etiqueta de l'última coincidència. */
     public static <T, C> boolean replaceLastLabelIf(
             DynamicMenu<T, C> menu,
             OptionSelector<T, C> selector,
@@ -707,6 +770,7 @@ public final class ReplaceFamily {
                 .executeAny();
     }
 
+    /** Reemplaça l'etiqueta de l'última coincidència. */
     public static <T, C> boolean replaceLastLabelIf(
             DynamicMenu<T, C> menu,
             OptionSelector<T, C> selector,
@@ -722,6 +786,7 @@ public final class ReplaceFamily {
     // Replace action if
     // -------------------------------------------------------------------------
 
+    /** Reemplaça accions segons la condició. */
     public static <T, C> int replaceActionIf(
             DynamicMenu<T, C> menu,
             OptionSelector<T, C> selector,
@@ -732,6 +797,7 @@ public final class ReplaceFamily {
                 .execute();
     }
 
+    /** Reemplaça accions segons la condició. */
     public static <T, C> int replaceActionIf(
             DynamicMenu<T, C> menu,
             OptionSelector<T, C> selector,
@@ -740,6 +806,7 @@ public final class ReplaceFamily {
         return replaceActionIf(menu, selector, runtimeOf(newAction));
     }
 
+    /** Reemplaça accions segons la condició. */
     public static <T, C> int replaceActionIf(
             DynamicMenu<T, C> menu,
             OptionSelector<T, C> selector,
@@ -748,6 +815,7 @@ public final class ReplaceFamily {
         return replaceActionIf(menu, selector, runtimeOf(newAction));
     }
 
+    /** Reemplaça accions segons la condició. */
     public static <T, C> int replaceActionIf(
             DynamicMenu<T, C> menu,
             OptionSelector<T, C> selector,
@@ -760,6 +828,7 @@ public final class ReplaceFamily {
                 .execute();
     }
 
+    /** Reemplaça accions segons la condició. */
     public static <T, C> int replaceActionIf(
             DynamicMenu<T, C> menu,
             OptionSelector<T, C> selector,
@@ -769,6 +838,7 @@ public final class ReplaceFamily {
         return replaceActionIf(menu, selector, runtimeOf(newAction), range);
     }
 
+    /** Reemplaça accions segons la condició. */
     public static <T, C> int replaceActionIf(
             DynamicMenu<T, C> menu,
             OptionSelector<T, C> selector,
@@ -778,6 +848,7 @@ public final class ReplaceFamily {
         return replaceActionIf(menu, selector, runtimeOf(newAction), range);
     }
 
+    /** Reemplaça accions segons la condició. */
     public static <T, C> int replaceActionIf(
             DynamicMenu<T, C> menu,
             OptionSelector<T, C> selector,
@@ -792,6 +863,7 @@ public final class ReplaceFamily {
                 .execute();
     }
 
+    /** Reemplaça accions segons la condició. */
     public static <T, C> int replaceActionIf(
             DynamicMenu<T, C> menu,
             OptionSelector<T, C> selector,
@@ -802,6 +874,7 @@ public final class ReplaceFamily {
         return replaceActionIf(menu, selector, runtimeOf(newAction), range, limit);
     }
 
+    /** Reemplaça accions segons la condició. */
     public static <T, C> int replaceActionIf(
             DynamicMenu<T, C> menu,
             OptionSelector<T, C> selector,
@@ -812,6 +885,7 @@ public final class ReplaceFamily {
         return replaceActionIf(menu, selector, runtimeOf(newAction), range, limit);
     }
 
+    /** Reemplaça accions segons la condició. */
     public static <T, C> int replaceActionIf(
             DynamicMenu<T, C> menu,
             OptionSelector<T, C> selector,
@@ -824,6 +898,7 @@ public final class ReplaceFamily {
                 .execute();
     }
 
+    /** Reemplaça accions segons la condició. */
     public static <T, C> int replaceActionIf(
             DynamicMenu<T, C> menu,
             OptionSelector<T, C> selector,
@@ -833,6 +908,7 @@ public final class ReplaceFamily {
         return replaceActionIf(menu, selector, runtimeOf(newAction), config);
     }
 
+    /** Reemplaça accions segons la condició. */
     public static <T, C> int replaceActionIf(
             DynamicMenu<T, C> menu,
             OptionSelector<T, C> selector,
@@ -842,6 +918,7 @@ public final class ReplaceFamily {
         return replaceActionIf(menu, selector, runtimeOf(newAction), config);
     }
 
+    /** Reemplaça accions segons la condició. */
     public static <T, C> int replaceActionIf(
             DynamicMenu<T, C> menu,
             OptionSelector<T, C> selector,
@@ -852,6 +929,7 @@ public final class ReplaceFamily {
                 .execute();
     }
 
+    /** Reemplaça accions segons la condició. */
     public static <T, C> int replaceActionIf(
             DynamicMenu<T, C> menu,
             OptionSelector<T, C> selector,
@@ -864,6 +942,7 @@ public final class ReplaceFamily {
                 .execute();
     }
 
+    /** Reemplaça accions segons la condició. */
     public static <T, C> int replaceActionIf(
             DynamicMenu<T, C> menu,
             OptionSelector<T, C> selector,
@@ -878,6 +957,7 @@ public final class ReplaceFamily {
                 .execute();
     }
 
+    /** Reemplaça accions segons la condició. */
     public static <T, C> int replaceActionIf(
             DynamicMenu<T, C> menu,
             OptionSelector<T, C> selector,
@@ -894,6 +974,7 @@ public final class ReplaceFamily {
     // Replace action if reverse
     // -------------------------------------------------------------------------
 
+    /** Reemplaça accions en ordre invers. */
     public static <T, C> int replaceActionIfReverse(
             DynamicMenu<T, C> menu,
             OptionSelector<T, C> selector,
@@ -905,6 +986,7 @@ public final class ReplaceFamily {
                 .execute();
     }
 
+    /** Reemplaça accions en ordre invers. */
     public static <T, C> int replaceActionIfReverse(
             DynamicMenu<T, C> menu,
             OptionSelector<T, C> selector,
@@ -913,6 +995,7 @@ public final class ReplaceFamily {
         return replaceActionIfReverse(menu, selector, runtimeOf(newAction));
     }
 
+    /** Reemplaça accions en ordre invers. */
     public static <T, C> int replaceActionIfReverse(
             DynamicMenu<T, C> menu,
             OptionSelector<T, C> selector,
@@ -921,6 +1004,7 @@ public final class ReplaceFamily {
         return replaceActionIfReverse(menu, selector, runtimeOf(newAction));
     }
 
+    /** Reemplaça accions en ordre invers. */
     public static <T, C> int replaceActionIfReverse(
             DynamicMenu<T, C> menu,
             OptionSelector<T, C> selector,
@@ -934,6 +1018,7 @@ public final class ReplaceFamily {
                 .execute();
     }
 
+    /** Reemplaça accions en ordre invers. */
     public static <T, C> int replaceActionIfReverse(
             DynamicMenu<T, C> menu,
             OptionSelector<T, C> selector,
@@ -943,6 +1028,7 @@ public final class ReplaceFamily {
         return replaceActionIfReverse(menu, selector, runtimeOf(newAction), range);
     }
 
+    /** Reemplaça accions en ordre invers. */
     public static <T, C> int replaceActionIfReverse(
             DynamicMenu<T, C> menu,
             OptionSelector<T, C> selector,
@@ -952,6 +1038,7 @@ public final class ReplaceFamily {
         return replaceActionIfReverse(menu, selector, runtimeOf(newAction), range);
     }
 
+    /** Reemplaça accions en ordre invers. */
     public static <T, C> int replaceActionIfReverse(
             DynamicMenu<T, C> menu,
             OptionSelector<T, C> selector,
@@ -967,6 +1054,7 @@ public final class ReplaceFamily {
                 .execute();
     }
 
+    /** Reemplaça accions en ordre invers. */
     public static <T, C> int replaceActionIfReverse(
             DynamicMenu<T, C> menu,
             OptionSelector<T, C> selector,
@@ -977,6 +1065,7 @@ public final class ReplaceFamily {
         return replaceActionIfReverse(menu, selector, runtimeOf(newAction), range, limit);
     }
 
+    /** Reemplaça accions en ordre invers. */
     public static <T, C> int replaceActionIfReverse(
             DynamicMenu<T, C> menu,
             OptionSelector<T, C> selector,
@@ -987,6 +1076,7 @@ public final class ReplaceFamily {
         return replaceActionIfReverse(menu, selector, runtimeOf(newAction), range, limit);
     }
 
+    /** Reemplaça accions en ordre invers. */
     public static <T, C> int replaceActionIfReverse(
             DynamicMenu<T, C> menu,
             OptionSelector<T, C> selector,
@@ -1000,6 +1090,7 @@ public final class ReplaceFamily {
                 .execute();
     }
 
+    /** Reemplaça accions en ordre invers. */
     public static <T, C> int replaceActionIfReverse(
             DynamicMenu<T, C> menu,
             OptionSelector<T, C> selector,
@@ -1009,6 +1100,7 @@ public final class ReplaceFamily {
         return replaceActionIfReverse(menu, selector, runtimeOf(newAction), config);
     }
 
+    /** Reemplaça accions en ordre invers. */
     public static <T, C> int replaceActionIfReverse(
             DynamicMenu<T, C> menu,
             OptionSelector<T, C> selector,
@@ -1018,6 +1110,7 @@ public final class ReplaceFamily {
         return replaceActionIfReverse(menu, selector, runtimeOf(newAction), config);
     }
 
+    /** Reemplaça accions en ordre invers. */
     public static <T, C> int replaceActionIfReverse(
             DynamicMenu<T, C> menu,
             OptionSelector<T, C> selector,
@@ -1029,6 +1122,7 @@ public final class ReplaceFamily {
                 .execute();
     }
 
+    /** Reemplaça accions en ordre invers. */
     public static <T, C> int replaceActionIfReverse(
             DynamicMenu<T, C> menu,
             OptionSelector<T, C> selector,
@@ -1042,6 +1136,7 @@ public final class ReplaceFamily {
                 .execute();
     }
 
+    /** Reemplaça accions en ordre invers. */
     public static <T, C> int replaceActionIfReverse(
             DynamicMenu<T, C> menu,
             OptionSelector<T, C> selector,
@@ -1057,6 +1152,7 @@ public final class ReplaceFamily {
                 .execute();
     }
 
+    /** Reemplaça accions en ordre invers. */
     public static <T, C> int replaceActionIfReverse(
             DynamicMenu<T, C> menu,
             OptionSelector<T, C> selector,
@@ -1070,6 +1166,7 @@ public final class ReplaceFamily {
                 .execute();
     }
 
+    /** Reemplaça l'acció de la primera coincidència. */
     public static <T, C> boolean replaceFirstActionIf(
             DynamicMenu<T, C> menu,
             OptionSelector<T, C> selector,
@@ -1081,6 +1178,7 @@ public final class ReplaceFamily {
                 .executeAny();
     }
 
+    /** Reemplaça l'acció de la primera coincidència. */
     public static <T, C> boolean replaceFirstActionIf(
             DynamicMenu<T, C> menu,
             OptionSelector<T, C> selector,
@@ -1089,6 +1187,7 @@ public final class ReplaceFamily {
         return replaceFirstActionIf(menu, selector, runtimeOf(newAction));
     }
 
+    /** Reemplaça l'acció de la primera coincidència. */
     public static <T, C> boolean replaceFirstActionIf(
             DynamicMenu<T, C> menu,
             OptionSelector<T, C> selector,
@@ -1097,6 +1196,7 @@ public final class ReplaceFamily {
         return replaceFirstActionIf(menu, selector, runtimeOf(newAction));
     }
 
+    /** Reemplaça l'acció de la primera coincidència. */
     public static <T, C> boolean replaceFirstActionIf(
             DynamicMenu<T, C> menu,
             OptionSelector<T, C> selector,
@@ -1108,6 +1208,7 @@ public final class ReplaceFamily {
                 .executeAny();
     }
 
+    /** Reemplaça l'acció de l'última coincidència. */
     public static <T, C> boolean replaceLastActionIf(
             DynamicMenu<T, C> menu,
             OptionSelector<T, C> selector,
@@ -1119,6 +1220,7 @@ public final class ReplaceFamily {
                 .executeAny();
     }
 
+    /** Reemplaça l'acció de l'última coincidència. */
     public static <T, C> boolean replaceLastActionIf(
             DynamicMenu<T, C> menu,
             OptionSelector<T, C> selector,
@@ -1127,6 +1229,7 @@ public final class ReplaceFamily {
         return replaceLastActionIf(menu, selector, runtimeOf(newAction));
     }
 
+    /** Reemplaça l'acció de l'última coincidència. */
     public static <T, C> boolean replaceLastActionIf(
             DynamicMenu<T, C> menu,
             OptionSelector<T, C> selector,
@@ -1135,6 +1238,7 @@ public final class ReplaceFamily {
         return replaceLastActionIf(menu, selector, runtimeOf(newAction));
     }
 
+    /** Reemplaça l'acció de l'última coincidència. */
     public static <T, C> boolean replaceLastActionIf(
             DynamicMenu<T, C> menu,
             OptionSelector<T, C> selector,
@@ -1150,6 +1254,7 @@ public final class ReplaceFamily {
     // First / last generic replace
     // -------------------------------------------------------------------------
 
+    /** Reemplaça la primera coincidència. */
     public static <T, C> boolean replaceFirstIf(
             DynamicMenu<T, C> menu,
             OptionSelector<T, C> selector,
@@ -1161,6 +1266,7 @@ public final class ReplaceFamily {
                 .executeAny();
     }
 
+    /** Reemplaça l'última coincidència. */
     public static <T, C> boolean replaceLastIf(
             DynamicMenu<T, C> menu,
             OptionSelector<T, C> selector,
@@ -1176,6 +1282,7 @@ public final class ReplaceFamily {
     // Batch replacements
     // -------------------------------------------------------------------------
 
+    /** Reemplaça opcions del menú. */
     public static <T, C> DynamicMenu<T, C> replaceLabelsAt(
             DynamicMenu<T, C> menu,
             Map<Integer, String> replacements) {
@@ -1184,6 +1291,7 @@ public final class ReplaceFamily {
         return replaceBatch(menu, replacements, null, null);
     }
 
+    /** Reemplaça opcions del menú. */
     public static <T, C> DynamicMenu<T, C> replaceActionsAt(
             DynamicMenu<T, C> menu,
             Map<Integer, MenuRuntimeAction<T, C>> replacements) {
@@ -1192,6 +1300,7 @@ public final class ReplaceFamily {
         return replaceBatch(menu, null, replacements, null);
     }
 
+    /** Reemplaça opcions del menú. */
     public static <T, C> DynamicMenu<T, C> replaceAt(
             DynamicMenu<T, C> menu,
             Map<Integer, MenuOption<T, C>> replacements) {
@@ -1204,6 +1313,7 @@ public final class ReplaceFamily {
     // Nucli intern únic
     // -------------------------------------------------------------------------
 
+    /** Executa aquesta operació. */
     private static <T, C> int executeReplace(
             DynamicMenu<T, C> menu,
             OptionSelector<T, C> selector,
@@ -1233,25 +1343,30 @@ public final class ReplaceFamily {
         private int limit = Integer.MAX_VALUE;
         private boolean reverse = false;
 
+        /** Reemplaça opcions del menú. */
         private ReplaceOperation(DynamicMenu<T, C> menu) {
             this.menu = Objects.requireNonNull(menu, "El menú no pot ser nul");
         }
 
+        /** Defineix la condició de selecció. */
         public ReplaceOperation<T, C> where(OptionSelector<T, C> selector) {
             this.selector = Objects.requireNonNull(selector, "La condició no pot ser nul·la");
             return this;
         }
 
+        /** Defineix el transformador a aplicar. */
         public ReplaceOperation<T, C> map(OptionMapper<T, C> mapper) {
             this.mapper = Objects.requireNonNull(mapper, "El transformador no pot ser nul");
             return this;
         }
 
+        /** Defineix una selecció o substitució per etiqueta. */
         public ReplaceOperation<T, C> label(String newLabel) {
             Objects.requireNonNull(newLabel, "El nou label no pot ser nul");
             return map((index, option) -> newOption(newLabel, option.action()));
         }
 
+        /** Defineix una selecció o substitució per etiqueta. */
         public ReplaceOperation<T, C> label(LabelMapper<T, C> mapper) {
             Objects.requireNonNull(mapper, "El transformador de labels no pot ser nul");
             return map((index, option) -> newOption(
@@ -1261,21 +1376,25 @@ public final class ReplaceFamily {
                     option.action()));
         }
 
+        /** Defineix l'acció de reemplaç. */
         public ReplaceOperation<T, C> action(MenuRuntimeAction<T, C> newAction) {
             Objects.requireNonNull(newAction, "El nou comportament no pot ser nul");
             return map((index, option) -> newOption(option.label(), newAction));
         }
 
+        /** Defineix l'acció de reemplaç. */
         public ReplaceOperation<T, C> action(MenuAction<T, C> newAction) {
             Objects.requireNonNull(newAction, "El nou comportament no pot ser nul");
             return action(runtimeOf(newAction));
         }
 
+        /** Defineix l'acció de reemplaç. */
         public ReplaceOperation<T, C> action(SimpleMenuAction<T> newAction) {
             Objects.requireNonNull(newAction, "El nou comportament no pot ser nul");
             return action(runtimeOf(newAction));
         }
 
+        /** Defineix l'acció de reemplaç. */
         public ReplaceOperation<T, C> action(ActionMapper<T, C> mapper) {
             Objects.requireNonNull(mapper, "El transformador de comportaments no pot ser nul");
             return map((index, option) -> newOption(
@@ -1285,68 +1404,81 @@ public final class ReplaceFamily {
                             "El transformador de comportaments no pot retornar nul")));
         }
 
+        /** Defineix l'opció de reemplaç. */
         public ReplaceOperation<T, C> option(String newLabel, MenuRuntimeAction<T, C> newAction) {
             Objects.requireNonNull(newLabel, "El nou label no pot ser nul");
             Objects.requireNonNull(newAction, "El nou comportament no pot ser nul");
             return map((index, option) -> newOption(newLabel, newAction));
         }
 
+        /** Defineix l'opció de reemplaç. */
         public ReplaceOperation<T, C> option(String newLabel, MenuAction<T, C> newAction) {
             Objects.requireNonNull(newAction, "El nou comportament no pot ser nul");
             return option(newLabel, runtimeOf(newAction));
         }
 
+        /** Defineix l'opció de reemplaç. */
         public ReplaceOperation<T, C> option(String newLabel, SimpleMenuAction<T> newAction) {
             Objects.requireNonNull(newAction, "El nou comportament no pot ser nul");
             return option(newLabel, runtimeOf(newAction));
         }
 
+        /** Defineix l'opció de reemplaç. */
         public ReplaceOperation<T, C> option(MenuOption<T, C> newOption) {
             Objects.requireNonNull(newOption, "La nova opció no pot ser nul·la");
             return map((index, option) -> newOption);
         }
 
+        /** Defineix el rang d'actuació. */
         public ReplaceOperation<T, C> range(Range range) {
             this.range = Objects.requireNonNull(range, "El rang no pot ser nul");
             return this;
         }
 
+        /** Defineix el rang d'actuació. */
         public ReplaceOperation<T, C> range(int fromInclusive, int toExclusive) {
             return range(Range.of(fromInclusive, toExclusive));
         }
 
+        /** Defineix el límit d'elements afectats. */
         public ReplaceOperation<T, C> limit(int limit) {
             this.limit = limit;
             return this;
         }
 
+        /** Configura el recorregut en sentit invers. */
         public ReplaceOperation<T, C> reverse() {
             this.reverse = true;
             return this;
         }
 
+        /** Configura el recorregut en sentit invers. */
         public ReplaceOperation<T, C> reverse(boolean reverse) {
             this.reverse = reverse;
             return this;
         }
 
+        /** Limita l'operació a la primera coincidència. */
         public ReplaceOperation<T, C> first() {
             this.limit = 1;
             this.reverse = false;
             return this;
         }
 
+        /** Limita l'operació a l'última coincidència. */
         public ReplaceOperation<T, C> last() {
             this.limit = 1;
             this.reverse = true;
             return this;
         }
 
+        /** Considera totes les coincidències. */
         public ReplaceOperation<T, C> all() {
             this.limit = Integer.MAX_VALUE;
             return this;
         }
 
+        /** Aplica una configuració base. */
         public ReplaceOperation<T, C> config(EditConfig config) {
             Objects.requireNonNull(config, "La configuració no pot ser nul·la");
             this.range = config.range();
@@ -1355,6 +1487,7 @@ public final class ReplaceFamily {
             return this;
         }
 
+        /** Construeix la configuració efectiva. */
         public EditConfig buildConfig() {
             return EditConfig.builder()
                     .range(range)
@@ -1363,6 +1496,7 @@ public final class ReplaceFamily {
                     .build();
         }
 
+        /** Executa l'operació. */
         public int execute() {
             return executeReplace(
                     menu,
@@ -1373,6 +1507,7 @@ public final class ReplaceFamily {
                     reverse);
         }
 
+        /** Executa l'operació i indica si hi ha canvis. */
         public boolean executeAny() {
             return execute() > 0;
         }
@@ -1382,6 +1517,7 @@ public final class ReplaceFamily {
     // Internals by index / batch
     // -------------------------------------------------------------------------
 
+    /** Reemplaça una opció per índex. */
     private static <T, C> DynamicMenu<T, C> replaceAtInternal(
             DynamicMenu<T, C> menu,
             int index,
@@ -1414,10 +1550,11 @@ public final class ReplaceFamily {
         MenuRuntimeAction<T, C> finalAction = replaceAction ? newAction : oldOption.action();
 
         options.set(index, newOption(finalLabel, finalAction));
-        rebuildSnapshot(snapshot, options);
+        snapshot.setOptionAt(index, newOption(finalLabel, finalAction));
         return menu.restoreSnapshot(snapshot);
     }
 
+    /** Aplica un conjunt de reemplaços per índex. */
     private static <T, C> DynamicMenu<T, C> replaceBatch(
             DynamicMenu<T, C> menu,
             Map<Integer, String> labelReplacements,
@@ -1435,7 +1572,7 @@ public final class ReplaceFamily {
         }
 
         MenuSnapshot<T, C> snapshot = menu.createSnapshot();
-        List<MenuOption<T, C>> options = new ArrayList<>(snapshot.getOptionSnapshot());
+        List<MenuOption<T, C>> options = snapshot.getOptionSnapshot();
 
         if (options.isEmpty()) {
             return menu;
@@ -1451,7 +1588,7 @@ public final class ReplaceFamily {
                 validateExistingIndex(index, options.size());
 
                 MenuOption<T, C> current = options.get(index);
-                options.set(index, newOption(newLabel, current.action()));
+                snapshot.setOptionAt(index, newOption(newLabel, current.action()));
             }
         } else if (hasActionReplacements) {
             for (Map.Entry<Integer, MenuRuntimeAction<T, C>> entry : actionReplacements.entrySet()) {
@@ -1463,7 +1600,7 @@ public final class ReplaceFamily {
                 validateExistingIndex(index, options.size());
 
                 MenuOption<T, C> current = options.get(index);
-                options.set(index, newOption(current.label(), newAction));
+                snapshot.setOptionAt(index, newOption(current.label(), newAction));
             }
         } else if (hasOptionReplacements) {
             for (Map.Entry<Integer, MenuOption<T, C>> entry : optionReplacements.entrySet()) {
@@ -1473,14 +1610,14 @@ public final class ReplaceFamily {
                         "La nova opció no pot ser nul·la");
 
                 validateExistingIndex(index, options.size());
-                options.set(index, replacementOption);
+                snapshot.setOptionAt(index, replacementOption);
             }
         }
 
-        rebuildSnapshot(snapshot, options);
         return menu.restoreSnapshot(snapshot);
     }
 
+    /** Executa aquesta operació. */
     private static <T, C> int executeReplace(
             DynamicMenu<T, C> menu,
             OptionSelector<T, C> selector,

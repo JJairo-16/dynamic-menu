@@ -103,4 +103,5 @@ Utilitats avançades per inspeccionar, eliminar, reemplaçar i ordenar opcions d
   - [03 - Remove Builder](09-editor/03-builders/03-remove-builder.md)
   - [04 - Replace Builder](09-editor/03-builders/04-replace-builder.md)
   - [05 - Sort Builder](09-editor/03-builders/05-sort-builder.md)
-  - [06 - Builder Pipelines](09-editor/03-builders/06-builder-pipelines.md)
+  - [06 - Shuffle Builder](09-editor/03-builders/06-shuffle-builder.md)
+  - [07 - Builder Pipelines](09-editor/03-builders/06-builder-pipelines.md)

@@ -3,9 +3,7 @@ package menu.editor.helpers;
 import menu.action.MenuRuntimeAction;
 import menu.model.MenuOption;
 
-/**
- * Transformador de comportaments.
- */
+/** Transformador de comportaments. */
 @FunctionalInterface
 public interface ActionMapper<T, C> {
 

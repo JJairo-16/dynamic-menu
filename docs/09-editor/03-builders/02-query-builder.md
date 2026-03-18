@@ -2,8 +2,7 @@
 
 `QueryBuilder<T, C>` permet consultar un menú sense modificar-lo.
 
-És el builder adequat quan vols inspeccionar l’estat del menú,
-comptar coincidències, recuperar opcions o obtenir-ne els índexs.
+És el builder adequat quan vols inspeccionar l’estat del menú, comptar coincidències, recuperar opcions o obtenir-ne els índexs.
 
 S'obté des de:
 
@@ -45,10 +44,19 @@ MenuEditor.query(menu)
     .exists();
 ```
 
+### `whereLabelEquals(String text)`
+
+Selecciona les opcions amb un label exactament igual.
+
+```java
+MenuEditor.query(menu)
+    .whereLabelEquals("Exit")
+    .exists();
+```
+
 ### `whereLabelEqualsIgnoreCase(String text)`
 
-Selecciona les opcions amb un label exactament igual,
-ignorant majúscules i minúscules.
+Selecciona les opcions amb un label exactament igual, ignorant majúscules i minúscules.
 
 ```java
 MenuEditor.query(menu)
@@ -56,23 +64,23 @@ MenuEditor.query(menu)
     .exists();
 ```
 
-### `whereLabelStartsWith(String prefix)`
+### `whereLabelStartsWidth(String prefix)`
 
 Selecciona les opcions el label de les quals comença amb el prefix indicat.
 
 ```java
 MenuEditor.query(menu)
-    .whereLabelStartsWith("[ADMIN]")
+    .whereLabelStartsWidth("[ADMIN]")
     .count();
 ```
 
-### `whereLabelEndsWith(String suffix)`
+### `whereLabelEndsWidth(String suffix)`
 
 Selecciona les opcions el label de les quals acaba amb el sufix indicat.
 
 ```java
 MenuEditor.query(menu)
-    .whereLabelEndsWith("...")
+    .whereLabelEndsWidth("...")
     .exists();
 ```
 
@@ -227,8 +235,30 @@ Set<String> labels = MenuEditor.query(menu)
     );
 ```
 
-Aquest mètode és útil quan no vols només una llista,
-sinó una col·lecció o un resultat derivat.
+Aquest mètode és útil quan no vols només una llista sinó una col·lecció o un resultat derivat.
+
+### `toList()`
+
+Resol la consulta i retorna les opcions coincidents com una `List`.
+
+```java
+List<MenuOption<String, Void>> options = MenuEditor.query(menu)
+    .whereAny()
+    .toList();
+```
+
+### `stream()`
+
+Resol la consulta i retorna les opcions coincidents com un `Stream`.
+
+Permet utilitzar directament l’API de Streams de Java per transformar o processar els resultats.
+
+```java
+MenuEditor.query(menu)
+    .whereAny()
+    .stream()
+    .forEach(System.out::println);
+```
 
 ## Encadenament amb altres builders
 
@@ -239,6 +269,7 @@ Això permet reutilitzar el selector i, en alguns casos, també el rang.
 ## Herència predeterminada
 
 Quan l'encadenament surt de `QueryBuilder`, el comportament per defecte és:
+
 > `QueryBuilder` és el punt d'encadenament amb més herència predeterminada.
 > Això el converteix en una bona base quan primer vols localitzar coincidències i després reutilitzar aquest context en una operació posterior.
 
@@ -246,6 +277,7 @@ Quan l'encadenament surt de `QueryBuilder`, el comportament per defecte és:
 - `thenRemove()` hereta selector i rang
 - `thenReplace()` hereta selector i rang
 - `thenSort()` hereta només el rang
+- `thenShuffle()` hereta només el rang
 
 ### `thenQuery()`
 
@@ -297,13 +329,25 @@ MenuEditor.query(menu)
     .apply();
 ```
 
-En aquest cas només es transfereix el rang,
-ja que l’ordenació no funciona a partir del selector de coincidència.
+En aquest cas només es transfereix el rang, ja que l’ordenació no funciona a partir del selector de coincidència.
+
+### `thenShuffle()`
+
+Continua amb `ShuffleBuilder`.
+
+```java
+MenuEditor.query(menu)
+    .whereAny()
+    .range(0, 10)
+    .thenShuffle()
+    .apply();
+```
+
+En aquest cas també només es transfereix el rang, ja que la barreja no reutilitza el selector fluent de coincidència.
 
 ## Herència explícita amb `InheritanceMode`
 
-Quan vols controlar la transferència d'estat de forma explícita,
-pots usar la variant `thenX(InheritanceMode)`.
+Quan vols controlar la transferència d'estat de forma explícita, pots usar la variant `thenX(InheritanceMode)`.
 
 ### `thenQuery(InheritanceMode)`
 
@@ -346,6 +390,16 @@ MenuEditor.query(menu)
     .apply();
 ```
 
+### `thenShuffle(InheritanceMode)`
+
+```java
+MenuEditor.query(menu)
+    .whereAny()
+    .range(0, 10)
+    .thenShuffle(InheritanceMode.RANGE)
+    .apply();
+```
+
 ## Modes disponibles
 
 - `InheritanceMode.NONE`: no hereta res
@@ -353,13 +407,12 @@ MenuEditor.query(menu)
 - `InheritanceMode.SELECTION`: hereta selector i rang
 - `InheritanceMode.ALL`: hereta tot l'estat compatible amb el builder destí
 
-En el cas de `SortBuilder`, l'herència efectiva mai no inclou selector,
-de manera que habitualment s'usen `RANGE` o `ALL` com a sinònims pràctics.
+En el cas de `SortBuilder` i `ShuffleBuilder`, l'herència efectiva mai no inclou selector, de manera que habitualment s'usen `RANGE` o `ALL` com a sinònims pràctics.
 
 ### Obtenció
 
 S'importa utilitzant:
 
 ```java
-import menu.editor.base.InheritanceMode;
+import menu.editor.builders.base.InheritanceMode;
 ```

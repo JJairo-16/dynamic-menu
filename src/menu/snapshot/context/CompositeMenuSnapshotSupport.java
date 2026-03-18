@@ -39,33 +39,23 @@ import menu.DynamicMenu;
  */
 public final class CompositeMenuSnapshotSupport {
 
-    /**
-     * Valor que indica que la pila de snapshots no té límit.
-     */
+    /** Valor que indica que la pila de snapshots no té límit. */
     public static final int UNLIMITED_SNAPSHOT_STACK_LIMIT = -1;
 
-    /**
-     * Límit predeterminat de snapshots compostos en pila per menú.
-     */
+    /** Límit predeterminat de snapshots compostos en pila per menú. */
     public static final int DEFAULT_SNAPSHOT_STACK_LIMIT = 20;
 
     private final Map<DynamicMenu<?, ?>, MenuSnapshotStore> storesByMenu;
 
     private int snapshotStackLimit;
 
-    /**
-     * Contenidor intern de snapshots associats a un menú.
-     */
+    /** Contenidor intern de snapshots associats a un menú. */
     private static final class MenuSnapshotStore {
 
-        /**
-         * Snapshots compostos registrats per nom.
-         */
+        /** Snapshots compostos registrats per nom. */
         private Map<String, CompositeMenuSnapshot<?, ?, ?>> registeredSnapshots;
 
-        /**
-         * Pila de snapshots compostos del menú.
-         */
+        /** Pila de snapshots compostos del menú. */
         private Deque<CompositeMenuSnapshot<?, ?, ?>> snapshotStack;
     }
 

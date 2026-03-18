@@ -2,9 +2,7 @@ package menu.editor.helpers;
 
 import menu.model.MenuOption;
 
-/**
- * Transformador de labels.
- */
+/** Transformador de labels. */
 @FunctionalInterface
 public interface LabelMapper<T, C> {
 

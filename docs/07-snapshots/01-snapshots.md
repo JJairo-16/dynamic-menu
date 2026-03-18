@@ -51,6 +51,7 @@ Un snapshot inclou l'estat del menú actual, principalment:
 - títol
 - opcions
 - hooks
+- refèrencia al context
 
 ## Exemple bàsic
 
@@ -127,6 +128,94 @@ menu.pushChildSnapshot(child);
 ```
 
 Això permet entrar en un nou estat mantenint intacta la possibilitat de tornar enrere amb la pila.
+
+## Edició parcial d'opcions dins d'un snapshot
+
+A més dels wrappers de `DynamicMenu`, `MenuSnapshot` també ofereix operacions pròpies per modificar opcions concretes sense haver de buidar i reconstruir tota la llista.
+
+Això és especialment útil en operacions internes com:
+
+- reemplaçar una opció per índex
+- actualitzar només una etiqueta o una acció
+- reconstruir només un rang ja ordenat o transformat
+- evitar un `clearOptions()` + `addOption(...)` complet quan només canvien algunes posicions
+
+### Reemplaçar una opció concreta
+
+Pots reemplaçar directament una opció existent per índex:
+
+- `setOptionAt(int index, MenuOption<T, C> option)`
+- `setOptionAt(int index, String label, MenuAction<T, C> action)`
+- `setOptionAt(int index, String label, SimpleMenuAction<T> action)`
+- `setOptionAt(int index, String label, MenuRuntimeAction<T, C> action)`
+
+Exemple:
+
+```java
+MenuSnapshot<String, Void> snapshot = menu.createSnapshot();
+
+snapshot.setOptionAt(0, "Nova opció", () -> "ok");
+
+menu.restoreSnapshot(snapshot);
+```
+
+Aquesta operació:
+
+- manté la mida de la llista
+- no reordena cap element
+- només substitueix la posició indicada
+
+### Reemplaçar un rang d'opcions
+
+Quan ja tens un bloc contigu d'opcions noves, pots reemplaçar-lo de cop amb:
+
+- `replaceOptions(int fromInclusive, List<MenuOption<T, C>> options)`
+
+El nombre d'opcions de reemplaç ha de coincidir amb la mida del rang afectat. Aquesta operació tampoc canvia la mida total del snapshot.
+
+Exemple:
+
+```java
+MenuSnapshot<String, Void> snapshot = menu.createSnapshot();
+List<MenuOption<String, Void>> current = snapshot.getOptionSnapshot();
+
+List<MenuOption<String, Void>> replacement = List.of(
+        MenuOption.of("A", () -> "a"),
+        MenuOption.of("B", () -> "b"),
+        MenuOption.of("C", () -> "c")
+);
+
+snapshot.replaceOptions(2, replacement);
+
+menu.restoreSnapshot(snapshot);
+```
+
+Això reemplaça les posicions `2`, `3` i `4`.
+
+### Quan convé usar aquestes APIs
+
+Aquestes APIs són útils sobretot quan:
+
+- ja saps exactament quins índexs vols modificar
+- no vols reconstruir totes les opcions del snapshot
+- estàs implementant edició parcial, ordenació per rang o reemplaços per lots
+- la llista manté el mateix nombre d'elements
+
+### Quan no calen
+
+Si vols:
+
+- afegir opcions noves
+- eliminar opcions
+- canviar la mida del menú
+- reconstruir completament l'estat
+
+aleshores continua sent més natural usar:
+
+- `addOption(...)`
+- `addOptionAt(...)`
+- `removeOptionAt(...)`
+- `clearOptions()`
 
 ## Quan convé usar snapshots
 

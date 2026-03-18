@@ -2,8 +2,7 @@
 
 `SortBuilder<T, C>` ordena opcions d'un menú.
 
-És el builder adequat quan vols reorganitzar l’ordre d’un conjunt d’opcions,
-ja sigui sobre tot el menú o només sobre un rang concret.
+És el builder adequat quan vols reorganitzar l’ordre d’un conjunt d’opcions, ja sigui sobre tot el menú o només sobre un rang concret.
 
 S'obté des de:
 
@@ -17,7 +16,7 @@ La forma més simple d’ordenar és fer-ho pel label.
 
 ### `byLabel()`
 
-Ordena les opcions segons el text del label.
+Ordena les opcions segons el text del label amb el comparador per defecte.
 
 ```java
 MenuEditor.sort(menu)
@@ -25,10 +24,28 @@ MenuEditor.sort(menu)
     .apply();
 ```
 
+### `comparator(...)`
+
+Permet definir el comparador base.
+
+```java
+MenuEditor.sort(menu)
+    .comparator((a, b) -> Integer.compare(a.label().length(), b.label().length()))
+    .apply();
+```
+
 ## Direcció de l’ordenació
 
-Per defecte, l’ordenació és ascendent,
-però es pot invertir.
+Per defecte, l’ordenació és ascendent, però es pot invertir.
+
+### `ascending()`
+
+```java
+MenuEditor.sort(menu)
+    .byLabel()
+    .ascending()
+    .apply();
+```
 
 ### `descending()`
 
@@ -38,6 +55,17 @@ Aplica l’ordenació en sentit descendent.
 MenuEditor.sort(menu)
     .byLabel()
     .descending()
+    .apply();
+```
+
+### `descending(boolean descending)`
+
+Permet definir explícitament si la direcció és descendent.
+
+```java
+MenuEditor.sort(menu)
+    .byLabel()
+    .descending(true)
     .apply();
 ```
 
@@ -58,14 +86,84 @@ MenuEditor.sort(menu)
 
 Això permet reordenar una zona sense afectar la resta del menú.
 
+## Opcions fixades
+
+`SortBuilder` també permet fixar opcions al principi o al final del segment ordenat.
+
+### `pinFirst(selector)`
+
+```java
+MenuEditor.sort(menu)
+    .pinFirst((index, option) -> option.label().equals("Home"))
+    .byLabel()
+    .apply();
+```
+
+### `pinLabelFirst(predicate)`
+
+```java
+MenuEditor.sort(menu)
+    .pinLabelFirst(label -> label.startsWith("[CORE]"))
+    .byLabel()
+    .apply();
+```
+
+### `pinLast(selector)`
+
+```java
+MenuEditor.sort(menu)
+    .pinLast((index, option) -> option.label().equals("Exit"))
+    .byLabel()
+    .apply();
+```
+
+### `pinLabelLast(predicate)`
+
+```java
+MenuEditor.sort(menu)
+    .pinLabelLast(label -> label.equals("Exit"))
+    .byLabel()
+    .apply();
+```
+
+### `pinned(firstSelector, lastSelector)`
+
+```java
+MenuEditor.sort(menu)
+    .pinned(
+        (index, option) -> option.label().equals("Home"),
+        (index, option) -> option.label().equals("Exit")
+    )
+    .byLabel()
+    .apply();
+```
+
+### `pinnedIndexes(firstIndexes, lastIndexes)`
+
+```java
+MenuEditor.sort(menu)
+    .pinnedIndexes(List.of(0), List.of(7))
+    .byLabel()
+    .apply();
+```
+
 ## Aplicació de l’ordenació
 
-A diferència de `QueryBuilder`, l’ordenació no es resol com a consulta,
-sinó que s’aplica sobre el menú.
+A diferència de `QueryBuilder`, l’ordenació no es resol com a consulta, sinó que s’aplica sobre el menú.
+
+### `execute()`
+
+Executa l’ordenació configurada.
+
+```java
+MenuEditor.sort(menu)
+    .byLabel()
+    .execute();
+```
 
 ### `apply()`
 
-Executa l’ordenació configurada.
+És un àlies semàntic d’`execute()`.
 
 ```java
 MenuEditor.sort(menu)
@@ -74,14 +172,6 @@ MenuEditor.sort(menu)
 ```
 
 Habitualment retorna el mateix menú, ja modificat.
-
-## Possibles criteris addicionals
-
-Segons la implementació concreta, `SortBuilder` pot oferir
-altres criteris o comparadors més específics.
-
-Quan només necessites una ordenació textual estàndard,
-`byLabel()` és la variant habitual.
 
 ## Encadenament
 
@@ -101,18 +191,6 @@ MenuEditor.sort(menu)
     .thenSort()
     .byLabel()
     .apply();
-```
-
-### `thenQuery()`
-
-Continua amb `QueryBuilder` sense herència per defecte.
-
-```java
-MenuEditor.sort(menu)
-    .range(0, 10)
-    .thenQuery()
-    .whereAny()
-    .count();
 ```
 
 ### `thenRemove()`
@@ -140,17 +218,44 @@ MenuEditor.sort(menu)
     .execute();
 ```
 
-## Herència explícita amb `InheritanceMode`
+### `thenQuery()`
 
-### Heretar el rang
+Continua amb `QueryBuilder` sense herència per defecte.
 
 ```java
 MenuEditor.sort(menu)
     .range(0, 10)
-    .thenQuery(InheritanceMode.RANGE)
+    .thenQuery()
     .whereAny()
     .count();
 ```
+
+### `thenShuffle()`
+
+Continua amb `ShuffleBuilder`.
+
+```java
+MenuEditor.sort(menu)
+    .range(0, 10)
+    .thenShuffle()
+    .apply();
+```
+
+En aquest cas, el mode per defecte és `InheritanceMode.RANGE`.
+
+## Herència explícita amb `InheritanceMode`
+
+### `thenSort(InheritanceMode)`
+
+```java
+MenuEditor.sort(menu)
+    .range(0, 10)
+    .thenSort(InheritanceMode.RANGE)
+    .byLabel()
+    .apply();
+```
+
+### `thenRemove(InheritanceMode)`
 
 ```java
 MenuEditor.sort(menu)
@@ -160,22 +265,49 @@ MenuEditor.sort(menu)
     .execute();
 ```
 
-### Sobre `SELECTION`
+### `thenReplace(InheritanceMode)`
 
-`SortBuilder` no defineix selector fluent propi per a l'encadenament.
+```java
+MenuEditor.sort(menu)
+    .range(0, 10)
+    .thenReplace(InheritanceMode.RANGE)
+    .whereAny()
+    .label("Nou")
+    .execute();
+```
 
-Per això, `InheritanceMode.SELECTION` no és el mode adequat quan l'origen és `SortBuilder`; la forma habitual és usar `RANGE` o `ALL`, que en aquest context equivalen pràcticament a transferir només el rang.
+### `thenQuery(InheritanceMode)`
 
-## Resum de modes
+```java
+MenuEditor.sort(menu)
+    .range(0, 10)
+    .thenQuery(InheritanceMode.RANGE)
+    .whereAny()
+    .count();
+```
+
+### `thenShuffle(InheritanceMode)`
+
+```java
+MenuEditor.sort(menu)
+    .range(0, 10)
+    .thenShuffle(InheritanceMode.RANGE)
+    .apply();
+```
+
+## Modes disponibles
 
 - `InheritanceMode.NONE`: no hereta res
-- `InheritanceMode.RANGE`: hereta el rang
+- `InheritanceMode.RANGE`: hereta només el rang
 - `InheritanceMode.ALL`: hereta tot l'estat compatible; en aquest cas, essencialment el rang
+- `InheritanceMode.SELECTION`: no és vàlid en aquest context i produeix una excepció
+
+Això passa perquè `SortBuilder` no hereta selector fluent de coincidència.
 
 ### Obtenció
 
 S'importa utilitzant:
 
 ```java
-import menu.editor.base.InheritanceMode;
+import menu.editor.builders.base.InheritanceMode;
 ```

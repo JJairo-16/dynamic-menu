@@ -50,9 +50,7 @@ public class MenuSnapshot<T, C> {
         private List<MenuOption<T, C>> options;
         private Map<String, Integer> firstIndexByLabel;
 
-        /**
-         * Crea un estat buit.
-         */
+        /** Crea un estat buit. */
         private SharedState() {
             this.options = new ArrayList<>();
             this.firstIndexByLabel = new HashMap<>();
@@ -61,8 +59,8 @@ public class MenuSnapshot<T, C> {
         /**
          * Crea un estat amb les estructures indicades.
          *
-         * @param options            llista d'opcions
-         * @param firstIndexByLabel  índex de primera aparició per etiqueta
+         * @param options           llista d'opcions
+         * @param firstIndexByLabel índex de primera aparició per etiqueta
          */
         private SharedState(
                 List<MenuOption<T, C>> options,
@@ -289,6 +287,114 @@ public class MenuSnapshot<T, C> {
      */
     public MenuSnapshot<T, C> addOptionAt(int index, String label, MenuRuntimeAction<T, C> action) {
         return addOptionAt(index, MenuOption.ofRuntime(label, action));
+    }
+
+    /**
+     * Reemplaça l'opció d'un índex concret mantenint la mida del snapshot.
+     *
+     * @param index  índex de l'opció a reemplaçar
+     * @param label  nova etiqueta
+     * @param action nova acció amb context
+     * @return aquest mateix snapshot
+     */
+    public MenuSnapshot<T, C> setOptionAt(int index, String label, MenuAction<T, C> action) {
+        return setOptionAt(index, MenuOption.of(label, action));
+    }
+
+    /**
+     * Reemplaça l'opció d'un índex concret mantenint la mida del snapshot.
+     *
+     * @param index  índex de l'opció a reemplaçar
+     * @param label  nova etiqueta
+     * @param action nova acció simple
+     * @return aquest mateix snapshot
+     */
+    public MenuSnapshot<T, C> setOptionAt(int index, String label, SimpleMenuAction<T> action) {
+        return setOptionAt(index, MenuOption.of(label, action));
+    }
+
+    /**
+     * Reemplaça l'opció d'un índex concret mantenint la mida del snapshot.
+     *
+     * @param index  índex de l'opció a reemplaçar
+     * @param label  nova etiqueta
+     * @param action nova acció amb accés al menú
+     * @return aquest mateix snapshot
+     */
+    public MenuSnapshot<T, C> setOptionAt(int index, String label, MenuRuntimeAction<T, C> action) {
+        return setOptionAt(index, MenuOption.ofRuntime(label, action));
+    }
+
+    /**
+     * Reemplaça l'opció d'un índex concret mantenint la mida del snapshot.
+     *
+     * <p>
+     * Aquesta operació no altera l'ordre ni la mida de la llista, només substitueix
+     * l'element existent per un altre.
+     * </p>
+     *
+     * @param index  índex a reemplaçar
+     * @param option nova opció
+     * @return aquest mateix snapshot
+     */
+    public MenuSnapshot<T, C> setOptionAt(int index, MenuOption<T, C> option) {
+        Objects.requireNonNull(option, "L'opció de reemplaç no pot ser nul·la");
+        validateExistingIndex(index);
+        ensureWritableState();
+
+        MenuOption<T, C> previous = state.options.set(index, option);
+
+        if (!Objects.equals(previous.label(), option.label())) {
+            rebuildLabelIndex();
+        }
+
+        invalidateOptionSnapshotCache();
+        return this;
+    }
+
+    /**
+     * Reemplaça un rang d'opcions per les opcions indicades.
+     *
+     * <p>
+     * El nombre d'elements del rang i el nombre d'opcions de reemplaç han de
+     * coincidir. Aquesta operació manté la mida total del snapshot.
+     * </p>
+     *
+     * @param fromInclusive índex inicial del rang
+     * @param options       opcions de reemplaç
+     * @return aquest mateix snapshot
+     */
+    public MenuSnapshot<T, C> replaceOptions(int fromInclusive, List<MenuOption<T, C>> options) {
+        Objects.requireNonNull(options, "La llista d'opcions no pot ser nul·la");
+
+        if (options.isEmpty()) {
+            return this;
+        }
+
+        int toExclusive = fromInclusive + options.size();
+        validateRangeForReplace(fromInclusive, toExclusive);
+
+        ensureWritableState();
+
+        boolean labelChanged = false;
+
+        for (int i = 0; i < options.size(); i++) {
+            MenuOption<T, C> replacement = Objects.requireNonNull(
+                    options.get(i),
+                    "Cap opció de reemplaç pot ser nul·la");
+
+            MenuOption<T, C> previous = state.options.set(fromInclusive + i, replacement);
+            if (!Objects.equals(previous.label(), replacement.label())) {
+                labelChanged = true;
+            }
+        }
+
+        if (labelChanged) {
+            rebuildLabelIndex();
+        }
+
+        invalidateOptionSnapshotCache();
+        return this;
     }
 
     /**
@@ -789,6 +895,20 @@ public class MenuSnapshot<T, C> {
     }
 
     /**
+     * Valida un rang vàlid per reemplaçar opcions existents.
+     *
+     * @param fromInclusive inici del rang
+     * @param toExclusive   final exclusiu del rang
+     */
+    private void validateRangeForReplace(int fromInclusive, int toExclusive) {
+        if (fromInclusive < 0 || toExclusive < fromInclusive || toExclusive > state.options.size()) {
+            throw new IndexOutOfBoundsException(
+                    "El rang [" + fromInclusive + ", " + toExclusive + ") no és vàlid; " +
+                            "ha d'estar dins [0, " + state.options.size() + ")");
+        }
+    }
+
+    /**
      * Retorna l'índex d'una etiqueta existent.
      *
      * @param label etiqueta a cercar
@@ -804,16 +924,12 @@ public class MenuSnapshot<T, C> {
         return index;
     }
 
-    /**
-     * Invalida la memòria cau de la instantània d'opcions.
-     */
+    /** Invalida la memòria cau de la instantània d'opcions. */
     private void invalidateOptionSnapshotCache() {
         optionSnapshotCache.invalidate();
     }
 
-    /**
-     * Reconstrueix l'índex de primera aparició per etiqueta.
-     */
+    /** Reconstrueix l'índex de primera aparició per etiqueta. */
     private void rebuildLabelIndex() {
         state.firstIndexByLabel.clear();
 

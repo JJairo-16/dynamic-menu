@@ -6,9 +6,7 @@ import java.util.Objects;
 
 import menu.model.MenuOption;
 
-/**
- * Cachea els textos visibles d'un conjunt d'opcions.
- */
+/** Cachea els textos visibles d'un conjunt d'opcions. */
 public final class MenuOptionTextCache<T, C> {
 
     private Object optionSnapshotIdentity;

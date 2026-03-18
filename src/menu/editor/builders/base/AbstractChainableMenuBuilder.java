@@ -4,7 +4,12 @@ import java.util.Objects;
 import java.util.function.Consumer;
 
 import menu.DynamicMenu;
-import menu.editor.builders.*;
+import menu.editor.builders.QueryBuilder;
+import menu.editor.builders.RemoveBuilder;
+import menu.editor.builders.ReplaceBuilder;
+import menu.editor.builders.ShuffleBuilder;
+import menu.editor.builders.SortBuilder;
+
 /**
  * Pare mínim per a tots els builders encadenables.
  *
@@ -28,16 +33,34 @@ public abstract class AbstractChainableMenuBuilder<
     private final Consumer<DynamicMenu<T, C>> pendingPipeline;
     private final boolean hasPendingOperations;
 
+    /**
+     * Crea un builder sense operacions pendents.
+     *
+     * @param menu menú objectiu
+     */
     protected AbstractChainableMenuBuilder(DynamicMenu<T, C> menu) {
         this(menu, target -> { }, false);
     }
 
+    /**
+     * Crea un builder amb pipeline pendent.
+     *
+     * @param menu menú objectiu
+     * @param pendingPipeline pipeline pendent
+     */
     protected AbstractChainableMenuBuilder(
             DynamicMenu<T, C> menu,
             Consumer<DynamicMenu<T, C>> pendingPipeline) {
         this(menu, pendingPipeline, true);
     }
 
+    /**
+     * Crea un builder amb control explícit d'estat pendent.
+     *
+     * @param menu menú objectiu
+     * @param pendingPipeline pipeline pendent
+     * @param hasPendingOperations indica si hi ha operacions pendents
+     */
     protected AbstractChainableMenuBuilder(
             DynamicMenu<T, C> menu,
             Consumer<DynamicMenu<T, C>> pendingPipeline,
@@ -52,17 +75,19 @@ public abstract class AbstractChainableMenuBuilder<
 
     /**
      * Retorna aquest builder amb el tipus concret.
+     *
+     * @return aquest builder
      */
     protected abstract S self();
 
-    /**
-     * Hook de canvi d'estat perquè els fills invalidin cachés si ho necessiten.
-     */
+    /** Hook perquè els fills invalidin estat intern si cal. */
     protected void onStateChanged() {
     }
 
     /**
      * Retorna el menú objectiu.
+     *
+     * @return menú objectiu
      */
     public final DynamicMenu<T, C> menu() {
         return menu;
@@ -70,6 +95,8 @@ public abstract class AbstractChainableMenuBuilder<
 
     /**
      * Indica si hi ha operacions pendents.
+     *
+     * @return {@code true} si n'hi ha
      */
     protected final boolean hasPendingOperations() {
         return hasPendingOperations;
@@ -77,20 +104,22 @@ public abstract class AbstractChainableMenuBuilder<
 
     /**
      * Retorna el pipeline pendent actual.
+     *
+     * @return pipeline pendent
      */
     protected final Consumer<DynamicMenu<T, C>> pendingPipeline() {
         return pendingPipeline;
     }
 
-    /**
-     * Aplica les operacions pendents sobre el menú real.
-     */
+    /** Aplica les operacions pendents sobre el menú real. */
     protected final void applyPendingOperations() {
         applyPendingOperationsOn(menu);
     }
 
     /**
      * Aplica les operacions pendents sobre un menú indicat.
+     *
+     * @param target menú on aplicar-les
      */
     protected final void applyPendingOperationsOn(DynamicMenu<T, C> target) {
         Objects.requireNonNull(target, "El menú objectiu no pot ser nul");
@@ -101,7 +130,10 @@ public abstract class AbstractChainableMenuBuilder<
     }
 
     /**
-     * Retorna el pipeline pendent actual amb l'operació indicada al final.
+     * Afegeix una operació al final del pipeline pendent.
+     *
+     * @param currentOperation operació actual
+     * @return pipeline compost
      */
     protected final Consumer<DynamicMenu<T, C>> pendingPlus(
             Consumer<DynamicMenu<T, C>> currentOperation) {
@@ -116,7 +148,10 @@ public abstract class AbstractChainableMenuBuilder<
     }
 
     /**
-     * Helper per encadenar cap a RemoveBuilder.
+     * Encadena cap a {@link RemoveBuilder}.
+     *
+     * @param currentOperation operació actual
+     * @return nou builder
      */
     protected final RemoveBuilder<T, C> chainToRemove(
             Consumer<DynamicMenu<T, C>> currentOperation) {
@@ -125,7 +160,10 @@ public abstract class AbstractChainableMenuBuilder<
     }
 
     /**
-     * Helper per encadenar cap a ReplaceBuilder.
+     * Encadena cap a {@link ReplaceBuilder}.
+     *
+     * @param currentOperation operació actual
+     * @return nou builder
      */
     protected final ReplaceBuilder<T, C> chainToReplace(
             Consumer<DynamicMenu<T, C>> currentOperation) {
@@ -134,7 +172,10 @@ public abstract class AbstractChainableMenuBuilder<
     }
 
     /**
-     * Helper per encadenar cap a SortBuilder.
+     * Encadena cap a {@link SortBuilder}.
+     *
+     * @param currentOperation operació actual
+     * @return nou builder
      */
     protected final SortBuilder<T, C> chainToSort(
             Consumer<DynamicMenu<T, C>> currentOperation) {
@@ -143,7 +184,22 @@ public abstract class AbstractChainableMenuBuilder<
     }
 
     /**
-     * Helper per encadenar cap a QueryBuilder.
+     * Encadena cap a {@link ShuffleBuilder}.
+     *
+     * @param currentOperation operació actual
+     * @return nou builder
+     */
+    protected final ShuffleBuilder<T, C> chainToShuffle(
+            Consumer<DynamicMenu<T, C>> currentOperation) {
+
+        return new ShuffleBuilder<>(menu(), pendingPlus(currentOperation), true);
+    }
+
+    /**
+     * Encadena cap a {@link QueryBuilder}.
+     *
+     * @param currentOperation operació actual
+     * @return nou builder
      */
     protected final QueryBuilder<T, C> chainToQuery(
             Consumer<DynamicMenu<T, C>> currentOperation) {

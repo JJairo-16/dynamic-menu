@@ -16,18 +16,18 @@ import menu.editor.helpers.LabelMapper;
 import menu.editor.helpers.OptionMapper;
 import menu.model.MenuOption;
 
-/**
- * Builder fluent per a operacions de substitució.
- */
+/** Builder fluent per a operacions de substitució. */
 public final class ReplaceBuilder<T, C>
         extends AbstractEditBuilder<T, C, ReplaceBuilder<T, C>> {
 
     private OptionMapper<T, C> mapper;
 
+    /** Crea un builder de substitució sobre un menú. */
     public ReplaceBuilder(DynamicMenu<T, C> menu) {
         super(menu);
     }
 
+    /** Crea un builder amb operacions pendents. */
     public ReplaceBuilder(
             DynamicMenu<T, C> menu,
             Consumer<DynamicMenu<T, C>> pendingPipeline) {
@@ -35,6 +35,7 @@ public final class ReplaceBuilder<T, C>
         super(menu, pendingPipeline);
     }
 
+    /** Crea un builder amb estat pendent explícit. */
     public ReplaceBuilder(
             DynamicMenu<T, C> menu,
             Consumer<DynamicMenu<T, C>> pendingPipeline,
@@ -43,31 +44,26 @@ public final class ReplaceBuilder<T, C>
         super(menu, pendingPipeline, hasPendingOperations);
     }
 
+    /** Retorna aquesta instància tipada. */
     @Override
     protected ReplaceBuilder<T, C> self() {
         return this;
     }
 
-    /**
-     * Defineix el transformador general d'opcions.
-     */
+    /** Defineix el transformador general d'opcions. */
     public ReplaceBuilder<T, C> map(OptionMapper<T, C> mapper) {
         this.mapper = Objects.requireNonNull(mapper, "El transformador no pot ser nul");
         return this;
     }
 
-    /**
-     * Substitueix només el label.
-     */
+    /** Substitueix només el label. */
     public ReplaceBuilder<T, C> label(String newLabel) {
         Objects.requireNonNull(newLabel, "El nou label no pot ser nul");
         this.mapper = (index, option) -> MenuEditorSupport.newOption(newLabel, option.action());
         return this;
     }
 
-    /**
-     * Substitueix només el label amb un transformador.
-     */
+    /** Substitueix només el label amb un transformador. */
     public ReplaceBuilder<T, C> label(LabelMapper<T, C> mapper) {
         Objects.requireNonNull(mapper, "El transformador de labels no pot ser nul");
         this.mapper = (index, option) -> MenuEditorSupport.newOption(
@@ -78,34 +74,26 @@ public final class ReplaceBuilder<T, C>
         return this;
     }
 
-    /**
-     * Substitueix només el comportament.
-     */
+    /** Substitueix només el comportament. */
     public ReplaceBuilder<T, C> action(MenuRuntimeAction<T, C> newAction) {
         Objects.requireNonNull(newAction, "El nou comportament no pot ser nul");
         this.mapper = (index, option) -> MenuEditorSupport.newOption(option.label(), newAction);
         return this;
     }
 
-    /**
-     * Substitueix només el comportament.
-     */
+    /** Substitueix només el comportament. */
     public ReplaceBuilder<T, C> action(MenuAction<T, C> newAction) {
         Objects.requireNonNull(newAction, "El nou comportament no pot ser nul");
         return action(MenuEditorSupport.runtimeOf(newAction));
     }
 
-    /**
-     * Substitueix només el comportament.
-     */
+    /** Substitueix només el comportament. */
     public ReplaceBuilder<T, C> action(SimpleMenuAction<T> newAction) {
         Objects.requireNonNull(newAction, "El nou comportament no pot ser nul");
         return action(MenuEditorSupport.runtimeOf(newAction));
     }
 
-    /**
-     * Substitueix només el comportament amb un transformador.
-     */
+    /** Substitueix només el comportament amb un transformador. */
     public ReplaceBuilder<T, C> action(ActionMapper<T, C> mapper) {
         Objects.requireNonNull(mapper, "El transformador de comportaments no pot ser nul");
         this.mapper = (index, option) -> MenuEditorSupport.newOption(
@@ -116,9 +104,7 @@ public final class ReplaceBuilder<T, C>
         return this;
     }
 
-    /**
-     * Substitueix tota l'opció per label i comportament.
-     */
+    /** Substitueix tota l'opció per label i comportament. */
     public ReplaceBuilder<T, C> option(String newLabel, MenuRuntimeAction<T, C> newAction) {
         Objects.requireNonNull(newLabel, "El nou label no pot ser nul");
         Objects.requireNonNull(newAction, "El nou comportament no pot ser nul");
@@ -126,35 +112,31 @@ public final class ReplaceBuilder<T, C>
         return this;
     }
 
-    /**
-     * Substitueix tota l'opció per label i comportament.
-     */
+    /** Substitueix tota l'opció per label i comportament. */
     public ReplaceBuilder<T, C> option(String newLabel, MenuAction<T, C> newAction) {
         Objects.requireNonNull(newAction, "El nou comportament no pot ser nul");
         return option(newLabel, MenuEditorSupport.runtimeOf(newAction));
     }
 
-    /**
-     * Substitueix tota l'opció per label i comportament.
-     */
+    /** Substitueix tota l'opció per label i comportament. */
     public ReplaceBuilder<T, C> option(String newLabel, SimpleMenuAction<T> newAction) {
         Objects.requireNonNull(newAction, "El nou comportament no pot ser nul");
         return option(newLabel, MenuEditorSupport.runtimeOf(newAction));
     }
 
-    /**
-     * Substitueix tota l'opció per una opció ja construïda.
-     */
+    /** Substitueix tota l'opció per una opció ja construïda. */
     public ReplaceBuilder<T, C> option(MenuOption<T, C> newOption) {
         Objects.requireNonNull(newOption, "La nova opció no pot ser nul·la");
         this.mapper = (index, option) -> newOption;
         return this;
     }
 
+    /** Retorna el transformador definit. */
     private OptionMapper<T, C> requireMapper() {
         return Objects.requireNonNull(mapper, "El transformador no pot ser nul");
     }
 
+    /** Construeix l'operació actual de substitució. */
     private Consumer<DynamicMenu<T, C>> currentOperation() {
         return currentMenu -> ReplaceFamily.replaceIf(
                 currentMenu,
@@ -163,9 +145,7 @@ public final class ReplaceBuilder<T, C>
                 buildConfig());
     }
 
-    /**
-     * Executa tota la cadena pendent i després l'última substitució.
-     */
+    /** Executa tota la cadena pendent i després l'última substitució. */
     public int execute() {
         applyPendingOperations();
         return ReplaceFamily.replaceIf(
@@ -175,13 +155,12 @@ public final class ReplaceBuilder<T, C>
                 buildConfig());
     }
 
-    /**
-     * Indica si s'ha substituït almenys una opció.
-     */
+    /** Indica si s'ha substituït almenys una opció. */
     public boolean executeAny() {
         return execute() > 0;
     }
 
+    /** Aplica l'herència d'edició. */
     private <B extends AbstractEditBuilder<T, C, B>> B applyEditInheritance(
             B target,
             InheritanceMode inheritanceMode) {
@@ -202,6 +181,7 @@ public final class ReplaceBuilder<T, C>
         }
     }
 
+    /** Aplica l'herència per a consultes. */
     private QueryBuilder<T, C> applyQueryInheritance(
             QueryBuilder<T, C> target,
             InheritanceMode inheritanceMode) {
@@ -222,56 +202,54 @@ public final class ReplaceBuilder<T, C>
         }
     }
 
-    private SortBuilder<T, C> applySortInheritance(
-            SortBuilder<T, C> target,
-            InheritanceMode inheritanceMode) {
-
-        Objects.requireNonNull(inheritanceMode, "El mode d'herència no pot ser nul");
-
-        switch (inheritanceMode) {
-            case NONE:
-                return target;
-            case RANGE:
-                return inheritRangeTo(target);
-            case ALL:
-                return inheritRangeTo(target);
-            case SELECTION:
-                throw new IllegalArgumentException(
-                        "SortBuilder no admet herència de selector; usa RANGE o ALL");
-            default:
-                throw new IllegalArgumentException("Mode d'herència no suportat: " + inheritanceMode);
-        }
-    }
-
+    /** Encadena una altra substitució sense herència. */
     public ReplaceBuilder<T, C> thenReplace() {
         return thenReplace(InheritanceMode.NONE);
     }
 
+    /** Encadena una altra substitució. */
     public ReplaceBuilder<T, C> thenReplace(InheritanceMode inheritanceMode) {
         return applyEditInheritance(chainToReplace(currentOperation()), inheritanceMode);
     }
 
+    /** Encadena una eliminació sense herència. */
     public RemoveBuilder<T, C> thenRemove() {
         return thenRemove(InheritanceMode.NONE);
     }
 
+    /** Encadena una eliminació. */
     public RemoveBuilder<T, C> thenRemove(InheritanceMode inheritanceMode) {
         return applyEditInheritance(chainToRemove(currentOperation()), inheritanceMode);
     }
 
+    /** Encadena una ordenació sense herència. */
     public SortBuilder<T, C> thenSort() {
         return thenSort(InheritanceMode.NONE);
     }
 
+    /** Encadena una ordenació. */
     public SortBuilder<T, C> thenSort(InheritanceMode inheritanceMode) {
-        return applySortInheritance(chainToSort(currentOperation()), inheritanceMode);
+        return applyRangedInheritance(chainToSort(currentOperation()), inheritanceMode);
     }
 
+    /** Encadena una consulta sense herència. */
     public QueryBuilder<T, C> thenQuery() {
         return thenQuery(InheritanceMode.NONE);
     }
 
+    /** Encadena una consulta. */
     public QueryBuilder<T, C> thenQuery(InheritanceMode inheritanceMode) {
         return applyQueryInheritance(chainToQuery(currentOperation()), inheritanceMode);
+    }
+
+    /** Encadena una barreja amb herència de rang. */
+    public ShuffleBuilder<T, C> thenShuffle() {
+        return thenShuffle(InheritanceMode.RANGE);
+    }
+
+    /** Encadena una barreja. */
+    public ShuffleBuilder<T, C> thenShuffle(InheritanceMode inheritanceMode) {
+        return applyRangedInheritance(chainToShuffle(target -> {
+        }), inheritanceMode);
     }
 }

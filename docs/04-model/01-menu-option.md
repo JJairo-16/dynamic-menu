@@ -7,6 +7,14 @@ Cada opció conté:
 - una etiqueta (`label`)
 - una acció (`action`)
 
+## Obtenció
+
+S'importa utilitzant:
+
+```java
+import menu.model.MenuOption;
+```
+
 ## Estructura
 
 ```java

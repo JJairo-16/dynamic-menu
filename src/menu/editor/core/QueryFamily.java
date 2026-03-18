@@ -13,14 +13,17 @@ import menu.model.MenuOption;
 
 import static menu.editor.core.MenuEditorSupport.*;
 
+/** Utilitats de QueryFamily. */
 public final class QueryFamily {
     private QueryFamily() {
+        throw new AssertionError("No es pot instanciar QueryFamily");
     }
 
     // -------------------------------------------------------------------------
     // Index queries
     // -------------------------------------------------------------------------
 
+    /** Retorna l'índex de la primera coincidència. */
     public static <T, C> int indexOfFirst(
             DynamicMenu<T, C> menu,
             OptionSelector<T, C> selector) {
@@ -28,6 +31,7 @@ public final class QueryFamily {
         return indexOfFirst(menu, selector, Range.all());
     }
 
+    /** Retorna l'índex de la primera coincidència. */
     public static <T, C> int indexOfFirst(
             DynamicMenu<T, C> menu,
             OptionSelector<T, C> selector,
@@ -45,6 +49,7 @@ public final class QueryFamily {
         return -1;
     }
 
+    /** Retorna l'índex de l'última coincidència. */
     public static <T, C> int indexOfLast(
             DynamicMenu<T, C> menu,
             OptionSelector<T, C> selector) {
@@ -52,6 +57,7 @@ public final class QueryFamily {
         return indexOfLast(menu, selector, Range.all());
     }
 
+    /** Retorna l'índex de l'última coincidència. */
     public static <T, C> int indexOfLast(
             DynamicMenu<T, C> menu,
             OptionSelector<T, C> selector,
@@ -73,6 +79,7 @@ public final class QueryFamily {
     // Presence queries
     // -------------------------------------------------------------------------
 
+    /** Indica si existeix alguna coincidència. */
     public static <T, C> boolean containsMatch(
             DynamicMenu<T, C> menu,
             OptionSelector<T, C> selector) {
@@ -80,6 +87,7 @@ public final class QueryFamily {
         return containsMatch(menu, selector, Range.all());
     }
 
+    /** Indica si existeix alguna coincidència. */
     public static <T, C> boolean containsMatch(
             DynamicMenu<T, C> menu,
             OptionSelector<T, C> selector,
@@ -88,6 +96,7 @@ public final class QueryFamily {
         return indexOfFirst(menu, selector, range) >= 0;
     }
 
+    /** Indica si existeix una opció amb l'etiqueta indicada. */
     public static <T, C> boolean containsLabel(
             DynamicMenu<T, C> menu,
             String label) {
@@ -99,6 +108,7 @@ public final class QueryFamily {
     // Count queries
     // -------------------------------------------------------------------------
 
+    /** Compta les opcions que compleixen la condició. */
     public static <T, C> int countMatches(
             DynamicMenu<T, C> menu,
             OptionSelector<T, C> selector) {
@@ -106,6 +116,7 @@ public final class QueryFamily {
         return countMatches(menu, selector, Range.all());
     }
 
+    /** Compta les opcions que compleixen la condició. */
     public static <T, C> int countMatches(
             DynamicMenu<T, C> menu,
             OptionSelector<T, C> selector,
@@ -125,6 +136,7 @@ public final class QueryFamily {
         return count;
     }
 
+    /** Compta les opcions amb l'etiqueta indicada. */
     public static <T, C> int countLabelMatches(
             DynamicMenu<T, C> menu,
             String label) {
@@ -136,6 +148,7 @@ public final class QueryFamily {
     // Bulk query results
     // -------------------------------------------------------------------------
 
+    /** Retorna els índexs de totes les coincidències. */
     public static <T, C> List<Integer> indexesOf(
             DynamicMenu<T, C> menu,
             OptionSelector<T, C> selector) {
@@ -143,6 +156,7 @@ public final class QueryFamily {
         return indexesOf(menu, selector, Range.all());
     }
 
+    /** Retorna els índexs de totes les coincidències. */
     public static <T, C> List<Integer> indexesOf(
             DynamicMenu<T, C> menu,
             OptionSelector<T, C> selector,
@@ -161,6 +175,7 @@ public final class QueryFamily {
         return List.copyOf(matches);
     }
 
+    /** Retorna les opcions que compleixen la condició. */
     public static <T, C> List<MenuOption<T, C>> matchingOptions(
             DynamicMenu<T, C> menu,
             OptionSelector<T, C> selector) {
@@ -168,6 +183,7 @@ public final class QueryFamily {
         return matchingOptions(menu, selector, Range.all());
     }
 
+    /** Retorna les opcions que compleixen la condició. */
     public static <T, C> List<MenuOption<T, C>> matchingOptions(
             DynamicMenu<T, C> menu,
             OptionSelector<T, C> selector,
@@ -192,6 +208,7 @@ public final class QueryFamily {
     // Exact label queries
     // -------------------------------------------------------------------------
 
+    /** Retorna l'índex de la primera opció amb l'etiqueta indicada. */
     public static <T, C> int indexOfFirstLabel(
             DynamicMenu<T, C> menu,
             String label) {
@@ -199,6 +216,7 @@ public final class QueryFamily {
         return indexOfFirst(menu, exactLabelSelector(label));
     }
 
+    /** Retorna l'índex de l'última opció amb l'etiqueta indicada. */
     public static <T, C> int indexOfLastLabel(
             DynamicMenu<T, C> menu,
             String label) {
@@ -210,6 +228,7 @@ public final class QueryFamily {
     // Find queries
     // -------------------------------------------------------------------------
 
+    /** Retorna la primera opció que compleix la condició. */
     public static <T, C> MenuOption<T, C> findFirst(
             DynamicMenu<T, C> menu,
             OptionSelector<T, C> selector) {
@@ -217,6 +236,7 @@ public final class QueryFamily {
         return findFirst(menu, selector, Range.all());
     }
 
+    /** Retorna la primera opció que compleix la condició. */
     public static <T, C> MenuOption<T, C> findFirst(
             DynamicMenu<T, C> menu,
             OptionSelector<T, C> selector,
@@ -226,6 +246,7 @@ public final class QueryFamily {
         return index >= 0 ? currentOptions(menu).get(index) : null;
     }
 
+    /** Retorna l'última opció que compleix la condició. */
     public static <T, C> MenuOption<T, C> findLast(
             DynamicMenu<T, C> menu,
             OptionSelector<T, C> selector) {
@@ -233,6 +254,7 @@ public final class QueryFamily {
         return findLast(menu, selector, Range.all());
     }
 
+    /** Retorna l'última opció que compleix la condició. */
     public static <T, C> MenuOption<T, C> findLast(
             DynamicMenu<T, C> menu,
             OptionSelector<T, C> selector,
@@ -242,6 +264,7 @@ public final class QueryFamily {
         return index >= 0 ? currentOptions(menu).get(index) : null;
     }
 
+    /** Retorna la primera opció amb l'etiqueta indicada. */
     public static <T, C> MenuOption<T, C> findFirstLabel(
             DynamicMenu<T, C> menu,
             String label) {
@@ -249,6 +272,7 @@ public final class QueryFamily {
         return findFirst(menu, exactLabelSelector(label));
     }
 
+    /** Retorna l'última opció amb l'etiqueta indicada. */
     public static <T, C> MenuOption<T, C> findLastLabel(
             DynamicMenu<T, C> menu,
             String label) {
@@ -256,6 +280,7 @@ public final class QueryFamily {
         return findLast(menu, exactLabelSelector(label));
     }
 
+    /** Recull els índexs coincidents dins d'un rang. */
     public static <T, C> Set<Integer> collectMatchingIndexes(
             List<MenuOption<T, C>> options,
             OptionSelector<T, C> selector,
@@ -308,6 +333,7 @@ public final class QueryFamily {
         return matches;
     }
 
+    /** Valida els arguments i obté les opcions actuals. */
     private static <T, C> List<MenuOption<T, C>> validatedOptions(
             DynamicMenu<T, C> menu,
             OptionSelector<T, C> selector,
