@@ -34,8 +34,13 @@ export const COPY_BUTTON_LANGS = new Set([
   'groovy'
 ]);
 
-export const WARNING_TOKEN = '[!WARNING]';
-export const WARNING_REPLACEMENT = '⚠️';
+export const MARKDOWN_TOKENS = {
+  '[!WARNING]': '⚠️',
+  '[!INFO]': 'ℹ️',
+  '[!SUCCESS]': '✅',
+  '[!ERROR]': '❌'
+};
+
 export const CONTENT_ROOT_FALLBACK = './content';
 
 export const state = {
@@ -52,7 +57,9 @@ export const state = {
   searchUi: null,
   searchUiVisible: false,
   searchUiHeadingResults: [],
-  searchUiActiveIndex: -1
+  searchUiActiveIndex: -1,
+  lastNavRenderKey: '',
+  lastSearchQuery: ''
 };
 
 export const dom = {

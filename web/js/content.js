@@ -4,16 +4,14 @@ import {
   state,
   dom,
   DEFAULT_DOC_PATH,
-  NOT_FOUND_MARKDOWN,
-  WARNING_TOKEN,
-  WARNING_REPLACEMENT,
-  buildContentUrl,
+  MARKDOWN_TOKENS,
   currentPathFromHash,
   resolveDocPath,
   closeMenu,
   escapeHtml
 } from './state.js';
 
+import { getDocSource } from './doc-source.js';
 import { highlightCodeBlocks } from './code.js';
 import {
   renderBreadcrumbs,
@@ -98,7 +96,13 @@ export function rewriteLinks(markdown, currentPath) {
 }
 
 export function replaceMarkdownTokens(markdown) {
-  return markdown.replaceAll(WARNING_TOKEN, WARNING_REPLACEMENT);
+  let result = markdown;
+
+  for (const [token, replacement] of Object.entries(MARKDOWN_TOKENS)) {
+    result = result.replaceAll(token, replacement);
+  }
+
+  return result;
 }
 
 export function processMarkdown(markdown, currentPath) {
@@ -167,22 +171,21 @@ export async function loadRoute(options = {}) {
   let cached = pageCache.get(state.currentPath);
 
   if (!cached) {
-    const response = await fetch(buildContentUrl(state.currentPath));
+    const source = await getDocSource(state.currentPath);
     if (requestId !== routeRequestId) return;
 
-    const isNotFound = !response.ok;
-    const markdown = isNotFound ? renderNotFoundMarkdown(state.currentPath) : await response.text();
-    if (requestId !== routeRequestId) return;
-
-    const processedMarkdown = processMarkdown(markdown, state.currentPath);
-    const html = isNotFound ? renderNotFoundHtml(state.currentPath) : marked.parse(processedMarkdown);
+    const processedMarkdown = processMarkdown(source.markdown, state.currentPath);
+    const html = source.isNotFound
+      ? renderNotFoundHtml(state.currentPath)
+      : marked.parse(processedMarkdown);
 
     cached = {
       html,
       highlightedHtml: null,
-      hasCode: !isNotFound && /<pre><code|<pre class=|language-/.test(html),
-      isNotFound
+      hasCode: !source.isNotFound && /<pre><code|<pre class=|language-/.test(html),
+      isNotFound: source.isNotFound
     };
+
     setCachedPage(state.currentPath, cached);
   }
 

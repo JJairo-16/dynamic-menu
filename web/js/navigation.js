@@ -4,9 +4,9 @@ import {
   ROOT_SUBSECTION,
   HOME_SECTION,
   PATH_COLLATOR,
-  escapeHtml,
-  buildContentUrl
+  escapeHtml
 } from './state.js';
+import { getDocSource } from './doc-source.js';
 import { navigateToCurrentHeading } from './content.js';
 
 let searchDebounceTimer = null;
@@ -121,15 +121,21 @@ export function setCurrentPageHeadingsFromDom() {
 }
 
 async function ensureDocHeadingIndex(doc) {
-  if (!doc || state.headingIndex.has(doc.path)) return state.headingIndex.get(doc.path) || [];
+  if (!doc || state.headingIndex.has(doc.path)) {
+    return state.headingIndex.get(doc.path) || [];
+  }
 
   try {
-    const response = await fetch(buildContentUrl(doc.path));
-    if (!response.ok) throw new Error(`No s'ha pogut carregar ${doc.path}`);
-    const markdown = await response.text();
-    const headings = extractHeadings(markdown);
-    state.headingIndex.set(doc.path, headings);
-    return headings;
+    const source = await getDocSource(doc.path);
+
+    if (source.isNotFound) {
+      state.headingIndex.set(doc.path, []);
+      return [];
+    }
+
+    source.headings ??= extractHeadings(source.markdown);
+    state.headingIndex.set(doc.path, source.headings);
+    return source.headings;
   } catch {
     state.headingIndex.set(doc.path, []);
     return [];
@@ -222,11 +228,14 @@ export function orderSections(groups) {
 }
 
 export function renderNavLink(doc, extraClass = 'px-3') {
+  const isActive = doc.path === state.currentPath;
+
   return `
     <a
       class="nav-link block rounded-xl ${extraClass} py-2 text-sm font-medium text-slate-700"
       href="#/${encodeURI(doc.path)}"
       data-doc-path="${escapeHtml(doc.path)}"
+      ${isActive ? 'aria-current="page"' : ''}
     >
       ${escapeHtml(doc.title)}
     </a>
@@ -367,6 +376,7 @@ export function renderNav() {
   }
 
   dom.nav.innerHTML = navHtml;
+  state.lastNavRenderKey = buildDocsRenderKey(state.filteredDocs);
   syncSubsectionAnimationState();
   highlightActiveLink();
   revealRelevantSearchResult();
@@ -473,9 +483,16 @@ export function renderDocNav(isNotFound = false) {
     return;
   }
 
-  const index = state.docs.findIndex(doc => doc.path === state.currentPath);
-  const prev = index > 0 ? state.docs[index - 1] : null;
-  const next = index >= 0 && index < state.docs.length - 1 ? state.docs[index + 1] : null;
+  const index = state.docIndexByPath.get(state.currentPath);
+  const hasIndex = Number.isInteger(index) && index >= 0;
+
+  const prev = hasIndex && index > 0
+    ? state.docs[index - 1]
+    : null;
+
+  const next = hasIndex && index < state.docs.length - 1
+    ? state.docs[index + 1]
+    : null;
 
   dom.docNav.innerHTML = [prev, next]
     .map((doc, i) => {
@@ -529,9 +546,19 @@ function getCurrentPageHeadingMatches(query) {
   const headings = state.headingIndex.get(state.currentPath) || [];
   if (!query) return [];
 
-  return headings
-    .filter(heading => heading._searchText.includes(query))
-    .slice(0, SEARCH_RESULT_LIMIT);
+  const matches = [];
+
+  for (const heading of headings) {
+    if (!heading._searchText.includes(query)) continue;
+
+    matches.push(heading);
+
+    if (matches.length >= SEARCH_RESULT_LIMIT) {
+      break;
+    }
+  }
+
+  return matches;
 }
 
 function renderCurrentPageHeadingResults() {
@@ -638,14 +665,37 @@ function hideCurrentPageHeadingResults() {
 export function clearSearch(resetInput = true) {
   clearTimeout(searchDebounceTimer);
 
+  const hadQuery = !!dom.searchInput?.value.trim();
+  const wasFiltered = state.filteredDocs !== state.docs;
+
   if (resetInput && dom.searchInput) {
     dom.searchInput.value = '';
   }
 
   state.filteredDocs = state.docs;
   state.searchUiActiveIndex = -1;
-  hideCurrentPageHeadingResults();
-  renderNav();
+  state.searchUiVisible = false;
+  state.lastSearchQuery = '';
+
+  if (state.searchUi?.panel) {
+    state.searchUi.panel.classList.remove('is-visible');
+  }
+
+  if (state.searchUi?.message) {
+    state.searchUi.message.hidden = true;
+  }
+
+  if (state.searchUi?.results) {
+    state.searchUi.results.innerHTML = '';
+  }
+
+  state.searchUiHeadingResults = [];
+
+  if (hadQuery || wasFiltered) {
+    ensureNavRendered(false);
+  } else {
+    highlightActiveLink();
+  }
 }
 
 function navigateToHeadingResult(slug) {
@@ -657,8 +707,11 @@ function navigateToHeadingResult(slug) {
 }
 
 function updateFilteredDocs(query) {
-  state.filteredDocs = filterDocs(query);
-  renderNav();
+  const nextDocs = filterDocs(query);
+  state.filteredDocs = nextDocs;
+  state.lastSearchQuery = query;
+
+  ensureNavRendered(false);
 
   if (state.filteredDocs.length) {
     state.searchUi.message.hidden = true;
@@ -694,6 +747,12 @@ export function handleSearchInput() {
 
     if (!query) {
       clearSearch(false);
+      return;
+    }
+
+    if (query === state.lastSearchQuery) {
+      state.searchUiVisible = true;
+      renderCurrentPageHeadingResults();
       return;
     }
 
@@ -768,4 +827,26 @@ export function handleNavClick(event) {
   if (link) {
     clearSearch(true);
   }
+}
+
+function buildDocsRenderKey(docs) {
+  if (!Array.isArray(docs) || !docs.length) {
+    return '__empty__';
+  }
+
+  return docs.map(doc => doc.path).join('|');
+}
+
+function ensureNavRendered(force = false) {
+  const nextKey = buildDocsRenderKey(state.filteredDocs);
+
+  if (!force && nextKey === state.lastNavRenderKey) {
+    highlightActiveLink();
+    revealRelevantSearchResult();
+    return false;
+  }
+
+  renderNav();
+  state.lastNavRenderKey = nextKey;
+  return true;
 }

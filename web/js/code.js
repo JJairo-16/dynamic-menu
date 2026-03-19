@@ -47,8 +47,6 @@ function formatLanguageLabel(rawLang) {
   if (!rawLang) return 'TEXT';
 
   const labels = {
-    js: 'JAVASCRIPT',
-    ts: 'TYPESCRIPT',
     bash: 'BASH',
     sh: 'SHELL',
     shell: 'SHELL',
