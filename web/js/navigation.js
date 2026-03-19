@@ -480,19 +480,20 @@ export function renderBreadcrumbs(isNotFound = false) {
 export function renderDocNav(isNotFound = false) {
   if (isNotFound) {
     dom.docNav.innerHTML = '';
+    dom.docNav.classList.remove('sm:grid-cols-2');
     return;
   }
 
-  const index = state.docIndexByPath.get(state.currentPath);
-  const hasIndex = Number.isInteger(index) && index >= 0;
+  const orderedDocs = [
+    ...state.docs.filter(d => d.path.endsWith('index.md')),
+    ...state.docs.filter(d => !d.path.endsWith('index.md'))
+  ];
 
-  const prev = hasIndex && index > 0
-    ? state.docs[index - 1]
-    : null;
 
-  const next = hasIndex && index < state.docs.length - 1
-    ? state.docs[index + 1]
-    : null;
+  const index = orderedDocs.findIndex(doc => doc.path === state.currentPath);
+  
+  const prev = index > 0 ? orderedDocs[index - 1] : null;
+  const next = index < orderedDocs.length - 1 ? orderedDocs[index + 1] : null;
 
   dom.docNav.innerHTML = [prev, next]
     .map((doc, i) => {
