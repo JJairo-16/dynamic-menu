@@ -24,12 +24,27 @@ public record RemovePlannedOperation<T, C>(
     }
 
     @Override
+    public menu.editor.Range range() {
+        return config.range();
+    }
+
+    @Override
     public OperationType type() {
         return OperationType.REMOVE;
     }
 
     @Override
-    public menu.editor.Range range() {
-        return config.range();
+    public boolean preservesCardinality() {
+        return false;
+    }
+
+    @Override
+    public boolean changesIndexes() {
+        return true;
+    }
+
+    @Override
+    public boolean isBarrier() {
+        return true;
     }
 }

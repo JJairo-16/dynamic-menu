@@ -25,10 +25,6 @@ public record ShufflePlannedOperation<T, C>(
         Objects.requireNonNull(range, "El rang no pot ser nul");
     }
 
-    public boolean hasPinnedSelectors() {
-        return hasPinnedFirst || hasPinnedLast;
-    }
-
     @Override
     public void apply(DynamicMenu<T, C> menu) {
         ShuffleFamily.shuffle(
@@ -42,5 +38,25 @@ public record ShufflePlannedOperation<T, C>(
     @Override
     public OperationType type() {
         return OperationType.SHUFFLE;
+    }
+
+    @Override
+    public boolean reorders() {
+        return true;
+    }
+
+    @Override
+    public boolean preservesCardinality() {
+        return true;
+    }
+
+    @Override
+    public boolean changesIndexes() {
+        return true;
+    }
+
+    @Override
+    public boolean hasPinnedSelectors() {
+        return hasPinnedFirst || hasPinnedLast;
     }
 }

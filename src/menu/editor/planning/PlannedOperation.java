@@ -14,4 +14,28 @@ public interface PlannedOperation<T, C> {
     default boolean isNoOp() {
         return false;
     }
+
+    default boolean reorders() {
+        return false;
+    }
+
+    default boolean preservesCardinality() {
+        return true;
+    }
+
+    default boolean changesIndexes() {
+        return false;
+    }
+
+    default boolean changesLabels() {
+        return false;
+    }
+
+    default boolean hasPinnedSelectors() {
+        return false;
+    }
+
+    default boolean isBarrier() {
+        return false;
+    }
 }

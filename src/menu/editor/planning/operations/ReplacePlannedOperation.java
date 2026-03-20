@@ -27,12 +27,17 @@ public record ReplacePlannedOperation<T, C>(
     }
 
     @Override
+    public menu.editor.Range range() {
+        return config.range();
+    }
+
+    @Override
     public OperationType type() {
         return OperationType.REPLACE;
     }
 
     @Override
-    public menu.editor.Range range() {
-        return config.range();
+    public boolean changesLabels() {
+        return true;
     }
 }

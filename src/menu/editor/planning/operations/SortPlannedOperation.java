@@ -26,10 +26,6 @@ public record SortPlannedOperation<T, C>(
         Objects.requireNonNull(range, "El rang no pot ser nul");
     }
 
-    public boolean hasPinnedSelectors() {
-        return hasPinnedFirst || hasPinnedLast;
-    }
-
     @Override
     public void apply(DynamicMenu<T, C> menu) {
         SortFamily.sortByLabel(
@@ -43,5 +39,25 @@ public record SortPlannedOperation<T, C>(
     @Override
     public OperationType type() {
         return OperationType.SORT;
+    }
+
+    @Override
+    public boolean reorders() {
+        return true;
+    }
+
+    @Override
+    public boolean preservesCardinality() {
+        return true;
+    }
+
+    @Override
+    public boolean changesIndexes() {
+        return true;
+    }
+
+    @Override
+    public boolean hasPinnedSelectors() {
+        return hasPinnedFirst || hasPinnedLast;
     }
 }
