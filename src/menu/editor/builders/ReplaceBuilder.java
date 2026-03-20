@@ -1,7 +1,6 @@
 package menu.editor.builders;
 
 import java.util.Objects;
-import java.util.function.Consumer;
 
 import menu.DynamicMenu;
 import menu.action.MenuAction;
@@ -14,6 +13,10 @@ import menu.editor.core.ReplaceFamily;
 import menu.editor.helpers.ActionMapper;
 import menu.editor.helpers.LabelMapper;
 import menu.editor.helpers.OptionMapper;
+import menu.editor.planning.OperationPlan;
+import menu.editor.planning.PlannedOperation;
+import menu.editor.planning.operations.NoOpPlannedOperation;
+import menu.editor.planning.operations.ReplacePlannedOperation;
 import menu.model.MenuOption;
 
 /** Builder fluent per a operacions de substitució. */
@@ -30,18 +33,18 @@ public final class ReplaceBuilder<T, C>
     /** Crea un builder amb operacions pendents. */
     public ReplaceBuilder(
             DynamicMenu<T, C> menu,
-            Consumer<DynamicMenu<T, C>> pendingPipeline) {
+            OperationPlan<T, C> pendingPlan) {
 
-        super(menu, pendingPipeline);
+        super(menu, pendingPlan);
     }
 
     /** Crea un builder amb estat pendent explícit. */
     public ReplaceBuilder(
             DynamicMenu<T, C> menu,
-            Consumer<DynamicMenu<T, C>> pendingPipeline,
+            OperationPlan<T, C> pendingPlan,
             boolean hasPendingOperations) {
 
-        super(menu, pendingPipeline, hasPendingOperations);
+        super(menu, pendingPlan, hasPendingOperations);
     }
 
     /** Retorna aquesta instància tipada. */
@@ -137,9 +140,8 @@ public final class ReplaceBuilder<T, C>
     }
 
     /** Construeix l'operació actual de substitució. */
-    private Consumer<DynamicMenu<T, C>> currentOperation() {
-        return currentMenu -> ReplaceFamily.replaceIf(
-                currentMenu,
+    private PlannedOperation<T, C> currentOperation() {
+        return new ReplacePlannedOperation<>(
                 requireSelector(),
                 requireMapper(),
                 buildConfig());
@@ -249,7 +251,8 @@ public final class ReplaceBuilder<T, C>
 
     /** Encadena una barreja. */
     public ShuffleBuilder<T, C> thenShuffle(InheritanceMode inheritanceMode) {
-        return applyRangedInheritance(chainToShuffle(target -> {
-        }), inheritanceMode);
+        return applyRangedInheritance(
+                chainToShuffle(NoOpPlannedOperation.instance()),
+                inheritanceMode);
     }
 }

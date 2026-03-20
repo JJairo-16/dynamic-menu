@@ -5,7 +5,6 @@ import java.util.Comparator;
 import java.util.LinkedHashSet;
 import java.util.Objects;
 import java.util.Set;
-import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 import menu.DynamicMenu;
@@ -15,6 +14,10 @@ import menu.editor.builders.base.InheritanceMode;
 import menu.editor.core.MenuEditorSupport;
 import menu.editor.core.SortFamily;
 import menu.editor.helpers.OptionSelector;
+import menu.editor.planning.OperationPlan;
+import menu.editor.planning.PlannedOperation;
+import menu.editor.planning.operations.NoOpPlannedOperation;
+import menu.editor.planning.operations.SortPlannedOperation;
 import menu.model.MenuOption;
 
 /** Builder fluent per a operacions d'ordenació. */
@@ -25,6 +28,8 @@ public final class SortBuilder<T, C>
     private OptionSelector<T, C> firstSelector = MenuEditorSupport.alwaysFalseSelector();
     private OptionSelector<T, C> lastSelector = MenuEditorSupport.alwaysFalseSelector();
     private boolean descending = false;
+    private boolean hasPinnedFirst = false;
+    private boolean hasPinnedLast = false;
 
     /** Crea un builder d'ordenació sobre un menú. */
     public SortBuilder(DynamicMenu<T, C> menu) {
@@ -34,18 +39,18 @@ public final class SortBuilder<T, C>
     /** Crea un builder amb operacions pendents. */
     public SortBuilder(
             DynamicMenu<T, C> menu,
-            Consumer<DynamicMenu<T, C>> pendingPipeline) {
+            OperationPlan<T, C> pendingPlan) {
 
-        super(menu, pendingPipeline);
+        super(menu, pendingPlan);
     }
 
     /** Crea un builder amb estat pendent explícit. */
     public SortBuilder(
             DynamicMenu<T, C> menu,
-            Consumer<DynamicMenu<T, C>> pendingPipeline,
+            OperationPlan<T, C> pendingPlan,
             boolean hasPendingOperations) {
 
-        super(menu, pendingPipeline, hasPendingOperations);
+        super(menu, pendingPlan, hasPendingOperations);
     }
 
     /** Retorna aquesta instància tipada. */
@@ -69,6 +74,7 @@ public final class SortBuilder<T, C>
     /** Fixa opcions al principi del segment ordenat. */
     public SortBuilder<T, C> pinFirst(OptionSelector<T, C> selector) {
         this.firstSelector = Objects.requireNonNull(selector, "El selector inicial no pot ser nul");
+        this.hasPinnedFirst = true;
         return this;
     }
 
@@ -76,12 +82,14 @@ public final class SortBuilder<T, C>
     public SortBuilder<T, C> pinLabelFirst(Predicate<String> predicate) {
         Objects.requireNonNull(predicate, "La condició no pot ser nul·la");
         this.firstSelector = (i, opt) -> predicate.test(opt.label());
+        this.hasPinnedFirst = true;
         return this;
     }
 
     /** Fixa opcions al final del segment ordenat. */
     public SortBuilder<T, C> pinLast(OptionSelector<T, C> selector) {
         this.lastSelector = Objects.requireNonNull(selector, "El selector final no pot ser nul");
+        this.hasPinnedLast = true;
         return this;
     }
 
@@ -89,6 +97,7 @@ public final class SortBuilder<T, C>
     public SortBuilder<T, C> pinLabelLast(Predicate<String> predicate) {
         Objects.requireNonNull(predicate, "La condició no pot ser nul·la");
         this.lastSelector = (i, opt) -> predicate.test(opt.label());
+        this.hasPinnedLast = true;
         return this;
     }
 
@@ -99,6 +108,8 @@ public final class SortBuilder<T, C>
 
         this.firstSelector = Objects.requireNonNull(firstSelector, "El selector inicial no pot ser nul");
         this.lastSelector = Objects.requireNonNull(lastSelector, "El selector final no pot ser nul");
+        this.hasPinnedFirst = true;
+        this.hasPinnedLast = true;
         return this;
     }
 
@@ -112,6 +123,8 @@ public final class SortBuilder<T, C>
 
         this.firstSelector = (index, option) -> first.contains(index);
         this.lastSelector = (index, option) -> last.contains(index);
+        this.hasPinnedFirst = !first.isEmpty();
+        this.hasPinnedLast = !last.isEmpty();
         return this;
     }
 
@@ -142,7 +155,7 @@ public final class SortBuilder<T, C>
     }
 
     /** Construeix l'operació actual d'ordenació. */
-    private Consumer<DynamicMenu<T, C>> currentOperation() {
+    private PlannedOperation<T, C> currentOperation() {
         Comparator<MenuOption<T, C>> currentComparator = effectiveComparator();
         OptionSelector<T, C> currentFirstSelector = Objects.requireNonNull(
                 firstSelector,
@@ -152,12 +165,13 @@ public final class SortBuilder<T, C>
                 "El selector final no pot ser nul");
         Range currentRange = requireRange();
 
-        return currentMenu -> SortFamily.sortByLabel(
-                currentMenu,
+        return new SortPlannedOperation<>(
                 currentComparator,
                 currentFirstSelector,
                 currentLastSelector,
-                currentRange);
+                currentRange,
+                hasPinnedFirst,
+                hasPinnedLast);
     }
 
     /** Executa tota la cadena pendent i després l'ordenació final. */
@@ -223,7 +237,8 @@ public final class SortBuilder<T, C>
 
     /** Encadena una barreja. */
     public ShuffleBuilder<T, C> thenShuffle(InheritanceMode inheritanceMode) {
-        return applyRangedInheritance(chainToShuffle(target -> {
-        }), inheritanceMode);
+        return applyRangedInheritance(
+                chainToShuffle(NoOpPlannedOperation.instance()),
+                inheritanceMode);
     }
 }

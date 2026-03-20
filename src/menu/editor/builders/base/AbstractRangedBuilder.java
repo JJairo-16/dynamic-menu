@@ -1,15 +1,13 @@
 package menu.editor.builders.base;
 
 import java.util.Objects;
-import java.util.function.Consumer;
 
 import menu.DynamicMenu;
 import menu.editor.Range;
+import menu.editor.planning.OperationPlan;
 
 /** Pare per als builders que treballen amb {@link Range}. */
-public abstract class AbstractRangedBuilder<
-        T, C,
-        S extends AbstractRangedBuilder<T, C, S>>
+public abstract class AbstractRangedBuilder<T, C, S extends AbstractRangedBuilder<T, C, S>>
         extends AbstractChainableMenuBuilder<T, C, S> {
 
     private Range range = Range.all();
@@ -20,17 +18,17 @@ public abstract class AbstractRangedBuilder<
 
     protected AbstractRangedBuilder(
             DynamicMenu<T, C> menu,
-            Consumer<DynamicMenu<T, C>> pendingPipeline) {
+            OperationPlan<T, C> pendingPlan) {
 
-        super(menu, pendingPipeline);
+        super(menu, pendingPlan);
     }
 
     protected AbstractRangedBuilder(
             DynamicMenu<T, C> menu,
-            Consumer<DynamicMenu<T, C>> pendingPipeline,
+            OperationPlan<T, C> pendingPlan,
             boolean hasPendingOperations) {
 
-        super(menu, pendingPipeline, hasPendingOperations);
+        super(menu, pendingPlan, hasPendingOperations);
     }
 
     /** Defineix el rang d'actuació. */

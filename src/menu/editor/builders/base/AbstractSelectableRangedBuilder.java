@@ -1,11 +1,11 @@
 package menu.editor.builders.base;
 
 import java.util.Objects;
-import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 import menu.DynamicMenu;
 import menu.editor.helpers.OptionSelector;
+import menu.editor.planning.OperationPlan;
 
 /** Pare per als builders que treballen amb selector i rang. */
 public abstract class AbstractSelectableRangedBuilder<T, C, S extends AbstractSelectableRangedBuilder<T, C, S>>
@@ -19,17 +19,17 @@ public abstract class AbstractSelectableRangedBuilder<T, C, S extends AbstractSe
 
     protected AbstractSelectableRangedBuilder(
             DynamicMenu<T, C> menu,
-            Consumer<DynamicMenu<T, C>> pendingPipeline) {
+            OperationPlan<T, C> pendingPlan) {
 
-        super(menu, pendingPipeline);
+        super(menu, pendingPlan);
     }
 
     protected AbstractSelectableRangedBuilder(
             DynamicMenu<T, C> menu,
-            Consumer<DynamicMenu<T, C>> pendingPipeline,
+            OperationPlan<T, C> pendingPlan,
             boolean hasPendingOperations) {
 
-        super(menu, pendingPipeline, hasPendingOperations);
+        super(menu, pendingPlan, hasPendingOperations);
     }
 
     /** Defineix la condició de selecció. */
@@ -63,7 +63,10 @@ public abstract class AbstractSelectableRangedBuilder<T, C, S extends AbstractSe
         return self();
     }
 
-    /** Defineix la condició de selecció basada en un label igual ignorant majúscules i minúscules. */
+    /**
+     * Defineix la condició de selecció basada en un label igual ignorant majúscules
+     * i minúscules.
+     */
     public S whereLabelEqualsIgnoreCase(String text) {
         Objects.requireNonNull(text, "L'String no pot ser nul");
 
@@ -71,7 +74,10 @@ public abstract class AbstractSelectableRangedBuilder<T, C, S extends AbstractSe
         return self();
     }
 
-    /** Defineix la condició de selecció basada en un label que comença amb el prefix indicat. */
+    /**
+     * Defineix la condició de selecció basada en un label que comença amb el prefix
+     * indicat.
+     */
     public S whereLabelStartsWidth(String prefix) {
         Objects.requireNonNull(prefix, "El prefix no pot ser nul");
         if (prefix.isEmpty())
@@ -81,7 +87,10 @@ public abstract class AbstractSelectableRangedBuilder<T, C, S extends AbstractSe
         return self();
     }
 
-    /** Defineix la condició de selecció basada en un label que acaba amb el sufix indicat. */
+    /**
+     * Defineix la condició de selecció basada en un label que acaba amb el sufix
+     * indicat.
+     */
     public S whereLabelEndsWidth(String suffix) {
         Objects.requireNonNull(suffix, "El sufix no pot ser nul");
         if (suffix.isEmpty())

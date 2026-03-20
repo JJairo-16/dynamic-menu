@@ -5,7 +5,6 @@ import java.util.LinkedHashSet;
 import java.util.Objects;
 import java.util.Random;
 import java.util.Set;
-import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
@@ -16,6 +15,9 @@ import menu.editor.builders.base.InheritanceMode;
 import menu.editor.core.MenuEditorSupport;
 import menu.editor.core.ShuffleFamily;
 import menu.editor.helpers.OptionSelector;
+import menu.editor.planning.OperationPlan;
+import menu.editor.planning.PlannedOperation;
+import menu.editor.planning.operations.ShufflePlannedOperation;
 
 /**
  * Builder fluent per a operacions de barreja.
@@ -29,6 +31,8 @@ public final class ShuffleBuilder<T, C>
     private Supplier<Random> randomSupplier = Random::new;
     private OptionSelector<T, C> firstSelector = MenuEditorSupport.alwaysFalseSelector();
     private OptionSelector<T, C> lastSelector = MenuEditorSupport.alwaysFalseSelector();
+    private boolean hasPinnedFirst = false;
+    private boolean hasPinnedLast = false;
 
     /**
      * Crea un builder sense operacions pendents.
@@ -47,9 +51,9 @@ public final class ShuffleBuilder<T, C>
      */
     public ShuffleBuilder(
             DynamicMenu<T, C> menu,
-            Consumer<DynamicMenu<T, C>> pendingPipeline) {
+            OperationPlan<T, C> pendingPlan) {
 
-        super(menu, pendingPipeline);
+        super(menu, pendingPlan);
     }
 
     /**
@@ -61,10 +65,10 @@ public final class ShuffleBuilder<T, C>
      */
     public ShuffleBuilder(
             DynamicMenu<T, C> menu,
-            Consumer<DynamicMenu<T, C>> pendingPipeline,
+            OperationPlan<T, C> pendingPlan,
             boolean hasPendingOperations) {
 
-        super(menu, pendingPipeline, hasPendingOperations);
+        super(menu, pendingPlan, hasPendingOperations);
     }
 
     /**
@@ -109,6 +113,7 @@ public final class ShuffleBuilder<T, C>
      */
     public ShuffleBuilder<T, C> pinFirst(OptionSelector<T, C> selector) {
         this.firstSelector = Objects.requireNonNull(selector, "El selector inicial no pot ser nul");
+        this.hasPinnedFirst = true;
         return this;
     }
 
@@ -121,6 +126,7 @@ public final class ShuffleBuilder<T, C>
     public ShuffleBuilder<T, C> pinLabelFirst(Predicate<String> predicate) {
         Objects.requireNonNull(predicate, "La condició no pot ser nul·la");
         this.firstSelector = (i, opt) -> predicate.test(opt.label());
+        this.hasPinnedFirst = true;
         return this;
     }
 
@@ -132,6 +138,7 @@ public final class ShuffleBuilder<T, C>
      */
     public ShuffleBuilder<T, C> pinLast(OptionSelector<T, C> selector) {
         this.lastSelector = Objects.requireNonNull(selector, "El selector final no pot ser nul");
+        this.hasPinnedLast = true;
         return this;
     }
 
@@ -144,6 +151,7 @@ public final class ShuffleBuilder<T, C>
     public ShuffleBuilder<T, C> pinLabelLast(Predicate<String> predicate) {
         Objects.requireNonNull(predicate, "La condició no pot ser nul·la");
         this.lastSelector = (i, opt) -> predicate.test(opt.label());
+        this.hasPinnedLast = true;
         return this;
     }
 
@@ -160,6 +168,8 @@ public final class ShuffleBuilder<T, C>
 
         this.firstSelector = Objects.requireNonNull(firstSelector, "El selector inicial no pot ser nul");
         this.lastSelector = Objects.requireNonNull(lastSelector, "El selector final no pot ser nul");
+        this.hasPinnedFirst = true;
+        this.hasPinnedLast = true;
         return this;
     }
 
@@ -179,6 +189,8 @@ public final class ShuffleBuilder<T, C>
 
         this.firstSelector = (index, option) -> first.contains(index);
         this.lastSelector = (index, option) -> last.contains(index);
+        this.hasPinnedFirst = !first.isEmpty();
+        this.hasPinnedLast = !last.isEmpty();
         return this;
     }
 
@@ -187,18 +199,19 @@ public final class ShuffleBuilder<T, C>
      *
      * @return operació actual
      */
-    private Consumer<DynamicMenu<T, C>> currentOperation() {
+    private PlannedOperation<T, C> currentOperation() {
         Range currentRange = requireRange();
         Random currentRandom = requireRandom();
         OptionSelector<T, C> first = requireFirstSelector();
         OptionSelector<T, C> last = requireLastSelector();
 
-        return currentMenu -> ShuffleFamily.shuffle(
-                currentMenu,
+        return new ShufflePlannedOperation<>(
                 currentRandom,
                 first,
                 last,
-                currentRange);
+                currentRange,
+                hasPinnedFirst,
+                hasPinnedLast);
     }
 
     /**

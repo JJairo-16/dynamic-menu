@@ -1,15 +1,13 @@
 package menu.editor.builders.base;
 
 import java.util.Objects;
-import java.util.function.Consumer;
 
 import menu.DynamicMenu;
 import menu.editor.EditConfig;
+import menu.editor.planning.OperationPlan;
 
 /** Pare per als builders d'edició que comparteixen {@link EditConfig}. */
-public abstract class AbstractEditBuilder<
-        T, C,
-        S extends AbstractEditBuilder<T, C, S>>
+public abstract class AbstractEditBuilder<T, C, S extends AbstractEditBuilder<T, C, S>>
         extends AbstractSelectableRangedBuilder<T, C, S> {
 
     private int limit = Integer.MAX_VALUE;
@@ -24,17 +22,17 @@ public abstract class AbstractEditBuilder<
 
     protected AbstractEditBuilder(
             DynamicMenu<T, C> menu,
-            Consumer<DynamicMenu<T, C>> pendingPipeline) {
+            OperationPlan<T, C> pendingPlan) {
 
-        super(menu, pendingPipeline);
+        super(menu, pendingPlan);
     }
 
     protected AbstractEditBuilder(
             DynamicMenu<T, C> menu,
-            Consumer<DynamicMenu<T, C>> pendingPipeline,
+            OperationPlan<T, C> pendingPlan,
             boolean hasPendingOperations) {
 
-        super(menu, pendingPipeline, hasPendingOperations);
+        super(menu, pendingPlan, hasPendingOperations);
     }
 
     @Override

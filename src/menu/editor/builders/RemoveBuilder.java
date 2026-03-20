@@ -1,12 +1,15 @@
 package menu.editor.builders;
 
 import java.util.Objects;
-import java.util.function.Consumer;
 
 import menu.DynamicMenu;
 import menu.editor.builders.base.AbstractEditBuilder;
 import menu.editor.builders.base.InheritanceMode;
 import menu.editor.core.RemoveFamily;
+import menu.editor.planning.OperationPlan;
+import menu.editor.planning.PlannedOperation;
+import menu.editor.planning.operations.NoOpPlannedOperation;
+import menu.editor.planning.operations.RemovePlannedOperation;
 
 /** Builder fluent per a operacions d'eliminació. */
 public final class RemoveBuilder<T, C>
@@ -20,18 +23,18 @@ public final class RemoveBuilder<T, C>
     /** Crea un builder amb operacions pendents. */
     public RemoveBuilder(
             DynamicMenu<T, C> menu,
-            Consumer<DynamicMenu<T, C>> pendingPipeline) {
+            OperationPlan<T, C> pendingPlan) {
 
-        super(menu, pendingPipeline);
+        super(menu, pendingPlan);
     }
 
     /** Crea un builder amb estat pendent explícit. */
     public RemoveBuilder(
             DynamicMenu<T, C> menu,
-            Consumer<DynamicMenu<T, C>> pendingPipeline,
+            OperationPlan<T, C> pendingPlan,
             boolean hasPendingOperations) {
 
-        super(menu, pendingPipeline, hasPendingOperations);
+        super(menu, pendingPlan, hasPendingOperations);
     }
 
     /** Retorna aquesta instància tipada. */
@@ -41,9 +44,8 @@ public final class RemoveBuilder<T, C>
     }
 
     /** Construeix l'operació actual d'eliminació. */
-    private Consumer<DynamicMenu<T, C>> currentOperation() {
-        return currentMenu -> RemoveFamily.removeIf(
-                currentMenu,
+    private PlannedOperation<T, C> currentOperation() {
+        return new RemovePlannedOperation<>(
                 requireSelector(),
                 buildConfig());
     }
@@ -151,7 +153,8 @@ public final class RemoveBuilder<T, C>
 
     /** Encadena una barreja. */
     public ShuffleBuilder<T, C> thenShuffle(InheritanceMode inheritanceMode) {
-        return applyRangedInheritance(chainToShuffle(target -> {
-        }), inheritanceMode);
+        return applyRangedInheritance(
+                chainToShuffle(NoOpPlannedOperation.instance()),
+                inheritanceMode);
     }
 }

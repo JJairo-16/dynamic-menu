@@ -2,7 +2,6 @@ package menu.editor.builders;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
@@ -10,6 +9,8 @@ import menu.DynamicMenu;
 import menu.editor.builders.base.AbstractSelectableRangedBuilder;
 import menu.editor.builders.base.InheritanceMode;
 import menu.editor.core.QueryFamily;
+import menu.editor.planning.OperationPlan;
+import menu.editor.planning.operations.NoOpPlannedOperation;
 import menu.model.MenuOption;
 
 /**
@@ -41,18 +42,18 @@ public final class QueryBuilder<T, C>
     /** Crea un builder amb operacions pendents. */
     public QueryBuilder(
             DynamicMenu<T, C> menu,
-            Consumer<DynamicMenu<T, C>> pendingPipeline) {
+            OperationPlan<T, C> pendingPlan) {
 
-        super(menu, pendingPipeline);
+        super(menu, pendingPlan);
     }
 
     /** Crea un builder amb estat pendent explícit. */
     public QueryBuilder(
             DynamicMenu<T, C> menu,
-            Consumer<DynamicMenu<T, C>> pendingPipeline,
+            OperationPlan<T, C> pendingPlan,
             boolean hasPendingOperations) {
 
-        super(menu, pendingPipeline, hasPendingOperations);
+        super(menu, pendingPlan, hasPendingOperations);
     }
 
     /** Retorna aquesta instància tipada. */
@@ -218,8 +219,9 @@ public final class QueryBuilder<T, C>
 
     /** Encadena una altra consulta. */
     public QueryBuilder<T, C> thenQuery(InheritanceMode inheritanceMode) {
-        return applySelectableInheritance(chainToQuery(target -> {
-        }), inheritanceMode);
+        return applySelectableInheritance(
+                chainToQuery(NoOpPlannedOperation.instance()),
+                inheritanceMode);
     }
 
     /** Encadena una eliminació amb herència total. */
@@ -229,8 +231,9 @@ public final class QueryBuilder<T, C>
 
     /** Encadena una eliminació. */
     public RemoveBuilder<T, C> thenRemove(InheritanceMode inheritanceMode) {
-        return applySelectableInheritance(chainToRemove(target -> {
-        }), inheritanceMode);
+        return applySelectableInheritance(
+                chainToRemove(NoOpPlannedOperation.instance()),
+                inheritanceMode);
     }
 
     /** Encadena una substitució amb herència total. */
@@ -240,8 +243,9 @@ public final class QueryBuilder<T, C>
 
     /** Encadena una substitució. */
     public ReplaceBuilder<T, C> thenReplace(InheritanceMode inheritanceMode) {
-        return applySelectableInheritance(chainToReplace(target -> {
-        }), inheritanceMode);
+        return applySelectableInheritance(
+                chainToReplace(NoOpPlannedOperation.instance()),
+                inheritanceMode);
     }
 
     /** Encadena una ordenació amb herència total. */
@@ -251,8 +255,9 @@ public final class QueryBuilder<T, C>
 
     /** Encadena una ordenació. */
     public SortBuilder<T, C> thenSort(InheritanceMode inheritanceMode) {
-        return applyRangedInheritance(chainToSort(target -> {
-        }), inheritanceMode);
+        return applyRangedInheritance(
+                chainToSort(NoOpPlannedOperation.instance()),
+                inheritanceMode);
     }
 
     /** Encadena una barreja amb herència de rang. */
@@ -262,7 +267,8 @@ public final class QueryBuilder<T, C>
 
     /** Encadena una barreja. */
     public ShuffleBuilder<T, C> thenShuffle(InheritanceMode inheritanceMode) {
-        return applyRangedInheritance(chainToShuffle(target -> {
-        }), inheritanceMode);
+        return applyRangedInheritance(
+                chainToShuffle(NoOpPlannedOperation.instance()),
+                inheritanceMode);
     }
 }
