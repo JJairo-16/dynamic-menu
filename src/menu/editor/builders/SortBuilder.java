@@ -15,8 +15,7 @@ import menu.editor.core.MenuEditorSupport;
 import menu.editor.core.SortFamily;
 import menu.editor.helpers.OptionSelector;
 import menu.editor.planning.OperationPlan;
-import menu.editor.planning.PlannedOperation;
-import menu.editor.planning.operations.NoOpPlannedOperation;
+import menu.editor.planning.interfaces.PlannedOperation;
 import menu.editor.planning.operations.SortPlannedOperation;
 import menu.model.MenuOption;
 
@@ -238,7 +237,7 @@ public final class SortBuilder<T, C>
     /** Encadena una barreja. */
     public ShuffleBuilder<T, C> thenShuffle(InheritanceMode inheritanceMode) {
         return applyRangedInheritance(
-                chainToShuffle(NoOpPlannedOperation.instance()),
+                chainToShuffle(currentOperation()),
                 inheritanceMode);
     }
 }

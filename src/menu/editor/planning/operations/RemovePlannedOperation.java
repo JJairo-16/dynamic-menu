@@ -6,8 +6,11 @@ import menu.DynamicMenu;
 import menu.editor.EditConfig;
 import menu.editor.core.RemoveFamily;
 import menu.editor.helpers.OptionSelector;
-import menu.editor.planning.OperationType;
-import menu.editor.planning.PlannedOperation;
+import menu.editor.planning.config.OperationType;
+import menu.editor.planning.config.OptimizationFamily;
+import menu.editor.planning.config.OptimizationProfile;
+import menu.editor.planning.config.SelectorDependency;
+import menu.editor.planning.interfaces.PlannedOperation;
 
 public record RemovePlannedOperation<T, C>(
         OptionSelector<T, C> selector,
@@ -46,5 +49,20 @@ public record RemovePlannedOperation<T, C>(
     @Override
     public boolean isBarrier() {
         return true;
+    }
+
+    @Override
+    public OptimizationProfile optimizationProfile() {
+        return new OptimizationProfile(
+                type(),
+                range(),
+                false,
+                false,
+                true,
+                false,
+                false,
+                true,
+                OptimizationFamily.REMOVE,
+                SelectorDependency.INDEX);
     }
 }

@@ -7,8 +7,7 @@ import menu.editor.builders.base.AbstractEditBuilder;
 import menu.editor.builders.base.InheritanceMode;
 import menu.editor.core.RemoveFamily;
 import menu.editor.planning.OperationPlan;
-import menu.editor.planning.PlannedOperation;
-import menu.editor.planning.operations.NoOpPlannedOperation;
+import menu.editor.planning.interfaces.PlannedOperation;
 import menu.editor.planning.operations.RemovePlannedOperation;
 
 /** Builder fluent per a operacions d'eliminació. */
@@ -154,7 +153,7 @@ public final class RemoveBuilder<T, C>
     /** Encadena una barreja. */
     public ShuffleBuilder<T, C> thenShuffle(InheritanceMode inheritanceMode) {
         return applyRangedInheritance(
-                chainToShuffle(NoOpPlannedOperation.instance()),
+                chainToShuffle(currentOperation()),
                 inheritanceMode);
     }
 }

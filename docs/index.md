@@ -105,3 +105,4 @@ Utilitats avançades per inspeccionar, eliminar, reemplaçar i ordenar opcions d
   - [05 - Sort Builder](09-editor/03-builders/05-sort-builder.md)
   - [06 - Shuffle Builder](09-editor/03-builders/06-shuffle-builder.md)
   - [07 - Builder Pipelines](09-editor/03-builders/06-builder-pipelines.md)
+  - [08 - Operation Pipeline Optimizer (OPO)](09-editor/03-builders/08-operation-pipeline-optimizer.md)

@@ -10,7 +10,7 @@ import menu.editor.builders.ShuffleBuilder;
 import menu.editor.builders.SortBuilder;
 import menu.editor.planning.OperationPlan;
 import menu.editor.planning.PlanExecutor;
-import menu.editor.planning.PlannedOperation;
+import menu.editor.planning.interfaces.PlannedOperation;
 
 /**
  * Pare mínim per a tots els builders encadenables.
@@ -144,10 +144,10 @@ public abstract class AbstractChainableMenuBuilder<
         Objects.requireNonNull(currentOperation, "L'operació actual no pot ser nul·la");
 
         if (!hasPendingOperations) {
-            return OperationPlan.<T, C>empty().append(currentOperation);
+            return OperationPlan.<T, C>empty().appendOptimized(currentOperation);
         }
 
-        return pendingPlan.append(currentOperation);
+        return pendingPlan.appendOptimized(currentOperation);
     }
 
     /**

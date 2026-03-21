@@ -51,6 +51,7 @@
 		{ "path": "09-editor/03-builders/04-replace-builder.md" },
 		{ "path": "09-editor/03-builders/05-sort-builder.md" },
 		{ "path": "09-editor/03-builders/06-shuffle-builder.md" },
-		{ "path": "09-editor/03-builders/07-builder-pipelines.md" }
+		{ "path": "09-editor/03-builders/07-builder-pipelines.md" },
+		{ "path": "09-editor/03-builders/08-operation-pipeline-optimizer.md" }
 	]
 }

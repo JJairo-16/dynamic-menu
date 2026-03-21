@@ -52,8 +52,7 @@ Això té sentit si el selector és una peça central del teu sistema de menús.
 ## Exemple amb un objecte ja existent
 
 També pots reutilitzar una utilitat ja pensada per mostrar menús estàtics.
-No cal que la classe implementi `MenuSelector` si prefereixes adaptar-la quan
-construeixes el menú.
+No cal que la classe implementi `MenuSelector` si prefereixes adaptar-la quan construeixes el menú.
 
 ```java
 DynamicMenu<String, Void> menu =

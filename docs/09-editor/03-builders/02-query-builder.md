@@ -64,23 +64,23 @@ MenuEditor.query(menu)
     .exists();
 ```
 
-### `whereLabelStartsWidth(String prefix)`
+### `whereLabelStartsWith(String prefix)`
 
 Selecciona les opcions el label de les quals comença amb el prefix indicat.
 
 ```java
 MenuEditor.query(menu)
-    .whereLabelStartsWidth("[ADMIN]")
+    .whereLabelStartsWith("[ADMIN]")
     .count();
 ```
 
-### `whereLabelEndsWidth(String suffix)`
+### `whereLabelEndsWith(String suffix)`
 
 Selecciona les opcions el label de les quals acaba amb el sufix indicat.
 
 ```java
 MenuEditor.query(menu)
-    .whereLabelEndsWidth("...")
+    .whereLabelEndsWith("...")
     .exists();
 ```
 

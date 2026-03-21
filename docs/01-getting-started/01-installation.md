@@ -49,7 +49,7 @@ També pots utilitzar la llibreria com a **fitxer JAR precompilat**.
 Versió actual:
 
 ```
-dynamic-menu-1.3.3.jar
+dynamic-menu-1.4.4.jar
 ```
 
 ## Afegir el JAR manualment
@@ -59,7 +59,7 @@ Col·loca el JAR dins d'una carpeta del projecte, per exemple:
 ```
 project/
  ├─ lib/
- │   └─ dynamic-menu-1.3.3.jar
+ │   └─ dynamic-menu-1.4.4.jar
  └─ src/
 ```
 
@@ -68,13 +68,13 @@ project/
 ## Compilació (PowerShell)
 
 ```powershell
-javac -cp "lib/dynamic-menu-1.3.3.jar" -d out (Get-ChildItem -Recurse -Filter *.java src).FullName
+javac -cp "lib/dynamic-menu-1.4.4.jar" -d out (Get-ChildItem -Recurse -Filter *.java src).FullName
 ```
 
 Execució:
 
 ```powershell
-java -cp "out;lib/dynamic-menu-1.3.3.jar" com.example.Main
+java -cp "out;lib/dynamic-menu-1.4.4.jar" com.example.Main
 ```
 
 ---
@@ -82,13 +82,13 @@ java -cp "out;lib/dynamic-menu-1.3.3.jar" com.example.Main
 ## Compilació (Bash / Linux / macOS)
 
 ```bash
-javac -cp "lib/dynamic-menu-1.3.3.jar" -d out $(find src -name "*.java")
+javac -cp "lib/dynamic-menu-1.4.4.jar" -d out $(find src -name "*.java")
 ```
 
 Execució:
 
 ```bash
-java -cp "out:lib/dynamic-menu-1.3.3.jar" com.example.Main
+java -cp "out:lib/dynamic-menu-1.4.4.jar" com.example.Main
 ```
 
 ---
@@ -101,7 +101,7 @@ Si utilitzes **Maven**, pots declarar la dependència al `pom.xml`.
 <dependency>
     <groupId>com.example</groupId>
     <artifactId>dynamic-menu</artifactId>
-    <version>1.3.3</version>
+    <version>1.4.4</version>
 </dependency>
 ```
 
@@ -113,7 +113,7 @@ Si utilitzes **Gradle**, pots afegir la dependència així.
 
 ```groovy
 dependencies {
-    implementation 'com.example:dynamic-menu:1.3.3'
+    implementation 'com.example:dynamic-menu:1.4.4'
 }
 ```
 

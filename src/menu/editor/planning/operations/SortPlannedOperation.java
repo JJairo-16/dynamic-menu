@@ -7,8 +7,11 @@ import menu.DynamicMenu;
 import menu.editor.Range;
 import menu.editor.core.SortFamily;
 import menu.editor.helpers.OptionSelector;
-import menu.editor.planning.OperationType;
-import menu.editor.planning.PlannedOperation;
+import menu.editor.planning.config.OperationType;
+import menu.editor.planning.config.OptimizationFamily;
+import menu.editor.planning.config.OptimizationProfile;
+import menu.editor.planning.config.SelectorDependency;
+import menu.editor.planning.interfaces.PlannedOperation;
 import menu.model.MenuOption;
 
 public record SortPlannedOperation<T, C>(
@@ -59,5 +62,20 @@ public record SortPlannedOperation<T, C>(
     @Override
     public boolean hasPinnedSelectors() {
         return hasPinnedFirst || hasPinnedLast;
+    }
+
+    @Override
+    public OptimizationProfile optimizationProfile() {
+        return new OptimizationProfile(
+                type(),
+                range(),
+                true,
+                true,
+                true,
+                false,
+                hasPinnedSelectors(),
+                false,
+                OptimizationFamily.REORDER,
+                SelectorDependency.INDEX);
     }
 }

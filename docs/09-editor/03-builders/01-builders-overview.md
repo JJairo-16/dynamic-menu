@@ -66,8 +66,8 @@ Aquesta arquitectura permet unificar mètodes com:
 - `whereLabel(...)`
 - `whereLabelEquals(...)`
 - `whereLabelEqualsIgnoreCase(...)`
-- `whereLabelStartsWidth(...)`
-- `whereLabelEndsWidth(...)`
+- `whereLabelStartsWith(...)`
+- `whereLabelEndsWith(...)`
 - `whereAny()`
 - `limit(...)`
 - `reverse(...)`

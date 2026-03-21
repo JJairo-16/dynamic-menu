@@ -58,8 +58,8 @@ public abstract class AbstractSelectableRangedBuilder<T, C, S extends AbstractSe
     /** Defineix la condició de selecció basada en un label exactament igual. */
     public S whereLabelEquals(String text) {
         Objects.requireNonNull(text, "L'String no pot ser nul");
-
         this.selector = labelAdapter(l -> l.equals(text));
+        onStateChanged();
         return self();
     }
 
@@ -69,8 +69,8 @@ public abstract class AbstractSelectableRangedBuilder<T, C, S extends AbstractSe
      */
     public S whereLabelEqualsIgnoreCase(String text) {
         Objects.requireNonNull(text, "L'String no pot ser nul");
-
         this.selector = labelAdapter(l -> l.equalsIgnoreCase(text));
+        onStateChanged();
         return self();
     }
 
@@ -78,12 +78,12 @@ public abstract class AbstractSelectableRangedBuilder<T, C, S extends AbstractSe
      * Defineix la condició de selecció basada en un label que comença amb el prefix
      * indicat.
      */
-    public S whereLabelStartsWidth(String prefix) {
+    public S whereLabelStartsWith(String prefix) {
         Objects.requireNonNull(prefix, "El prefix no pot ser nul");
         if (prefix.isEmpty())
             throw new IllegalArgumentException("El prefix no pot estar en blanc");
-
         this.selector = labelAdapter(l -> l.startsWith(prefix));
+        onStateChanged();
         return self();
     }
 
@@ -91,12 +91,12 @@ public abstract class AbstractSelectableRangedBuilder<T, C, S extends AbstractSe
      * Defineix la condició de selecció basada en un label que acaba amb el sufix
      * indicat.
      */
-    public S whereLabelEndsWidth(String suffix) {
+    public S whereLabelEndsWith(String suffix) {
         Objects.requireNonNull(suffix, "El sufix no pot ser nul");
         if (suffix.isEmpty())
             throw new IllegalArgumentException("El sufix no pot estar en blanc");
-
         this.selector = labelAdapter(l -> l.endsWith(suffix));
+        onStateChanged();
         return self();
     }
 

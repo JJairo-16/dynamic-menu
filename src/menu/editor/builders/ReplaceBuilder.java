@@ -14,8 +14,7 @@ import menu.editor.helpers.ActionMapper;
 import menu.editor.helpers.LabelMapper;
 import menu.editor.helpers.OptionMapper;
 import menu.editor.planning.OperationPlan;
-import menu.editor.planning.PlannedOperation;
-import menu.editor.planning.operations.NoOpPlannedOperation;
+import menu.editor.planning.interfaces.PlannedOperation;
 import menu.editor.planning.operations.ReplacePlannedOperation;
 import menu.model.MenuOption;
 
@@ -252,7 +251,7 @@ public final class ReplaceBuilder<T, C>
     /** Encadena una barreja. */
     public ShuffleBuilder<T, C> thenShuffle(InheritanceMode inheritanceMode) {
         return applyRangedInheritance(
-                chainToShuffle(NoOpPlannedOperation.instance()),
+                chainToShuffle(currentOperation()),
                 inheritanceMode);
     }
 }

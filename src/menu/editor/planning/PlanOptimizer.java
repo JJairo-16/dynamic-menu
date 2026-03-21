@@ -4,252 +4,307 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-import menu.editor.planning.operations.ShufflePlannedOperation;
-import menu.editor.planning.operations.SortPlannedOperation;
+import menu.editor.planning.config.OptimizationFamily;
+import menu.editor.planning.config.OptimizationProfile;
+import menu.editor.planning.interfaces.PlannedOperation;
 
+/** Aplica regles d'optimització sobre plans d'operacions. */
 public final class PlanOptimizer {
+
+    private static final OperationAlgebra FAST_APPEND_ALGEBRA =
+            new OperationAlgebra(List.of(
+                    PlanOptimizer::rewriteNeutralElements,
+                    PlanOptimizer::rewriteBarriers,
+                    PlanOptimizer::rewriteDominantReorderFast));
+
+    private static final OperationAlgebra FULL_OPTIMIZE_ALGEBRA =
+            new OperationAlgebra(List.of(
+                    PlanOptimizer::rewriteNeutralElements,
+                    PlanOptimizer::rewriteBarriers,
+                    PlanOptimizer::rewriteEquivalentStableOperations,
+                    PlanOptimizer::rewriteDominantReorderFull));
 
     private PlanOptimizer() {
     }
 
+    /** Optimitza globalment un pla. */
     public static <T, C> OperationPlan<T, C> optimize(OperationPlan<T, C> plan) {
         Objects.requireNonNull(plan, "El pla no pot ser nul");
 
-        if (plan.isEmpty() || plan.size() < 2)
+        if (plan.isEmpty() || plan.isGloballyOptimized()) {
             return plan;
-
-        List<PlannedOperation<T, C>> current = removeNoOps(plan.operations());
-
-        boolean changed;
-        do {
-            PassResult<T, C> pass = optimizePass(current);
-            current = pass.operations();
-            changed = pass.changed();
-        } while (changed);
-
-        return OperationPlan.of(current);
-    }
-
-    private static <T, C> PassResult<T, C> optimizePass(
-            List<PlannedOperation<T, C>> input) {
-
-        List<PlannedOperation<T, C>> optimized = new ArrayList<>(input.size());
-        boolean changed = false;
-
-        for (PlannedOperation<T, C> current : input) {
-            if (optimized.isEmpty()) {
-                optimized.add(current);
-                continue;
-            }
-
-            PlannedOperation<T, C> previous = optimized.get(optimized.size() - 1);
-            RewriteResult<T, C> rewrite = rewrite(previous, current);
-
-            switch (rewrite.kind()) {
-                case KEEP_BOTH -> optimized.add(current);
-
-                case DROP_PREVIOUS -> {
-                    optimized.remove(optimized.size() - 1);
-                    optimized.add(current);
-                    changed = true;
-                }
-
-                case DROP_CURRENT -> changed = true;
-
-                case REPLACE_BOTH -> {
-                    optimized.remove(optimized.size() - 1);
-                    optimized.add(rewrite.replacement());
-                    changed = true;
-                }
-            }
         }
 
-        return new PassResult<>(List.copyOf(optimized), changed);
+        List<PlannedOperation<T, C>> source = plan.operations();
+        if (source.isEmpty()) {
+            return OperationPlan.emptyGloballyOptimized();
+        }
+
+        ArrayList<PlannedOperation<T, C>> stack = new ArrayList<>(source.size());
+
+        for (PlannedOperation<T, C> operation : source) {
+            reduceInto(stack, operation, FULL_OPTIMIZE_ALGEBRA);
+        }
+
+        return OperationPlan.ofOptimized(stack);
     }
 
-    private static <T, C> RewriteResult<T, C> rewrite(
+    /** Reescriu dues operacions adjacents amb regles ràpides. */
+    public static <T, C> RewriteResult<T, C> rewriteAdjacentFast(
             PlannedOperation<T, C> previous,
             PlannedOperation<T, C> current) {
 
-        RewriteResult<T, C> result;
+        Objects.requireNonNull(previous, "L'operació anterior no pot ser nul·la");
+        Objects.requireNonNull(current, "L'operació actual no pot ser nul·la");
 
-        result = rewriteShuffleSort(previous, current);
-        if (result.kind() != RewriteKind.KEEP_BOTH) {
-            return result;
+        return FAST_APPEND_ALGEBRA.rewrite(previous, current);
+    }
+
+    /** Reescriu dues operacions adjacents amb regles completes. */
+    public static <T, C> RewriteResult<T, C> rewriteAdjacentFull(
+            PlannedOperation<T, C> previous,
+            PlannedOperation<T, C> current) {
+
+        Objects.requireNonNull(previous, "L'operació anterior no pot ser nul·la");
+        Objects.requireNonNull(current, "L'operació actual no pot ser nul·la");
+
+        return FULL_OPTIMIZE_ALGEBRA.rewrite(previous, current);
+    }
+
+    /** Redueix una operació dins d'una pila usant un àlgebra de reescriptura. */
+    static <T, C> void reduceInto(
+            List<PlannedOperation<T, C>> stack,
+            PlannedOperation<T, C> current,
+            OperationAlgebra algebra) {
+
+        Objects.requireNonNull(stack, "La pila no pot ser nul·la");
+        Objects.requireNonNull(current, "L'operació actual no pot ser nul·la");
+        Objects.requireNonNull(algebra, "L'àlgebra no pot ser nul·la");
+
+        if (current.isNoOp()) {
+            return;
         }
 
-        result = rewriteSortSort(previous, current);
-        if (result.kind() != RewriteKind.KEEP_BOTH) {
-            return result;
+        PlannedOperation<T, C> candidate = current;
+
+        while (!stack.isEmpty()) {
+            PlannedOperation<T, C> previous = stack.get(stack.size() - 1);
+            RewriteResult<T, C> rewrite = algebra.rewrite(previous, candidate);
+
+            switch (rewrite.kind()) {
+                case KEEP_BOTH -> {
+                    stack.add(candidate);
+                    return;
+                }
+                case DROP_PREVIOUS -> stack.remove(stack.size() - 1);
+                case DROP_CURRENT -> {
+                    return;
+                }
+                case REPLACE_BOTH -> {
+                    stack.remove(stack.size() - 1);
+                    candidate = rewrite.replacement();
+
+                    if (candidate == null || candidate.isNoOp()) {
+                        return;
+                    }
+                }
+            }
         }
 
-        result = rewriteShuffleShuffle(previous, current);
-        if (result.kind() != RewriteKind.KEEP_BOTH) {
-            return result;
+        stack.add(candidate);
+    }
+
+    /** Elimina operacions neutres adjacents. */
+    private static <T, C> RewriteResult<T, C> rewriteNeutralElements(
+            PlannedOperation<T, C> previous,
+            PlannedOperation<T, C> current) {
+
+        if (previous.isNoOp()) {
+            return RewriteResult.dropPrevious();
+        }
+
+        if (current.isNoOp()) {
+            return RewriteResult.dropCurrent();
         }
 
         return RewriteResult.keepBoth();
     }
 
-    private static <T, C> RewriteResult<T, C> rewriteShuffleSort(
+    /** Conserva el límit entre operacions que actuen com a barrera. */
+    private static <T, C> RewriteResult<T, C> rewriteBarriers(
             PlannedOperation<T, C> previous,
             PlannedOperation<T, C> current) {
 
-        if (!sameType(previous, OperationType.SHUFFLE)
-                || !sameType(current, OperationType.SORT)) {
+        OptimizationProfile left = previous.optimizationProfile();
+        OptimizationProfile right = current.optimizationProfile();
+
+        if (left.barrier() || right.barrier()) {
             return RewriteResult.keepBoth();
         }
 
-        if (!isPlainReorder(previous) || !isPlainReorder(current)) {
+        return RewriteResult.keepBoth();
+    }
+
+    /** Simplifica reordenacions dominants en append incremental. */
+    private static <T, C> RewriteResult<T, C> rewriteDominantReorderFast(
+            PlannedOperation<T, C> previous,
+            PlannedOperation<T, C> current) {
+
+        OptimizationProfile left = previous.optimizationProfile();
+        OptimizationProfile right = current.optimizationProfile();
+
+        if (left.family() != OptimizationFamily.REORDER
+                || right.family() != OptimizationFamily.REORDER) {
             return RewriteResult.keepBoth();
         }
 
-        if (!sameRange(previous, current)) {
+        if (!left.isPlainReorder() || !right.isPlainReorder()) {
             return RewriteResult.keepBoth();
         }
 
-        ShufflePlannedOperation<T, C> shuffle = (ShufflePlannedOperation<T, C>) previous;
-        SortPlannedOperation<T, C> sort = (SortPlannedOperation<T, C>) current;
-
-        if (shuffle.hasPinnedSelectors() || sort.hasPinnedSelectors()) {
+        if (!left.sameFamilyAs(right) || !left.sameRangeAs(right)) {
             return RewriteResult.keepBoth();
         }
 
         return RewriteResult.dropPrevious();
     }
 
-    private static <T, C> RewriteResult<T, C> rewriteSortSort(
+    /** Simplifica reordenacions dominants amb criteris globals conservadors. */
+    private static <T, C> RewriteResult<T, C> rewriteDominantReorderFull(
             PlannedOperation<T, C> previous,
             PlannedOperation<T, C> current) {
 
-        if (!sameType(previous, OperationType.SORT)
-                || !sameType(current, OperationType.SORT)) {
+        OptimizationProfile left = previous.optimizationProfile();
+        OptimizationProfile right = current.optimizationProfile();
+
+        if (left.family() != OptimizationFamily.REORDER
+                || right.family() != OptimizationFamily.REORDER) {
             return RewriteResult.keepBoth();
         }
 
-        if (!isPlainReorder(previous) || !isPlainReorder(current)) {
+        if (!left.isPlainReorder() || !right.isPlainReorder()) {
             return RewriteResult.keepBoth();
         }
 
-        if (!sameRange(previous, current)) {
+        if (!left.sameFamilyAs(right) || !left.sameRangeAs(right)) {
             return RewriteResult.keepBoth();
         }
 
-        SortPlannedOperation<T, C> first = (SortPlannedOperation<T, C>) previous;
-        SortPlannedOperation<T, C> second = (SortPlannedOperation<T, C>) current;
+        if (left.isIndexSensitive() || right.isIndexSensitive()) {
+            return RewriteResult.keepBoth();
+        }
 
-        if (first.hasPinnedSelectors() || second.hasPinnedSelectors()) {
+        if (left.isLabelSensitive() || right.isLabelSensitive()) {
             return RewriteResult.keepBoth();
         }
 
         return RewriteResult.dropPrevious();
     }
 
-    private static <T, C> RewriteResult<T, C> rewriteShuffleShuffle(
+    /** Deduplica operacions semànticament equivalents quan és segur. */
+    private static <T, C> RewriteResult<T, C> rewriteEquivalentStableOperations(
             PlannedOperation<T, C> previous,
             PlannedOperation<T, C> current) {
 
-        if (!sameType(previous, OperationType.SHUFFLE)
-                || !sameType(current, OperationType.SHUFFLE)) {
+        if (!previous.supportsSemanticDeduplication()
+                || !current.supportsSemanticDeduplication()) {
             return RewriteResult.keepBoth();
         }
 
-        if (!isPlainReorder(previous) || !isPlainReorder(current)) {
+        OptimizationProfile left = previous.optimizationProfile();
+        OptimizationProfile right = current.optimizationProfile();
+
+        if (!left.isConservativelySafeForSemanticDeduplication()
+                || !right.isConservativelySafeForSemanticDeduplication()) {
             return RewriteResult.keepBoth();
         }
 
-        if (!sameRange(previous, current)) {
+        if (!left.sameSemanticWindowAs(right)) {
             return RewriteResult.keepBoth();
         }
 
-        ShufflePlannedOperation<T, C> first = (ShufflePlannedOperation<T, C>) previous;
-        ShufflePlannedOperation<T, C> second = (ShufflePlannedOperation<T, C>) current;
-
-        if (first.hasPinnedSelectors() || second.hasPinnedSelectors()) {
+        if (!previous.isSemanticallyEquivalentTo(current)) {
             return RewriteResult.keepBoth();
         }
 
-        return RewriteResult.dropPrevious();
+        return RewriteResult.dropCurrent();
     }
 
-    private static <T, C> List<PlannedOperation<T, C>> removeNoOps(
-            List<PlannedOperation<T, C>> operations) {
+    /** Regla elemental d'una àlgebra de reescriptura. */
+    @FunctionalInterface
+    static interface AlgebraRule {
 
-        Objects.requireNonNull(operations, "La llista d'operacions no pot ser nul·la");
+        /** Aplica la regla sobre dues operacions adjacents. */
+        <T, C> RewriteResult<T, C> apply(
+                PlannedOperation<T, C> previous,
+                PlannedOperation<T, C> current);
+    }
 
-        List<PlannedOperation<T, C>> filtered = new ArrayList<>(operations.size());
+    /** Conjunt ordenat de regles de reescriptura. */
+    static final class OperationAlgebra {
 
-        for (PlannedOperation<T, C> op : operations) {
-            if (op == null || op.isNoOp()) {
-                continue;
+        private final List<AlgebraRule> rules;
+
+        /** Crea una àlgebra a partir d'una llista de regles. */
+        private OperationAlgebra(List<AlgebraRule> rules) {
+            this.rules = List.copyOf(rules);
+        }
+
+        /** Aplica les regles fins a obtenir una decisió. */
+        private <T, C> RewriteResult<T, C> rewrite(
+                PlannedOperation<T, C> previous,
+                PlannedOperation<T, C> current) {
+
+            for (AlgebraRule rule : rules) {
+                RewriteResult<T, C> result = rule.apply(previous, current);
+                if (result.kind() != RewriteKind.KEEP_BOTH) {
+                    return result;
+                }
             }
-            filtered.add(op);
+
+            return RewriteResult.keepBoth();
         }
-
-        return filtered;
     }
 
-    private static boolean sameRange(
-            PlannedOperation<?, ?> left,
-            PlannedOperation<?, ?> right) {
-        return Objects.equals(left.range(), right.range());
-    }
-
-    private static boolean sameType(
-            PlannedOperation<?, ?> op,
-            OperationType type) {
-        return op.type() == type;
-    }
-
-    private static boolean isPlainReorder(PlannedOperation<?, ?> op) {
-        return op.reorders()
-                && op.preservesCardinality()
-                && !op.hasPinnedSelectors();
-    }
-
-    private enum RewriteKind {
+    /** Tipus de resultat d'una reescriptura. */
+    public enum RewriteKind {
         KEEP_BOTH,
         DROP_PREVIOUS,
         DROP_CURRENT,
         REPLACE_BOTH
     }
 
-    private static record RewriteResult<T, C>(RewriteKind kind, PlannedOperation<T, C> replacement) {
-        private RewriteResult {
-            Objects.requireNonNull(kind, "El tipus de reescriptura no pot ser nul");
+    /** Resultat d'una reescriptura entre dues operacions. */
+    public static record RewriteResult<T, C>(
+            RewriteKind kind,
+            PlannedOperation<T, C> replacement) {
+
+        /** Valida el tipus de resultat. */
+        public RewriteResult {
+            Objects.requireNonNull(kind, "El tipus de rewrite no pot ser nul");
         }
 
+        /** Manté totes dues operacions. */
         public static <T, C> RewriteResult<T, C> keepBoth() {
             return new RewriteResult<>(RewriteKind.KEEP_BOTH, null);
         }
 
+        /** Elimina l'operació anterior. */
         public static <T, C> RewriteResult<T, C> dropPrevious() {
             return new RewriteResult<>(RewriteKind.DROP_PREVIOUS, null);
         }
 
-        @SuppressWarnings("unused")
+        /** Elimina l'operació actual. */
         public static <T, C> RewriteResult<T, C> dropCurrent() {
             return new RewriteResult<>(RewriteKind.DROP_CURRENT, null);
         }
 
-        @SuppressWarnings("unused")
+        /** Substitueix totes dues operacions per una de nova. */
         public static <T, C> RewriteResult<T, C> replaceBoth(
                 PlannedOperation<T, C> replacement) {
-
             return new RewriteResult<>(
                     RewriteKind.REPLACE_BOTH,
-                    Objects.requireNonNull(replacement, "L'operació de reemplaç no pot ser nul·la"));
-        }
-    }
-
-    private static record PassResult<T, C>(
-            List<PlannedOperation<T, C>> operations,
-            boolean changed) {
-
-        private PassResult {
-            Objects.requireNonNull(
-                    operations,
-                    "La llista d'operacions no pot ser nul·la");
+                    Objects.requireNonNull(replacement, "L'operació de reemplaçament no pot ser nul·la"));
         }
     }
 }

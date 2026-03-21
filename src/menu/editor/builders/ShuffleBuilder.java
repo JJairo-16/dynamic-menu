@@ -16,7 +16,7 @@ import menu.editor.core.MenuEditorSupport;
 import menu.editor.core.ShuffleFamily;
 import menu.editor.helpers.OptionSelector;
 import menu.editor.planning.OperationPlan;
-import menu.editor.planning.PlannedOperation;
+import menu.editor.planning.interfaces.PlannedOperation;
 import menu.editor.planning.operations.ShufflePlannedOperation;
 
 /**

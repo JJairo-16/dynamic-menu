@@ -27,8 +27,8 @@ També es poden usar altres variants de selecció, com ara:
 - `whereLabel(predicate)`
 - `whereLabelEquals(String text)`
 - `whereLabelEqualsIgnoreCase(String text)`
-- `whereLabelStartsWidth(String prefix)`
-- `whereLabelEndsWidth(String suffix)`
+- `whereLabelStartsWith(String prefix)`
+- `whereLabelEndsWith(String suffix)`
 - `whereAny()`
 
 ## Modificacions bàsiques

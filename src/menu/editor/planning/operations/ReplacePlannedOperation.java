@@ -7,8 +7,11 @@ import menu.editor.EditConfig;
 import menu.editor.core.ReplaceFamily;
 import menu.editor.helpers.OptionMapper;
 import menu.editor.helpers.OptionSelector;
-import menu.editor.planning.OperationType;
-import menu.editor.planning.PlannedOperation;
+import menu.editor.planning.config.OperationType;
+import menu.editor.planning.config.OptimizationFamily;
+import menu.editor.planning.config.OptimizationProfile;
+import menu.editor.planning.config.SelectorDependency;
+import menu.editor.planning.interfaces.PlannedOperation;
 
 public record ReplacePlannedOperation<T, C>(
         OptionSelector<T, C> selector,
@@ -39,5 +42,20 @@ public record ReplacePlannedOperation<T, C>(
     @Override
     public boolean changesLabels() {
         return true;
+    }
+
+    @Override
+    public OptimizationProfile optimizationProfile() {
+        return new OptimizationProfile(
+                type(),
+                range(),
+                false,
+                true,
+                false,
+                true,
+                false,
+                false,
+                OptimizationFamily.REPLACE,
+                SelectorDependency.UNKNOWN);
     }
 }
